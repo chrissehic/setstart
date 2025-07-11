@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Workflow {
+  id                String            @id @default(cuid())
+  userId            String
+  name              String
+  tagline           String?
+  description       String?
+  logoImage         String?
+  backgroundImage   String?
+  tags              Tag[] // Many-to-many relation with Tag
+  people            RolesInWorkflow[] // Relation to the join table
+  estimatedDuration String? // Optional estimated duration
+  
+  stage             String @default("Existence") // New: HBR stage
+  status            String @default("BLUEPRINT") // New: Workflow status
+
+  definition String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // User cannot have 2 workflows with the same name
+  @@unique([name])
+}
+
+model Tag {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  workflows Workflow[] // Many-to-many relation with Workflow
+}
+
+model Person {
+  id          String            @id @default(cuid())
+  name        String            @unique
+  avatarImage String?
+  workflows   RolesInWorkflow[] // No `onDelete` here; handled via RolesInWorkflow
+}
+
+model RolesInWorkflow {
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade) // Specify cascade here
+  workflowId String
+  person     Person   @relation(fields: [personId], references: [id]) // No cascade here, as Person should remain
+  personId   String
+  role       String
+
+  @@id([workflowId, personId])
+}
