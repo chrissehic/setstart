@@ -22,9 +22,9 @@ model Workflow {
   tags              Tag[] // Many-to-many relation with Tag
   people            RolesInWorkflow[] // Relation to the join table
   estimatedDuration String? // Optional estimated duration
-  
-  stage             String @default("Existence") // New: HBR stage
-  status            String @default("BLUEPRINT") // New: Workflow status
+
+  stage  String @default("existence") // New: HBR stage
+  status String @default("BLUEPRINT") // New: Workflow status
 
   definition String
 

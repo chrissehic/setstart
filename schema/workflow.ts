@@ -1,9 +1,12 @@
+import { COMPANY_STAGES } from "@/types";
 import { z } from "zod"
 
 // Schema for creating a new workflow
 export const createWorkflowSchema = z.object({
     name: z.string().min(1).max(50),
 })
+
+const companyStageKeys = COMPANY_STAGES.map((s) => s.key);
 
 export type createWorkflowSchemaType = z.infer<typeof createWorkflowSchema>
 
@@ -17,6 +20,7 @@ export const updateWorkflowSchema = z.object({
     estimatedDuration: z.string().optional(),
     logoImage: z.string().optional(),
     backgroundImage: z.string().optional(),
+      stage: z.enum(companyStageKeys as [string, ...string[]]).optional(),
 })
 
 export type updateWorkflowSchemaType = z.infer<typeof updateWorkflowSchema>

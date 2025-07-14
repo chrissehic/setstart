@@ -171,7 +171,7 @@ export default function AIInputForm({
                       {showSubmitButton && (
                         <Button
                           className="size-12 rounded-full shadow-md font-bold ml-2"
-                          variant={"inverse"}
+                          variant={"default"}
                           type="submit"
                           disabled={isLoading}
                         >

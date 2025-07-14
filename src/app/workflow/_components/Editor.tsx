@@ -12,7 +12,7 @@ function Editor({ workflow }: { workflow: WorkflowWithDetails }) {
   return (
     <div className="h-full w-full flex flex-col">
       <MenuBar workflow={workflow}/>
-      <Workspace id={`workspace-${workflow.id}`} data={{...workflow, stage: "Existence", status: WorkflowStatus.BLUEPRINT}} />
+      <Workspace id={`workspace-${workflow.id}`} data={{...workflow, status: WorkflowStatus.BLUEPRINT}} />
       <AIInputForm workflowId={workflow.id}/>
     </div>
   );

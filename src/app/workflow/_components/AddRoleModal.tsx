@@ -1,8 +1,25 @@
 "use client";
 
 import * as React from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
+
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { addPersonSchema } from "../../../../schema/person";
+import { AddPersonToWorkflow } from "@/actions/people/addPersonToWorkflow";
+import { UpdateWorkflowRole } from "@/actions/people/updateWorkflowRole";
+import { DeleteWorkflowRole } from "@/actions/people/deleteWorkflowRole";
+import type { Person } from "@/generated/prisma";
+
+import {
+  Button,
+  buttonVariants,
+} from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -26,18 +43,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { addPersonSchema } from "../../../../schema/person";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { cn } from "@/lib/utils";
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { AddPersonToWorkflow } from "@/actions/people/addPersonToWorkflow";
-import { z } from "zod";
-import { UpdateWorkflowRole } from "@/actions/people/updateWorkflowRole";
-import { DeleteWorkflowRole } from "@/actions/people/deleteWorkflowRole";
-import type { Person } from "@/generated/prisma";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -67,44 +72,44 @@ export function AddRoleModal({
 }: AddRoleModalProps) {
   const [open, setOpen] = React.useState(false);
   const isMobile = useIsMobile();
+
   const isEditing = !!person;
   const dialogTitle = isEditing ? "Edit Role" : "Add a new role";
 
-  if (isMobile) {
-    return (
-      <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger className="text-start cursor-pointer" disabled={readOnly}>
-          {children}
-        </DrawerTrigger>
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>{dialogTitle}</DrawerTitle>
-          </DrawerHeader>
-          <AddRoleForm
-            className="px-4"
-            onClose={() => setOpen(false)}
-            workflowId={workflowId}
-            person={person}
-          />
-        </DrawerContent>
-      </Drawer>
-    );
-  }
+  const Trigger = (
+    <span className="text-start cursor-pointer" aria-disabled={readOnly}>
+      {children}
+    </span>
+  );
 
-  return (
+  const FormWrapper = (
+    <AddRoleForm
+      onClose={() => setOpen(false)}
+      workflowId={workflowId}
+      person={person}
+      className="px-4"
+      
+    />
+  );
+
+  return isMobile ? (
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerTrigger disabled={readOnly}>{Trigger}</DrawerTrigger>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>{dialogTitle}</DrawerTitle>
+        </DrawerHeader>
+        {FormWrapper}
+      </DrawerContent>
+    </Drawer>
+  ) : (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className="text-start cursor-pointer" disabled={readOnly}>
-        {children}
-      </DialogTrigger>
+      <DialogTrigger disabled={readOnly}>{Trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{dialogTitle}</DialogTitle>
         </DialogHeader>
-        <AddRoleForm
-          onClose={() => setOpen(false)}
-          workflowId={workflowId}
-          person={person}
-        />
+        {FormWrapper}
       </DialogContent>
     </Dialog>
   );
@@ -124,6 +129,7 @@ function AddRoleForm({
   person,
 }: AddRoleFormProps) {
   const isEditing = !!person;
+
   const form = useForm<AddPersonSchemaType>({
     resolver: zodResolver(addPersonSchema),
     defaultValues: {
@@ -190,11 +196,13 @@ function AddRoleForm({
     updateMutation.isPending ||
     deleteMutation.isPending;
 
+
+
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className={cn("grid items-start gap-6", className)}
+        className={cn("grid gap-6", className)}
         aria-busy={isPending}
       >
         <div className="grid gap-3">
@@ -230,8 +238,7 @@ function AddRoleForm({
           />
         </div>
 
-        {/* {isMobile && */}
-        <div className="flex justify-between w-full pt-4">
+        <div className="flex justify-between pt-4">
           {isEditing ? (
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -239,7 +246,6 @@ function AddRoleForm({
                   type="button"
                   variant="destructive"
                   disabled={isPending}
-                  aria-disabled={isPending}
                 >
                   {deleteMutation.isPending ? (
                     <Loader2 className="animate-spin" />
@@ -268,18 +274,14 @@ function AddRoleForm({
               </AlertDialogContent>
             </AlertDialog>
           ) : (
-            <div /> // Placeholder to keep alignment
+            <span /> // for spacing
           )}
 
           <div className="flex gap-2">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={isPending}
-              aria-disabled={isPending}
-            >
+            <Button type="submit" disabled={isPending}>
               {isPending ? (
                 <Loader2 className="animate-spin" />
               ) : isEditing ? (

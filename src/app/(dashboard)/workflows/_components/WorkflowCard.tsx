@@ -26,8 +26,8 @@ function WorkflowCard({ workflow }: { workflow: Workflow }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   return (
-    <Link href={`/workflow/editor/${workflow.id}`} className="bg-red">
-      <Card className="group cursor-pointer hover:bg-accent border shadow-xs rounded-lg overflow-hidden hover:shadow-sm dark:shadow-accent/30 transition-all duration-100">
+    <Link href={`/workflow/editor/${workflow.id}`} className="">
+      <Card className="group cursor-pointer hover:bg-accent border h-full shadow-xs rounded-lg overflow-hidden hover:shadow-sm dark:shadow-accent/30 transition-all duration-100">
         <CardContent>
           <div className="flex flex-row justify-between">
             <div className="flex flex-2 flex-col gap-1">
