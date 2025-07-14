@@ -1,9 +1,9 @@
 import React from "react";
-import { sectionClass } from "../Workspace";
+import { sectionClass } from "../../Workspace";
 import { cn } from "@/lib/utils";
-import TagsList from "../TagsList";
+import TagsList from "../../TagsList";
 import { Separator } from "@/components/ui/separator";
-import { EditableImage } from "../EditableImage";
+import { EditableImage } from "../../EditableImage";
 import { AsteriskSquare, Info, Plus } from "lucide-react";
 import {
   Tooltip,
@@ -11,20 +11,21 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { WorkflowData } from "@/types/workflow";
+import EditableField from "../../EditableField";
 
-const classWrapper = "flex flex-col justify-start gap-2 w-full";
+const classWrapper = "flex flex-col justify-start gap-2 w-full py-5";
 
 function AboutSection({ data }: { data: WorkflowData }) {
   return (
-    <div className={cn(sectionClass, "gap-6")}>
-      <div className={classWrapper}>
-        <span className="uppercase text-xs font-semibold text-muted-foreground">
-          Name & meaning
-        </span>
-        <h1 className="scroll-m-20 text-4xl font-semibold tracking-tight text-balance">
-          {data.name}
-        </h1>
-      </div>
+    <div className={cn(sectionClass)}>
+      <EditableField
+        workflowId={data.id}
+        field="name"
+        value={data.name}
+        label="Name"
+        className={classWrapper}
+        placeholder="Your company name here"
+      />
       <Separator className="h-0.5" />
       <div className={classWrapper}>
         <Tooltip>
@@ -137,27 +138,23 @@ function AboutSection({ data }: { data: WorkflowData }) {
         </div>
       </div>
       <Separator className="h-0.5" />
-      <div className={classWrapper}>
-        <span className="uppercase text-xs font-semibold text-muted-foreground">
-          Tagline
-        </span>
-        <blockquote>
-          <h1 className="scroll-m-20 text-[2.5rem] font-light tracking-tight leading-tight text-balance font-tobias">
-            {data.tagline}
-          </h1>
-        </blockquote>
-      </div>
+      <EditableField
+        workflowId={data.id}
+        field="tagline"
+        value={data.tagline}
+        label="Tagline"
+        placeholder="Your tagline here"
+        className={classWrapper}
+      />
       <Separator className="h-0.5" />
-      <div className={classWrapper}>
-        <span className="uppercase text-xs font-semibold text-muted-foreground">
-          description
-        </span>
-        {data.description && (
-          <>
-            <p className="leading-6 text-md line-clamp-4">{data.description}</p>
-          </>
-        )}
-      </div>
+      <EditableField
+        workflowId={data.id}
+        field="description"
+        value={data.description || ""}
+        label="Description"
+        placeholder="Your description here"
+        className={classWrapper}
+      />
       <Separator className="h-0.5" />
       <div className={classWrapper}>
         <span className="uppercase text-xs font-semibold text-muted-foreground">

@@ -20,7 +20,7 @@ export type WorkflowWithDetails = Prisma.WorkflowGetPayload<{
 export interface WorkflowData {
   id: string;
   name: string;
-  tagline?: string | null;
+  tagline?: string | undefined;
   description?: string | null;
   vision?: string | null;
   mission?: string | null;

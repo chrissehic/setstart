@@ -7,6 +7,29 @@ body {
   font-family: var(--font-geist-sans), sans-serif;
 }
 
+::-moz-selection {
+  /* Code for Firefox */
+  color: var(--foreground);
+  background: var(--primary);
+}
+
+::selection {
+  color: var(--foreground);
+  background: var(--primary);
+}
+
+input {
+  &:-webkit-autofill {
+    font-family: inherit;
+    font-size: inherit;
+  }
+}
+
+input:auto-fill {
+  font-family: inherit;
+  font-size: inherit;
+}
+
 .font-tobias {
   font-family: var(--font-tobias), sans-serif;
 }
@@ -17,14 +40,6 @@ body {
 
 .light .react-flow__background {
   background: var(--accent);
-}
-
-blockquote h1::before {
-  content: "\201C";
-}
-
-blockquote h1::after {
-  content: "\201D";
 }
 
 .wordmark {
@@ -154,10 +169,10 @@ html {
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.55 0.12 280);
-  
+
   --chart-1: oklch(0.55 0.12 275);
-  --chart-2: oklch(0.55 0.10 210);
-  --chart-3: oklch(0.55 0.10 145);
+  --chart-2: oklch(0.55 0.1 210);
+  --chart-3: oklch(0.55 0.1 145);
   --chart-4: oklch(0.55 0.13 320);
   --chart-5: oklch(0.55 0.13 75);
 

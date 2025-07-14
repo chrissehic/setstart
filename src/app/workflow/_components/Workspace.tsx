@@ -17,7 +17,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Sidebar from "./SidebarMenu";
-import AboutSection from "./sections/AboutSection";
+import AboutSection from "./sections/about/AboutSection";
 import RolesSection from "./sections/RolesSection";
 import Description from "@/components/ClampedDescription";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/resizable";
 
 export const sectionClass =
-  "relative w-full flex flex-row justify-start items-center flex-wrap gap-2 rounded-sm p-1 border border-transparent";
+  "relative w-full flex flex-row justify-start items-center flex-wrap rounded-sm p-1 border border-transparent";
 
 interface WorkspaceProps {
   id: string;
@@ -167,7 +167,7 @@ const Workspace = ({ id, data }: WorkspaceProps) => {
                     )}
                   >
                     {item.value === "about" && (
-                      <div className="flex flex-col justify-center items-center gap-4 rounded-md p-1 border-2 border-transparent">
+                      <div className="w-full flex flex-col justify-center items-center gap-4 rounded-md p-1 border-2 border-transparent">
                         <div className="h-12 flex flex-col justify-end">
                           <EditableImage
                             workflowId={data.id}
