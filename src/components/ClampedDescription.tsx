@@ -3,9 +3,11 @@ import { useRef, useEffect, useState } from "react";
 export default function Description({
   text,
   clampLines = 3, // default to 3
+  className
 }: {
   text: string;
   clampLines?: number;
+  className?: string;
 }) {
   const pRef = useRef<HTMLParagraphElement>(null);
   const [isClamped, setIsClamped] = useState(false);
@@ -29,8 +31,7 @@ export default function Description({
     <div>
       <p
         ref={pRef}
-        className={`leading-6 text-md line-clamp-${clampLines}`}
-        style={{ display: "-webkit-box", lineClamp: `"${clampLines}"` }}
+        className={className}
       >
         {text}
       </p>

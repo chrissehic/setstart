@@ -1,12 +1,12 @@
 import React from "react";
 import RolesList from "../RolesList";
 import { WorkflowData } from "@/types/workflow";
-import { sectionClass } from "../Workspace";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Badge } from "@/components/ui/badge";
+import { SECTION_CLASS } from "@/lib/constants";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -45,7 +45,7 @@ function RolesSection({ data }: { data: WorkflowData }) {
   });
 
   return (
-    <div className={cn(sectionClass, "gap-6")}>
+    <div className={cn(SECTION_CLASS, "gap-6")}>
       <div className={classWrapper}>
         <span className="uppercase text-xs font-semibold text-muted-foreground">
           Team cards

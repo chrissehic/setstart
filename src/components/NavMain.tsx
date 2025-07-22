@@ -32,7 +32,7 @@ export function NavMain({
               onClick={() => setOpenMobile(false)}
               asChild
               isActive={pathname === item.url}
-              size={"lg"}
+              size={"default"}
               className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[active=true]:bg-sidebar-accent min-w-8"
             >
               <Link href={item.url}>

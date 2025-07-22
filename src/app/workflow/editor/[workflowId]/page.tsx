@@ -19,6 +19,12 @@ export default async function page({
     },
     include: {
       tags: true,
+      objectives: {
+        include: {
+          tasks: true,
+        },
+      },
+      tasks: true,
       people: {
         include: {
           person: true,

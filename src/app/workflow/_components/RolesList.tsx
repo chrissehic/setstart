@@ -52,8 +52,8 @@ const RolesList = memo(function RolesList({
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col justify-center gap-0">
-              <span className="text-sm font-medium">{roleInWorkflow.role}</span>
-              <span className="leading-tight">
+              <span className="text-xs font-medium">{roleInWorkflow.role}</span>
+              <span className="leading-tight font-normal text-md text-accent-foreground">
                 {roleInWorkflow.person.name}
               </span>
             </div>
@@ -70,7 +70,7 @@ const RolesList = memo(function RolesList({
               <Plus className="size-6 group-hover/badge:text-accent transition-all duration-150" />
             </div>
             <div className="flex flex-col justify-center gap-0">
-              <span className="text-sm font-medium">Add Role</span>
+              <span className="text-sm font-normal">Add Role</span>
             </div>
           </Badge>
         </AddRoleModal>

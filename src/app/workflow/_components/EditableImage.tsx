@@ -88,7 +88,7 @@ export function EditableImage({
         <Image alt={alt} src={imageUrl} fill className={imageClassName} />
       ) : (
         <div
-          className={`relative w-full h-full group/image flex items-center justify-center bg-muted/50 ${imageClassName}`}
+          className={`relative w-full h-full group/image flex items-center justify-center ${imageClassName}`}
         >
           <div className="text-center text-muted-foreground w-fit">
             {isUploading ? (

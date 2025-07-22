@@ -11,7 +11,7 @@ export default function Workflows() {
     <div className="flex flex-1 flex-col h-full gap-4">
       <div className="flex justify-between items-center gap-4">
         <div className="flex flex-col">
-          <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
+          <h1 className="scroll-m-20 text-4xl font-medium tracking-tight text-balance">
             Projects
           </h1>
           <p className="mt-3">

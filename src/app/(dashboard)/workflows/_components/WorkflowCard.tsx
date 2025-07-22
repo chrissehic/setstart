@@ -1,4 +1,5 @@
 "use client";
+
 import { Workflow } from "@/generated/prisma";
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,60 +27,62 @@ function WorkflowCard({ workflow }: { workflow: Workflow }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   return (
-    <Link href={`/workflow/editor/${workflow.id}`} className="">
-      <Card className="group cursor-pointer hover:bg-accent border h-full shadow-xs rounded-lg overflow-hidden hover:shadow-sm dark:shadow-accent/30 transition-all duration-100">
+    <Link href={`/workflow/editor/${workflow.id}`} className="block">
+      <Card
+        className={cn(
+          "group cursor-pointer border rounded-xl h-full",
+          "transition-all duration-150 bg-card hover:bg-accent/80",
+        )}
+      >
         <CardContent>
-          <div className="flex flex-row justify-between">
-            <div className="flex flex-2 flex-col gap-1">
-              <span className="uppercase text-xs">
-                edited {workflow.updatedAt.toDateString()}
-              </span>
-
-              <div className="flex flex-col gap-1 justify-center">
+          <div className="flex flex-col gap-4">
+            <div className="flex justify-between items-start">
+              <div className="flex flex-col gap-1">
+                <span className="uppercase text-[11px] tracking-wide text-muted-foreground">
+                  Edited {workflow.updatedAt.toLocaleDateString()}
+                </span>
+                <h4 className="text-lg font-medium leading-snug tracking-normal">
+                  {workflow.name}
+                </h4>
                 <Badge
-                  className="capitalize"
-                  variant={statusVariants[workflow.status as WorkflowStatus] || 'default'}
+                  variant={
+                    statusVariants[workflow.status as WorkflowStatus] ||
+                    "default"
+                  }
+                  className="self-start mt-1 text-xs capitalize"
                 >
                   {workflow.status.toLowerCase()}
                 </Badge>
-                <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-                  {workflow.name}
-                </h4>
               </div>
 
-              <p className="text-sm line-clamp-2">
-                {workflow?.description ??
-                  "Here will be shown an AI-generated description"}
-              </p>
-            </div>
-            <div
-              className={cn(
-                "transition-all flex flex-1 flex-row gap-1 justify-end items-center h-fit",
-                "invisible opacity-0 group-hover:visible group-hover:opacity-100",
-                dropdownOpen && "visible opacity-100"
-              )}
-              onClick={(event) => {
-                event.stopPropagation();
-              }}
-            >
-              <Button
-                variant={"outline"}
-                size={"sm"}
-                onClick={(event) => {
-                  event.stopPropagation();
-                }}
+              <div
+                className={cn(
+                  "flex gap-1 items-center",
+                  "opacity-0 group-hover:opacity-100 transition-opacity duration-100",
+                  dropdownOpen && "opacity-100"
+                )}
+                onClick={(e) => e.stopPropagation()}
               >
-                <div className="flex flex-row items-center justify-center gap-2">
-                  <Pencil className="size-3" />
-                  Edit
-                </div>
-              </Button>
-              <WorkflowActions
-                workflowId={workflow.id}
-                workflowName={workflow.name}
-                onDropdownChange={setDropdownOpen}
-              />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <Pencil className="size-4" />
+                </Button>
+
+                <WorkflowActions
+                  workflowId={workflow.id}
+                  workflowName={workflow.name}
+                  onDropdownChange={setDropdownOpen}
+                />
+              </div>
             </div>
+
+            <p className="text-sm text-muted-foreground line-clamp-3">
+              {workflow?.description ??
+                "Here will be shown an AI-generated description"}
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -99,24 +102,22 @@ function WorkflowActions({
   return (
     <DropdownMenu onOpenChange={onDropdownChange}>
       <DropdownMenuTrigger asChild>
-        <Button variant={"outline"} size={"sm"}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground hover:text-foreground"
+        >
           <EllipsisVertical className="size-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuGroup className="w-full">
-          <DropdownMenuItem
-            asChild
-            className="w-full"
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-          >
+        <DropdownMenuGroup>
+          <DropdownMenuItem asChild>
             <DeleteWorkflowAlert
               workflowName={workflowName}
               workflowId={workflowId}
             >
-              <div className="w-full text-sm cursor-pointer text-destructive px-2 py-1 flex items-center gap-1 hover:bg-destructive/10">
+              <div className="w-full text-sm text-destructive flex items-center gap-1 px-2 py-1 hover:bg-destructive/10 cursor-pointer">
                 <Trash2 className="size-4" />
                 Delete
               </div>

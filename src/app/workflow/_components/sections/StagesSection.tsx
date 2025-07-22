@@ -1,5 +1,4 @@
 import React from "react";
-import { sectionClass } from "../Workspace";
 import StagesCarousel from "../StagesCarousel";
 import { CompanyStage, Stage } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { CarouselApi } from "@/components/ui/carousel";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { StageChecklistDialog } from "../StageChecklistDialog";
+import { SECTION_CLASS } from "@/lib/constants";
 
 const classWrapper = "flex flex-col justify-start gap-2 w-full";
 
@@ -28,7 +28,7 @@ function StagesSection({
   const viewedStage = stages[current - 1];
 
   return (
-    <div className={sectionClass}>
+    <div className={SECTION_CLASS}>
       <div className={classWrapper}>
         <div className="flex flex-row justify-between items-start gap-3">
           <span className="uppercase text-xs font-semibold text-muted-foreground">

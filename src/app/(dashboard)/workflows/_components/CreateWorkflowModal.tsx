@@ -48,7 +48,7 @@ export function CreateWorkflowModal({
 }) {
   const [open, setOpen] = React.useState(false);
   const isMobile = useIsMobile();
-  const dialogTitle = "Create a new workflow";
+  const dialogTitle = "Create a new project";
 
   return isMobile ? (
     <Drawer open={open} onOpenChange={setOpen}>
@@ -112,7 +112,7 @@ function WorkflowForm({
     onError: (error: any) => {
       if (error.message.includes("already exists")) {
         console.log(error);
-        toast.error("A workflow with this name already exists.", {
+        toast.error("A project with this name already exists.", {
           id: "create-workflow",
         });
       } else {

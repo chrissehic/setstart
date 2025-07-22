@@ -1,0 +1,247 @@
+"use client"
+
+import { useState, useMemo } from "react"
+import { classWrapper } from "@/styles/commonStyles"
+import { type Person, TaskStatus } from "@/types"
+import TaskCard from "../TaskCard"
+import { cn } from "@/lib/utils"
+import { useTasks } from "@/hooks/useTasks"
+import { AlertCircleIcon, Loader2, Sparkles, Plus, ChevronDown } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { MultiSelect } from "@/components/ui/multi-select"
+import { Button } from "@/components/ui/button"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { TaskModal } from "../TaskModal"
+import { TaskSelectorDialog } from "../TaskSelectorDialog"
+import { SECTION_CLASS } from "@/lib/constants"
+
+type TasksSectionProps = {
+  workflowId: string;
+  people: Person[];
+  objectiveId?: string;  // Optional: filter tasks by objective
+}
+
+function TasksSection({ workflowId, people, objectiveId }: TasksSectionProps) {
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState<"all" | TaskStatus>("all")
+  const [categoryFilter, setCategoryFilter] = useState<"all" | string>("all")
+  const [personFilter, setPersonFilter] = useState<string[]>([])
+  const [isCreatingWithAI, setIsCreatingWithAI] = useState(false)
+
+  const { data: allTasks = [], isLoading, error } = useTasks(workflowId)
+
+  // Filter tasks by objective if objectiveId is provided
+  const tasks = useMemo(() => {
+    if (!objectiveId) return allTasks
+    return allTasks.filter((task) => task.objectiveId === objectiveId)
+  }, [allTasks, objectiveId])
+
+  const uniqueCategories = useMemo(() => {
+    const set = new Set<string>()
+    tasks.forEach((task) => set.add(task.category))
+    return Array.from(set)
+  }, [tasks])
+
+  // Deduplicate people by ID to ensure unique keys
+  const uniquePeople = useMemo(() => {
+    const uniqueMap = new Map<string, Person>();
+    people.forEach(person => {
+      if (!uniqueMap.has(person.id)) {
+        uniqueMap.set(person.id, person);
+      }
+    });
+    return Array.from(uniqueMap.values());
+  }, [people]);
+
+  // Detect if input looks like a creation prompt
+  const isPromptLike = useMemo(() => {
+    return search.length > 10
+  }, [search])
+
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((task) => {
+      const matchesSearch = task.title.toLowerCase().includes(search.toLowerCase())
+      const matchesStatus = statusFilter === "all" || task.status === statusFilter
+      const matchesCategory = categoryFilter === "all" || task.category === categoryFilter
+      const matchesPerson =
+        personFilter.length === 0 || task.assignedPeople.some(({ person }) => personFilter.includes(person.id))
+
+      return matchesSearch && matchesStatus && matchesCategory && matchesPerson
+    })
+  }, [tasks, search, statusFilter, categoryFilter, personFilter])
+
+  const handleCreateWithAI = async () => {
+    setIsCreatingWithAI(true)
+    try {
+      console.log("Creating tasks from prompt:", search)
+      setSearch("")
+    } catch (error) {
+      console.error("Error creating tasks with AI:", error)
+    } finally {
+      setIsCreatingWithAI(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className={SECTION_CLASS}>
+        <div className={cn(classWrapper, "flex items-center justify-center py-8")}>
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className={SECTION_CLASS}>
+        <div className={cn(classWrapper, "flex items-center justify-center py-8")}>
+          <Alert variant="destructive">
+            <AlertCircleIcon />
+            <AlertTitle>Error loading tasks</AlertTitle>
+            <AlertDescription>
+              <p>{error.message}</p>
+            </AlertDescription>
+          </Alert>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className={cn(SECTION_CLASS)}>
+      <div className={cn(classWrapper, "flex flex-col gap-4 h-full")}>
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-2 justify-between items-end mb-3">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div>
+              <label className="text-xs text-muted-foreground">Status</label>
+              <Select
+                value={statusFilter}
+                onValueChange={(value: TaskStatus | "all") => setStatusFilter(value as TaskStatus | "all")}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value={TaskStatus.COMPLETE}>Complete</SelectItem>
+                  <SelectItem value={TaskStatus.NOT_STARTED}>Not Started</SelectItem>
+                  <SelectItem value={TaskStatus.IN_PROGRESS}>In Progress</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">Category</label>
+              <Select
+                value={categoryFilter}
+                onValueChange={(value: string | "all") => setCategoryFilter(value as string | "all")}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  {uniqueCategories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">Assigned to</label>
+              <MultiSelect
+                options={uniquePeople.map(person => ({
+                  label: person.name,
+                  value: person.id
+                }))}
+                onValueChange={setPersonFilter}
+                defaultValue={personFilter}
+                placeholder="Filter by people"
+                variant="default"
+                animation={2}
+                maxCount={2}
+              />
+            </div>
+          </div>
+          <TaskModal workflowId={workflowId} people={people}>
+            <Button variant="outline">
+              Add Task
+            </Button>
+          </TaskModal>
+        </div>
+
+        {/* Tasks Display */}
+        <div className="flex-1 overflow-y-auto">
+          {filteredTasks.length > 0 ? (
+            <div className="space-y-3">
+              {filteredTasks.map((task) => (
+                <TaskCard key={task.id} task={task} workflowId={workflowId} people={people} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 space-y-4">
+              {search.trim() ? (
+                <div className="space-y-3">
+                  <p className="text-muted-foreground">No tasks found for &quot;{search}&quot;</p>
+                  {isPromptLike && (
+                    <Button onClick={handleCreateWithAI} disabled={isCreatingWithAI} className="gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      Create tasks from this prompt
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-muted-foreground text-sm">
+                    {objectiveId ? "No tasks found for this objective." : "No tasks found."}
+                  </p>
+                  {objectiveId && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="gap-2">
+                          <Plus className="h-4 w-4" />
+                          Add Task to Objective
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="center">
+                        <TaskModal 
+                          workflowId={workflowId} 
+                          people={people}
+                          objectiveId={objectiveId}
+                        >
+                          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Create New Task
+                          </DropdownMenuItem>
+                        </TaskModal>
+                        <TaskSelectorDialog
+                          workflowId={workflowId}
+                          objectiveId={objectiveId}
+                          people={people}
+                        >
+                          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <Sparkles className="mr-2 h-4 w-4" />
+                            Select Existing Task
+                          </DropdownMenuItem>
+                        </TaskSelectorDialog>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+ 
+      </div>
+    </div>
+  )
+}
+
+export default TasksSection

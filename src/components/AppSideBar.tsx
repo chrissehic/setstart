@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { AsteriskSquare, Fingerprint, Gauge, Network } from "lucide-react";
+import { AsteriskSquare, LayoutTemplate } from "lucide-react";
 
 import { NavMain } from "@/components/NavMain";
 import {
@@ -17,21 +17,21 @@ import Link from "next/link";
 
 const data = {
   navMain: [
-    {
-      title: "Home",
-      url: "/",
-      icon: Gauge,
-    },
+    // {
+    //   title: "Home",
+    //   url: "/",
+    //   icon: Gauge,
+    // },
     {
       title: "Projects",
       url: "/workflows",
-      icon: Network,
+      icon: LayoutTemplate,
     },
-    {
-      title: "Credentials",
-      url: "/credentials",
-      icon: Fingerprint,
-    },
+    // {
+    //   title: "Credentials",
+    //   url: "/credentials",
+    //   icon: Fingerprint,
+    // },
   ],
 };
 

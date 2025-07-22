@@ -16,11 +16,16 @@ function Sidebar({
 }: {
   active: string;
   onTabChange: (tab: string) => void;
-  items: { title: string; value: string; url: string }[];
+  items: {
+    title: string;
+    value: string;
+    url: string;
+    icon?: React.ElementType;
+  }[];
 }) {
   return (
     <SidebarContent>
-      <SidebarGroup>
+      <SidebarGroup className="px-1">
         <SidebarGroupLabel className="mb-4">Sections</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
@@ -31,7 +36,8 @@ function Sidebar({
                   isActive={item.value === active}
                   onClick={() => onTabChange(item.value)}
                 >
-                  <a href={`#${item.value}`}>
+                  <a href={`#${item.value}`} className="text-sm">
+                    {item.icon && <item.icon className="size-4! text-xs" />}
                     <span>{item.title}</span>
                   </a>
                 </SidebarMenuButton>

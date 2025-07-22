@@ -59,13 +59,13 @@ export function StageChecklistContent({
         <Label
           key={item.id}
           htmlFor={item.id}
-          className="hover:bg-accent/50 flex items-start gap-3 rounded-lg border p-3 has-[[aria-checked=true]]:border-blue-600 has-[[aria-checked=true]]:bg-blue-50 dark:has-[[aria-checked=true]]:border-blue-900 dark:has-[[aria-checked=true]]:bg-blue-950"
+          className="cursor-pointer ease-in-out transition-colors duration-100 hover:bg-accent/50 flex items-start gap-3 rounded-lg border p-3 has-[[aria-checked=true]]:border-primary has-[[aria-checked=true]]:bg-primary/10 dark:has-[[aria-checked=true]]:bg-primary/20"
         >
           <Checkbox
             id={item.id}
             checked={checkedItems[item.id]}
             onCheckedChange={() => handleToggle(item.id)}
-            className="data-[state=checked]:border-blue-600 data-[state=checked]:bg-blue-600 data-[state=checked]:text-white dark:data-[state=checked]:border-blue-700 dark:data-[state=checked]:bg-blue-700"
+            className="rounded border border-border text-foreground data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           />
           <div className="grid gap-1.5 font-normal">
             <p className="text-sm leading-none font-medium">{item.title}</p>
