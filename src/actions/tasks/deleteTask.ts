@@ -21,7 +21,7 @@ export async function DeleteTask(data: DeleteTaskInput) {
     });
 
     // Revalidate the workflow editor page
-    revalidatePath(`/workflow/editor/${data.workflowId}`);
+    revalidatePath(`/project/${data.workflowId}`);
 
     return { success: true };
   } catch (error) {

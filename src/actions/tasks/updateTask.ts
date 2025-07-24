@@ -75,8 +75,8 @@ export async function UpdateTask(data: UpdateTaskInput) {
       },
     });
 
-    // Revalidate the workflow editor page
-    revalidatePath(`/workflow/editor/${data.workflowId}`);
+    // Revalidate the project page
+    revalidatePath(`/project/${data.workflowId}`);
 
     return { success: true, task };
   } catch (error) {

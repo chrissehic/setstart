@@ -48,7 +48,7 @@ export async function AddTask(data: AddTaskInput) {
   });
 
   // 🟢 This ensures the editor page fetches updated data
-  revalidatePath(`/workflow/editor/${data.workflowId}`);
+  revalidatePath(`/project/${data.workflowId}`);
 
   return { success: true, task };
 }

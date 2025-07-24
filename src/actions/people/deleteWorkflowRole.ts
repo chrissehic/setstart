@@ -26,7 +26,7 @@ export async function DeleteWorkflowRole(data: DeletePersonSchemaType) {
       },
     });
 
-    revalidatePath(`/workflow/editor/${workflowId}`);
+    revalidatePath(`/project/${workflowId}`);
     return { success: true };
   } catch (error) {
     console.error("Error deleting role:", error);

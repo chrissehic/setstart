@@ -1,15 +1,25 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useState, useMemo, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Plus } from "lucide-react";
+import { Search } from "lucide-react";
 import { useTasks, useUpdateTask } from "@/hooks/useTasks";
 import { Person } from "@/types/workflow";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getInitials } from "@/lib/helpers/getInitials";
+import { cn, getCategoryConfig, getStatusConfig } from "@/lib/utils";
 
 interface TaskSelectorDialogProps {
   workflowId: string;
@@ -25,14 +35,13 @@ interface TaskSelectorDialogProps {
 export function TaskSelectorDialog({
   workflowId,
   objectiveId,
-  people,
   children,
   onSuccess,
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
 }: TaskSelectorDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false);
-  
+
   // Use controlled state if provided, otherwise use internal state
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = controlledOnOpenChange || setInternalOpen;
@@ -42,22 +51,45 @@ export function TaskSelectorDialog({
   const { data: allTasks = [] } = useTasks(workflowId);
   const updateTask = useUpdateTask(workflowId);
 
-  // Filter out tasks that are already assigned to this objective
-  const availableTasks = useMemo(() => {
-    return allTasks.filter((task) => task.objectiveId !== objectiveId);
+  const originallyAssigned = useMemo(() => {
+    return allTasks
+      .filter((task) => task.objectiveId === objectiveId)
+      .map((task) => task.id);
   }, [allTasks, objectiveId]);
 
-  // Filter tasks based on search query
+  const toAssign = useMemo(
+    () => selectedTasks.filter((id) => !originallyAssigned.includes(id)),
+    [selectedTasks, originallyAssigned]
+  );
+
+  const toUnassign = useMemo(
+    () => originallyAssigned.filter((id) => !selectedTasks.includes(id)),
+    [selectedTasks, originallyAssigned]
+  );
+
+  const hasChanges = toAssign.length > 0 || toUnassign.length > 0;
+
+  useEffect(() => {
+    if (open) {
+      setSelectedTasks(
+        allTasks
+          .filter((task) => task.objectiveId === objectiveId)
+          .map((task) => task.id)
+      );
+    }
+  }, [open, allTasks, objectiveId]);
+
   const filteredTasks = useMemo(() => {
-    if (!searchQuery.trim()) return availableTasks;
-    
+    if (!searchQuery.trim()) return allTasks;
+
     const query = searchQuery.toLowerCase();
-    return availableTasks.filter((task) =>
-      task.title.toLowerCase().includes(query) ||
-      task.description?.toLowerCase().includes(query) ||
-      task.category.toLowerCase().includes(query)
+    return allTasks.filter(
+      (task) =>
+        task.title.toLowerCase().includes(query) ||
+        task.description?.toLowerCase().includes(query) ||
+        task.category.toLowerCase().includes(query)
     );
-  }, [availableTasks, searchQuery]);
+  }, [allTasks, searchQuery]);
 
   const handleTaskToggle = (taskId: string) => {
     setSelectedTasks((prev) =>
@@ -68,40 +100,51 @@ export function TaskSelectorDialog({
   };
 
   const handleAssignTasks = async () => {
-    if (selectedTasks.length === 0) {
-      toast.error("Please select at least one task");
-      return;
-    }
-
     try {
-      // Update each selected task to assign it to the objective
-      await Promise.all(
-        selectedTasks.map((taskId) => {
-          const task = allTasks.find((t) => t.id === taskId);
-          if (task) {
-            return updateTask.mutateAsync({
-              id: taskId,
-              workflowId: workflowId,
-              objectiveId: objectiveId,
-            });
-          }
-        })
+      const originallyAssigned = allTasks
+        .filter((task) => task.objectiveId === objectiveId)
+        .map((task) => task.id);
+
+      const toAssign = selectedTasks.filter(
+        (id) => !originallyAssigned.includes(id)
+      );
+      const toUnassign = originallyAssigned.filter(
+        (id) => !selectedTasks.includes(id)
       );
 
-      toast.success(`${selectedTasks.length} task(s) assigned to objective`);
+      if (toAssign.length === 0 && toUnassign.length === 0) {
+        toast.info("No changes to save");
+        return;
+      }
+
+      await Promise.all([
+        ...toAssign.map((taskId) =>
+          updateTask.mutateAsync({
+            id: taskId,
+            workflowId,
+            objectiveId, // assign
+          })
+        ),
+        ...toUnassign.map((taskId) =>
+          updateTask.mutateAsync({
+            id: taskId,
+            workflowId,
+            objectiveId: null, // unassign
+          })
+        ),
+      ]);
+
+      toast.success(
+        `${toAssign.length} task(s) assigned, ${toUnassign.length} task(s) unassigned`
+      );
       setOpen(false);
       setSelectedTasks([]);
       setSearchQuery("");
       onSuccess?.();
     } catch (error) {
       console.error("Error assigning tasks:", error);
-      toast.error("Failed to assign tasks");
+      toast.error("Failed to update tasks");
     }
-  };
-
-  const getPersonName = (personId: string) => {
-    const person = people.find((p) => p.id === personId);
-    return person?.name || "Unknown";
   };
 
   return (
@@ -111,7 +154,8 @@ export function TaskSelectorDialog({
         <DialogHeader>
           <DialogTitle>Select Existing Tasks</DialogTitle>
           <DialogDescription>
-            Choose existing tasks to assign to this objective. Only tasks not already assigned to an objective are shown.
+            Choose existing tasks to assign to this objective. Only tasks not
+            already assigned to an objective are shown.
           </DialogDescription>
         </DialogHeader>
 
@@ -127,12 +171,11 @@ export function TaskSelectorDialog({
             />
           </div>
 
-          {/* Tasks List */}
-          <ScrollArea className="h-96 rounded-md border">
-            <div className="p-4">
+          <ScrollArea className="h-96">
+            <div className="py-4">
               {filteredTasks.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  {availableTasks.length === 0 ? (
+                  {filteredTasks.length === 0 ? (
                     <p>No unassigned tasks available</p>
                   ) : (
                     <p>No tasks match your search</p>
@@ -140,72 +183,120 @@ export function TaskSelectorDialog({
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {filteredTasks.map((task) => (
-                    <div
-                      key={task.id}
-                      className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                        selectedTasks.includes(task.id)
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:bg-muted/50"
-                      }`}
-                      onClick={() => handleTaskToggle(task.id)}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-medium truncate">{task.title}</h4>
-                            <Badge variant="outline" className="text-xs">
-                              {task.category}
-                            </Badge>
-                          </div>
-                          {task.description && (
-                            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                              {task.description}
-                            </p>
-                          )}
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <Badge variant="secondary" className="text-xs">
-                              {task.status.replace("_", " ").toLowerCase()}
-                            </Badge>
-                            <Badge variant="outline" className="text-xs">
-                              {task.priority?.toLowerCase() || 'medium'}
-                            </Badge>
+                  {filteredTasks.map((task) => {
+                    const statusConfig = getStatusConfig(task.status);
+                    const categoryConfig = getCategoryConfig(task.category);
+                    return (
+                      <div
+                        key={task.id}
+                        onClick={() => handleTaskToggle(task.id)}
+                        className={cn(
+                          `p-3 rounded-lg border cursor-pointer transition-colors duration-150 ease-in-out`,
+                          selectedTasks.includes(task.id)
+                            ? "border-primary bg-primary/5 shadow-sm"
+                            : "border-border hover:bg-muted/40"
+                        )}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <Badge
+                                variant="secondary"
+                                className={cn("text-xs", categoryConfig.color)}
+                              >
+                                {task.category}
+                              </Badge>
+                              <Badge
+                                className={cn("text-xs", statusConfig.color)}
+                              >
+                                {/* {task.status.replace("_", " ")} */}
+                                {statusConfig.label}
+                              </Badge>
+                            </div>
+                            <h4 className="text-base font-medium truncate">
+                              {task.title}
+                            </h4>
+                            {task.description && (
+                              <p className="text-xs text-muted-foreground line-clamp-2">
+                                {task.description}
+                              </p>
+                            )}
                             {task.assignedPeople.length > 0 && (
-                              <span>
-                                Assigned to: {task.assignedPeople.map(ap => getPersonName(ap.person.id)).join(", ")}
-                              </span>
+                              <div className="flex items-center gap-2 mt-1">
+                                <div className="flex -space-x-1">
+                                  {task.assignedPeople
+                                    .slice(0, 3)
+                                    .map(({ person }) => (
+                                      <Avatar
+                                        key={person.id}
+                                        className="w-5 h-5"
+                                      >
+                                        <AvatarImage
+                                          src={person?.avatarImage}
+                                          alt={person?.name}
+                                        />
+                                        <AvatarFallback className="text-xs bg-input text-muted-foreground">
+                                          {getInitials(person.name)}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                    ))}
+                                </div>
+                                <span className="text-xs text-muted-foreground">
+                                  {task.assignedPeople
+                                    .map(
+                                      ({ person }) =>
+                                        person?.name?.split(" ")[0]
+                                    )
+                                    .filter(Boolean)
+                                    .join(", ")}
+                                </span>
+                              </div>
                             )}
                           </div>
-                        </div>
-                        <div className="flex-shrink-0">
-                          {selectedTasks.includes(task.id) && (
-                            <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
-                              <Plus className="h-3 w-3 text-primary-foreground rotate-45" />
+
+                          <div className="flex-shrink-0">
+                            <div
+                              className={cn(
+                                `w-5 h-5 rounded-full flex items-center justify-center border border-muted transition-colors duration-150`,
+                                selectedTasks.includes(task.id)
+                                  ? "bg-muted border-muted shadow-inner"
+                                  : "bg-muted"
+                              )}
+                            >
+                              {selectedTasks.includes(task.id) && (
+                                <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                              )}
                             </div>
-                          )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
           </ScrollArea>
-
           {/* Footer */}
           <div className="flex items-center justify-between pt-4 border-t">
-            <p className="text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground">
               {selectedTasks.length} task(s) selected
-            </p>
+              {hasChanges && (
+                <>
+                  {toAssign.length > 0 && ` • ${toAssign.length} to assign`}
+                  {toUnassign.length > 0 &&
+                    ` • ${toUnassign.length} to unassign`}
+                </>
+              )}
+            </div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
               <Button
                 onClick={handleAssignTasks}
-                disabled={selectedTasks.length === 0 || updateTask.isPending}
+                disabled={!hasChanges || updateTask.isPending}
               >
-                {updateTask.isPending ? "Assigning..." : `Assign ${selectedTasks.length} Task(s)`}
+                {updateTask.isPending ? "Saving..." : `Save Changes`}
               </Button>
             </div>
           </div>

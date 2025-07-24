@@ -27,6 +27,7 @@ model Workflow {
 
   objectives Objective[] // 🚀 Objectives
   tasks      Task[] // 🚀 Tasks
+  products   Product[] // 🚀 Products
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -117,6 +118,21 @@ model PersonOnTask {
   personId String
 
   @@id([taskId, personId])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workflowId  String
+
+  name        String
+  description String?
+  type        String? // e.g., "SaaS", "Food", "Service", etc.
+  image       String? // URL or path to product image
+  // Add more fields as needed for flexibility
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 enum TaskStatus {

@@ -43,21 +43,29 @@ import { useCallback } from "react";
 
 export function CreateWorkflowModal({
   triggerLabel,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
 }: {
   triggerLabel?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = React.useState(false);
+  const [internalOpen, setInternalOpen] = React.useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = controlledOnOpenChange || setInternalOpen;
   const isMobile = useIsMobile();
   const dialogTitle = "Create a new project";
 
   return isMobile ? (
     <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>
-        <Button variant="default">
-          <GitPullRequestCreate />
-          {triggerLabel ?? "New project"}
-        </Button>
-      </DrawerTrigger>
+      {controlledOpen === undefined && (
+        <DrawerTrigger asChild>
+          <Button variant="default">
+            <GitPullRequestCreate />
+            {triggerLabel ?? "New project"}
+          </Button>
+        </DrawerTrigger>
+      )}
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>{dialogTitle}</DrawerTitle>
@@ -72,12 +80,14 @@ export function CreateWorkflowModal({
     </Drawer>
   ) : (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="default">
-          <GitPullRequestCreate />
-          {triggerLabel ?? "New project"}
-        </Button>
-      </DialogTrigger>
+      {controlledOpen === undefined && (
+        <DialogTrigger asChild>
+          <Button variant="default">
+            <GitPullRequestCreate />
+            {triggerLabel ?? "New project"}
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{dialogTitle}</DialogTitle>

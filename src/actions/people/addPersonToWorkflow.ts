@@ -30,7 +30,7 @@ export async function AddPersonToWorkflow(params: AddPersonToWorkflowParams) {
     });
 
     // Revalidate the editor path to reflect the changes immediately.
-    revalidatePath(`/workflow/editor/${workflowId}`);
+    revalidatePath(`/project/${workflowId}`);
 
     return { success: true };
   } catch (error) {

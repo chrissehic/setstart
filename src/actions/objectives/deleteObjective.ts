@@ -14,7 +14,7 @@ export async function deleteObjective(input: DeleteObjectiveInput) {
       where: { id: input.id },
     });
 
-    revalidatePath(`/workflow/${input.workflowId}`);
+    revalidatePath(`/project/${input.workflowId}`);
     return { success: true };
   } catch (error) {
     console.error("Error deleting objective:", error);

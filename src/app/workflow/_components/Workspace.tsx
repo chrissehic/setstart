@@ -5,7 +5,7 @@ import { Tabs } from "@/components/ui/tabs"
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
 import { EditableImage } from "./EditableImage"
 import Sidebar from "./SidebarMenu"
-import type { WorkflowData } from "@/types/workflow"
+import type { WorkflowData, WorkflowWithDetails } from "@/types/workflow"
 import { COMPANY_STAGES } from "@/types/companyStages"
 import { WorkspaceHeader } from "./WorkspaceHeader"
 import { LoadingSpinner } from "@/components/LoadingSpinner"
@@ -17,9 +17,11 @@ import { TabContent } from "./TabContent"
 interface WorkspaceProps {
   id: string
   data: WorkflowData
+  allWorkflows?: WorkflowWithDetails[]
+  currentWorkflow?: WorkflowWithDetails
 }
 
-const Workspace = ({ id, data }: WorkspaceProps) => {
+const Workspace = ({ id, data, allWorkflows, currentWorkflow }: WorkspaceProps) => {
   const [mounted, setMounted] = useState(false)
   const { tabActive, handleTabChange } = useWorkspaceNavigation()
 
@@ -39,7 +41,13 @@ const Workspace = ({ id, data }: WorkspaceProps) => {
         {/* Sidebar Panel */}
         <ResizablePanel defaultSize={10} minSize={10} maxSize={30} className={cn(CARD_CLASS, "overflow-auto!")}>
           <div className={SECTION_CLASS}>
-            <Sidebar active={tabActive} onTabChange={handleTabChange} items={WORKSPACE_ITEMS} />
+            <Sidebar 
+              active={tabActive} 
+              onTabChange={handleTabChange} 
+              items={WORKSPACE_ITEMS}
+              allWorkflows={allWorkflows}
+              currentWorkflow={currentWorkflow}
+            />
           </div>
         </ResizablePanel>
 

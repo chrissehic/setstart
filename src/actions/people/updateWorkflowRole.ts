@@ -29,7 +29,7 @@ export async function UpdateWorkflowRole(data: UpdatePersonSchemaType) {
       },
     });
 
-    revalidatePath(`/workflow/editor/${workflowId}`);
+    revalidatePath(`/project/${workflowId}`);
     return { success: true };
   } catch (error) {
     console.error("Error updating role:", error);

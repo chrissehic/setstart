@@ -22,7 +22,7 @@ export async function addObjective(input: AddObjectiveInput) {
       },
     });
 
-    revalidatePath(`/workflow/${input.workflowId}`);
+    revalidatePath(`/project/${input.workflowId}`);
     return { success: true, objective };
   } catch (error) {
     console.error("Error adding objective:", error);

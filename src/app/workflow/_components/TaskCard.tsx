@@ -14,16 +14,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Task, Person } from "@/types";
+import { Task, Person, TaskStatus } from "@/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn, getCategoryConfig, getStatusConfig } from "@/lib/utils";
-import { useDeleteTask } from "@/hooks/useTasks";
+import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import { TaskModal } from "./TaskModal";
 import { getInitials } from "@/lib/helpers/getInitials";
 
-interface TaskCardProps {  
+interface TaskCardProps {
   task: Task;
   workflowId: string;
   people: Person[];
@@ -35,6 +35,16 @@ function TaskCard({ task, workflowId, people }: TaskCardProps) {
   const statusConfig = getStatusConfig(task.status);
 
   const deleteTaskMutation = useDeleteTask(workflowId);
+
+  const updateTaskMutation = useUpdateTask(workflowId);
+
+  const handleStatusChange = (newStatus: TaskStatus) => {
+    updateTaskMutation.mutate({
+      id: task.id,
+      status: newStatus,
+      workflowId: workflowId,
+    });
+  };
 
   const handleDeleteTask = () => {
     if (confirm("Are you sure you want to delete this task?")) {
@@ -57,9 +67,35 @@ function TaskCard({ task, workflowId, people }: TaskCardProps) {
               </Badge>
             </div>
             <div className="flex items-center gap-2">
-              <Badge className={cn("text-xs", statusConfig.color)}>
-                {statusConfig.label}
-              </Badge>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Badge
+                    className={cn("text-xs cursor-pointer", statusConfig.color)}
+                  >
+                    {statusConfig.label}
+                  </Badge>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {[
+                    TaskStatus.NOT_STARTED,
+                    TaskStatus.IN_PROGRESS,
+                    TaskStatus.COMPLETE,
+                  ].map((status) => {
+                    const config = getStatusConfig(status);
+                    return (
+                      <DropdownMenuItem
+                        key={status}
+                        onClick={() => handleStatusChange(status)}
+                      >
+                        <span className="text-muted-foreground text-xs">Set as</span> 
+                        <Badge className={cn("text-xs", config.color)}>
+                          {config.label}
+                        </Badge>
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

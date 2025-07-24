@@ -23,7 +23,7 @@ export async function updateObjective(input: UpdateObjectiveInput) {
       },
     });
 
-    revalidatePath(`/workflow/${input.workflowId}`);
+    revalidatePath(`/project/${input.workflowId}`);
     return { success: true, objective };
   } catch (error) {
     console.error("Error updating objective:", error);

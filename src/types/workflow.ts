@@ -44,7 +44,7 @@ export type WorkflowWithTasks = Prisma.WorkflowGetPayload<{
 export interface WorkflowData {
   id: string;
   name: string;
-  tagline?: string | undefined;
+  tagline?: string | null;
   description?: string | null;
   vision?: string | null;
   mission?: string | null;
@@ -57,6 +57,7 @@ export interface WorkflowData {
   tags?: Tag[];
   people?: WorkflowWithDetails["people"];
   tasks?: Task[];
+  products?: Product[];
   objectives?: Objective[],
 
   createdAt: Date;
@@ -114,6 +115,17 @@ export interface Task {
     person: Person;
   }[];
 
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Product {
+  id: string;
+  workflowId: string;
+  name: string;
+  description?: string | null;
+  type?: string | null;
+  image?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

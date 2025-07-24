@@ -2,16 +2,43 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { MultiSelect } from "@/components/ui/multi-select";
-import { Loader2 } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useAddTask, useUpdateTask } from "@/hooks/useTasks";
-import { Task, Person, TaskStatus, TaskPriority, Responsibility } from "@/types/workflow";
+import {
+  Task,
+  Person,
+  TaskStatus,
+  TaskPriority,
+  Responsibility,
+} from "@/types/workflow";
 import { toast } from "sonner";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { categories, cn } from "@/lib/utils";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 
 interface TaskModalProps {
   workflowId: string;
@@ -36,7 +63,7 @@ export function TaskModal({
   onSuccess,
 }: TaskModalProps) {
   const [internalOpen, setInternalOpen] = useState(false);
-  
+
   // Use controlled state if provided, otherwise use internal state
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = controlledOnOpenChange || setInternalOpen;
@@ -45,9 +72,12 @@ export function TaskModal({
   const [category, setCategory] = useState("");
   const [status, setStatus] = useState<TaskStatus>(TaskStatus.NOT_STARTED);
   const [priority, setPriority] = useState<TaskPriority>(TaskPriority.MEDIUM);
-  const [responsibility, setResponsibility] = useState<Responsibility>(Responsibility.IN_HOUSE);
+  const [responsibility, setResponsibility] = useState<Responsibility>(
+    Responsibility.IN_HOUSE
+  );
   const [dueDate, setDueDate] = useState("");
   const [selectedPeople, setSelectedPeople] = useState<string[]>([]);
+  const [categoryPopoverOpen, setCategoryPopoverOpen] = useState(false);
 
   const addTask = useAddTask(workflowId);
   const updateTask = useUpdateTask(workflowId);
@@ -66,8 +96,10 @@ export function TaskModal({
         setStatus(task.status);
         setPriority(task.priority || TaskPriority.MEDIUM);
         setResponsibility(task.responsibility || Responsibility.IN_HOUSE);
-        setDueDate(task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : "");
-        setSelectedPeople(task.assignedPeople?.map(ap => ap.person.id) || []);
+        setDueDate(
+          task.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : ""
+        );
+        setSelectedPeople(task.assignedPeople?.map((ap) => ap.person.id) || []);
       } else {
         // Creating mode - clear form
         setTitle("");
@@ -133,8 +165,6 @@ export function TaskModal({
     }
   };
 
-
-
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -163,16 +193,65 @@ export function TaskModal({
                 required
               />
             </div>
-
+           
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
-              <Input
-                id="category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="e.g., Design, Development"
-                disabled={isLoading}
-              />
+
+              <Popover
+                open={categoryPopoverOpen}
+                onOpenChange={setCategoryPopoverOpen}
+              >
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    disabled={isLoading}
+                    className="w-full justify-between"
+                  >
+                    {category
+                      ? categories.find((c) => c.value === category)?.label
+                      : "Select category..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput
+                      placeholder="Search category..."
+                      className="h-9"
+                    />
+                    <CommandList>
+                      <CommandEmpty>No category found.</CommandEmpty>
+                      <CommandGroup>
+                        {categories.map((c) => (
+                          <CommandItem
+                            key={c.value}
+                            value={c.value}
+                            onSelect={(currentValue) => {
+                              setCategory(
+                                currentValue === category ? "" : currentValue
+                              );
+                              setCategoryPopoverOpen(false);
+                            }}
+                          >
+                            {c.label}
+                            <Check
+                              className={cn(
+                                "ml-auto",
+                                category === c.value
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="space-y-2">
@@ -186,8 +265,12 @@ export function TaskModal({
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={TaskStatus.NOT_STARTED}>Not Started</SelectItem>
-                  <SelectItem value={TaskStatus.IN_PROGRESS}>In Progress</SelectItem>
+                  <SelectItem value={TaskStatus.NOT_STARTED}>
+                    Not Started
+                  </SelectItem>
+                  <SelectItem value={TaskStatus.IN_PROGRESS}>
+                    In Progress
+                  </SelectItem>
                   <SelectItem value={TaskStatus.COMPLETE}>Complete</SelectItem>
                 </SelectContent>
               </Select>
@@ -215,15 +298,21 @@ export function TaskModal({
               <Label htmlFor="responsibility">Responsibility</Label>
               <Select
                 value={responsibility}
-                onValueChange={(value: Responsibility) => setResponsibility(value)}
+                onValueChange={(value: Responsibility) =>
+                  setResponsibility(value)
+                }
                 disabled={isLoading}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select responsibility" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={Responsibility.IN_HOUSE}>In House</SelectItem>
-                  <SelectItem value={Responsibility.OUTSOURCED}>Outsourced</SelectItem>
+                  <SelectItem value={Responsibility.IN_HOUSE}>
+                    In House
+                  </SelectItem>
+                  <SelectItem value={Responsibility.OUTSOURCED}>
+                    Outsourced
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -243,15 +332,14 @@ export function TaskModal({
           <div className="space-y-2">
             <Label>Assigned People</Label>
             <MultiSelect
-              options={people.map(person => ({
+              options={people.map((person) => ({
                 label: person.name,
-                value: person.id
+                value: person.id,
               }))}
               onValueChange={setSelectedPeople}
               defaultValue={selectedPeople}
               placeholder="Select people to assign"
               variant="default"
-              animation={2}
               maxCount={3}
               disabled={isLoading}
             />
