@@ -141,7 +141,7 @@ function TaskCard({ task, workflowId, people }: TaskCardProps) {
         </CardTitle>
         {task.description && (
           <CardDescription>
-            {task.description ?? "No description provided."}
+            <span dangerouslySetInnerHTML={{ __html: task.description }} />
           </CardDescription>
         )}
       </CardHeader>

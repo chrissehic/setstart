@@ -72,7 +72,7 @@ export function useAddTask(workflowId: string) {
   });
 }
 
-export function useUpdateTask(workflowId: string) {
+export function useUpdateTask(workflowId: string, showToast: boolean = true) {
   const queryClient = useQueryClient();
   
   return useMutation({
@@ -109,7 +109,9 @@ export function useUpdateTask(workflowId: string) {
       toast.error("Failed to update task");
     },
     onSuccess: () => {
-      toast.success("Task updated successfully");
+      if (showToast) {
+        toast.success("Task updated successfully");
+      }
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: taskKeys.byWorkflow(workflowId) });

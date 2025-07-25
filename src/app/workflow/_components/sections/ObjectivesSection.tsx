@@ -42,6 +42,8 @@ import { deleteObjective } from "@/actions/objectives/deleteObjective";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TasksSection from "./TasksSection";
 import TaskDetailPane from "./TaskDetailPane";
+import { Badge } from "@/components/ui/badge";
+import { UpdateTask } from "@/actions/tasks/updateTask";
 
 type ObjectivesSectionProps = {
   workflowId: string;
@@ -157,12 +159,12 @@ function ObjectiveTasksDisplay({
         ) : (
           <div className="space-y-2 overflow-y-auto">
             {objectiveTasks.map((task) => (
-              <div key={task.id} onClick={() => setSelectedTask(task)} style={{ cursor: 'pointer' }}>
-                <TaskCard
-                  task={task}
-                  workflowId={workflowId}
-                  people={people}
-                />
+              <div
+                key={task.id}
+                onClick={() => setSelectedTask(task)}
+                style={{ cursor: "pointer" }}
+              >
+                <TaskCard task={task} workflowId={workflowId} people={people} />
               </div>
             ))}
           </div>
@@ -279,11 +281,15 @@ const ObjectivesSection = ({
   // If a task is selected, show its detail pane and hide the tabs
   if (selectedTask) {
     return (
-      <div className={cn(SECTION_CLASS, "flex flex-col h-full w-full gap-5")}> 
-        <Button variant="outline" size="sm" onClick={() => setSelectedTask(null)}>
+      <div className={cn(SECTION_CLASS, "flex flex-col h-full w-full gap-5")}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setSelectedTask(null)}
+        >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <TaskDetailPane task={selectedTask} />
+        <TaskDetailPane task={selectedTask} onTaskUpdate={UpdateTask} />
       </div>
     );
   }
@@ -370,7 +376,7 @@ const ObjectivesSection = ({
 
   // Main view with tabs (only hidden when a task is selected)
   return (
-    <div className={cn(SECTION_CLASS, "flex flex-col h-full w-full")}> 
+    <div className={cn(SECTION_CLASS, "flex flex-col h-full w-full")}>
       <Tabs
         value={activeTab}
         onValueChange={(value) => setActiveTab(value as "objectives" | "tasks")}
@@ -389,6 +395,7 @@ const ObjectivesSection = ({
         {/* Objectives Tab */}
         <TabsContent value="objectives" className="flex-1 overflow-auto">
           {/* Header */}
+          <div className="flex flex-col gap-4 w-full">
           <div className="flex flex-col sm:flex-row gap-2 justify-between items-start sm:items-center">
             <div>
               <h2 className="text-lg font-semibold">Objectives</h2>
@@ -437,25 +444,73 @@ const ObjectivesSection = ({
                             )}
                           </div>
                         </TableCell>
-                        <TableCell>{stats.totalTasks}</TableCell>
-                        <TableCell>{/* Created date here */}</TableCell>
                         <TableCell>
-                          {/* Actions here */}
+                          <Badge
+                            variant="secondary"
+                            className={cn(
+                              "flex flex-row items-center gap-1 justify-center shrink-0 border",
+                              stats.totalTasks > 0
+                                ? "border-primary bg-primary/30"
+                                : "border-input"
+                            )}
+                          >
+                            <BookmarkCheck className="size-4" />
+                            <span className="text-sm">
+                              {stats.completedTasks === 0 &&
+                              stats.totalTasks === 0 ? (
+                                <span className="text-muted-foreground">0</span>
+                              ) : (
+                                <>
+                                  <span
+                                    className={cn(
+                                      stats.completedTasks === 0 &&
+                                        "text-muted-foreground"
+                                    )}
+                                  >
+                                    {stats.completedTasks}
+                                  </span>
+                                  <span
+                                    className={cn(
+                                      stats.completedTasks === 0 &&
+                                        "text-muted-foreground"
+                                    )}
+                                  >
+                                    /
+                                  </span>
+                                  <span
+                                    className={cn(
+                                      stats.totalTasks === 0 &&
+                                        "text-muted-foreground"
+                                    )}
+                                  >
+                                    {stats.totalTasks}
+                                  </span>
+                                </>
+                              )}
+                            </span>
+                          </Badge>
                         </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            {new Date(objective.createdAt).toLocaleDateString()}
+                          </div>
+                        </TableCell>
+                        <TableCell>{/* Actions here */}</TableCell>
                       </TableRow>
                     );
                   })}
                 </TableBody>
               </Table>
             </div>
+
           ) : (
             <div className="text-center py-12 space-y-4 h-full">
               <LibrarySquare className="h-12 w-12 mx-auto text-muted-foreground" />
               <div>
                 <h3 className="text-lg font-medium">No objectives yet</h3>
                 <p className="text-muted-foreground text-sm">
-                  Create your first objective to start organizing your
-                  workflow tasks
+                  Create your first objective to start organizing your workflow
+                  tasks
                 </p>
               </div>
               <ObjectiveModal workflowId={workflowId}>
@@ -466,10 +521,16 @@ const ObjectivesSection = ({
               </ObjectiveModal>
             </div>
           )}
+          </div>
         </TabsContent>
         {/* All Tasks Tab */}
         <TabsContent value="tasks" className="flex-1 overflow-hidden">
-          <TasksSection workflowId={workflowId} people={people} selectedTask={selectedTask} setSelectedTask={setSelectedTask} />
+          <TasksSection
+            workflowId={workflowId}
+            people={people}
+            selectedTask={selectedTask}
+            setSelectedTask={setSelectedTask}
+          />
         </TabsContent>
       </Tabs>
     </div>

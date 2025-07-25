@@ -19,6 +19,7 @@ interface UpdateTaskInput {
   objectiveId?: string | null;
 }
 
+export type { UpdateTaskInput };
 export async function UpdateTask(data: UpdateTaskInput) {
   const { userId } = await auth();
   if (!userId) {
