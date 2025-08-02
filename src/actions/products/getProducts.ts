@@ -5,5 +5,10 @@ export async function getProducts(workflowId: string) {
   return prisma.product.findMany({
     where: { workflowId },
     orderBy: { createdAt: "desc" },
+    include: {
+      variants: {
+        orderBy: { createdAt: "asc" },
+      },
+    },
   });
 } 

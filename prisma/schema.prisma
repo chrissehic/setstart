@@ -131,6 +131,24 @@ model Product {
   image       String? // URL or path to product image
   // Add more fields as needed for flexibility
 
+  variants    ProductVariant[] // Product variants
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ProductVariant {
+  id          String   @id @default(cuid())
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId   String
+
+  name        String   // e.g., "Chocolate", "Vanilla", "Strawberry"
+  description String?
+  attributes  String   // JSON string for flexible attributes like flavor, size, color, etc.
+  price       Float?   // Optional price for the variant
+  image       String?  // Optional variant-specific image
+  isActive    Boolean  @default(true)
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

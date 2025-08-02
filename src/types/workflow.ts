@@ -119,6 +119,19 @@ export interface Task {
   updatedAt: Date;
 }
 
+export interface ProductVariant {
+  id: string;
+  productId: string;
+  name: string;
+  description?: string | null;
+  attributes?: Record<string, any> | null;
+  price?: number | null;
+  image?: string | null;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface Product {
   id: string;
   workflowId: string;
@@ -126,6 +139,7 @@ export interface Product {
   description?: string | null;
   type?: string | null;
   image?: string | null;
+  variants?: ProductVariant[];
   createdAt: Date;
   updatedAt: Date;
 }
