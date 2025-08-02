@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import React from "react";
-import Editor from "../../workflow/_components/Editor";
+import Editor from "../../workflow/_components/core/Editor";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 export default async function ProjectPage({

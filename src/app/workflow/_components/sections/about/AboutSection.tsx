@@ -1,8 +1,8 @@
 import React from "react";
 import { cn } from "@/lib/utils";
-import TagsList from "../../TagsList";
+import TagsList from "../../ui/TagsList";
 import { Separator } from "@/components/ui/separator";
-import { EditableImage } from "../../EditableImage";
+import { EditableImage } from "../../ui/EditableImage";
 import { AsteriskSquare, Globe, Info, Plus } from "lucide-react";
 import {
   Tooltip,
@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { WorkflowData } from "@/types/workflow";
-import EditableField from "../../EditableField";
+import EditableField from "../../ui/EditableField";
 import {
   Card,
   CardDescription,

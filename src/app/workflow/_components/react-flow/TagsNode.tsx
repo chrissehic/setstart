@@ -2,7 +2,7 @@ import { memo } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { BaseNode } from "@/components/base-node";
 import { NodeHeader } from "@/components/node-header";
-import TagsList from "../TagsList";
+import TagsList from "../ui/TagsList";
 import { TagsNodeData } from "@/types/workflow-components";
 
 type TagsNodeProps = {

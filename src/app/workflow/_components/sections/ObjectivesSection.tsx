@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ObjectiveModal } from "../ObjectiveModal";
+import { ObjectiveModal } from "../modals/ObjectiveModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,14 +34,14 @@ import { SECTION_CLASS } from "@/lib/constants";
 import type { Objective, Task } from "@/types";
 import type { Person } from "@/types/workflow";
 import { useTasks } from "@/hooks/useTasks";
-import TaskCard from "../TaskCard";
-import { TaskModal } from "../TaskModal";
-import { TaskSelectorDialog } from "../TaskSelectorDialog";
+import TaskCard from "../ui/TaskCard";
+import { TaskModal } from "../modals/TaskModal";
+import { TaskSelectorDialog } from "../modals/TaskSelectorDialog";
 import { ChevronDown } from "lucide-react";
 import { deleteObjective } from "@/actions/objectives/deleteObjective";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TasksSection from "./TasksSection";
-import TaskDetailPane from "./TaskDetailPane";
+import TaskDetailPane from "../tasks/TaskDetailPane";
 import { Badge } from "@/components/ui/badge";
 import { UpdateTask } from "@/actions/tasks/updateTask";
 
@@ -78,7 +78,7 @@ function ObjectiveTasksDisplay({
   if (isLoading) {
     return (
       <div className="flex-1 overflow-hidden w-full flex flex-col gap-5">
-        <h3 className="text-lg font-semibold">Related Tasks</h3>
+        <h3 className="text-lg font-semibold">Related tasks</h3>
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin" />
         </div>
@@ -89,7 +89,7 @@ function ObjectiveTasksDisplay({
   if (error) {
     return (
       <div className="flex-1 overflow-hidden w-full flex flex-col gap-5">
-        <h3 className="text-lg font-semibold">Related Tasks</h3>
+        <h3 className="text-lg font-semibold">Related tasks</h3>
         <Alert>
           <AlertCircleIcon className="h-4 w-4" />
           <AlertDescription>
@@ -104,7 +104,7 @@ function ObjectiveTasksDisplay({
     <>
       <div className="flex-1 overflow-hidden w-full flex flex-col gap-5">
         <div className="w-full flex flex-row justify-between items-center gap-3">
-          <h3 className="text-lg font-semibold">Related Tasks</h3>
+          <h3 className="text-lg font-semibold">Related tasks</h3>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="gap-2">
@@ -400,7 +400,7 @@ const ObjectivesSection = ({
             <div>
               <h2 className="text-lg font-semibold">Objectives</h2>
               <p className="text-sm text-muted-foreground">
-                Manage your workflow objectives and track progress
+                Manage your project objectives and track its tasks and their progress
               </p>
             </div>
             <ObjectiveModal workflowId={workflowId}>

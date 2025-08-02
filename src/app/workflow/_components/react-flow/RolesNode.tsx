@@ -2,7 +2,7 @@ import { memo } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { BaseNode } from "@/components/base-node";
 import { NodeHeader } from "@/components/node-header";
-import RolesList from "../RolesList";
+import RolesList from "../ui/RolesList";
 import { RolesNodeData } from "@/types/workflow-components";
 
 type RolesNodeProps = {

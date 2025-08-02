@@ -1,12 +1,12 @@
 import React from "react";
-import StagesCarousel from "../StagesCarousel";
+import StagesCarousel from "../stages/StagesCarousel";
 import { CompanyStage, Stage } from "@/types";
 import { Button } from "@/components/ui/button";
 import { View } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CarouselApi } from "@/components/ui/carousel";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { StageChecklistDialog } from "../StageChecklistDialog";
+import { StageChecklistDialog } from "../modals/StageChecklistDialog";
 import { SECTION_CLASS } from "@/lib/constants";
 
 const classWrapper = "flex flex-col justify-start gap-2 w-full";

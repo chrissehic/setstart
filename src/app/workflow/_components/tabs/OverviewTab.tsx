@@ -1,5 +1,5 @@
-import { EditableImage } from "../EditableImage"
-import TagsList from "../TagsList"
+import { EditableImage } from "../ui/EditableImage"
+import TagsList from "../ui/TagsList"
 import Description from "@/components/ClampedDescription"
 import type { WorkflowData } from "@/types/workflow"
 import { SECTION_CLASS } from "@/lib/constants"

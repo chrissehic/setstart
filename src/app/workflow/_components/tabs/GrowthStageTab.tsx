@@ -1,7 +1,7 @@
 import { ArrowUpRight, Info } from "lucide-react"
 import Link from "next/link"
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
-import StagePreview from "../StagePreview"
+import StagePreview from "../stages/StagePreview"
 import { SECTION_CLASS } from "@/lib/constants"
 import { COMPANY_STAGES } from "@/types/companyStages"
 import { Stage } from "@/types"

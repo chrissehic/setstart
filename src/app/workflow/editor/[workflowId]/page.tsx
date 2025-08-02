@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import React from "react";
-import Editor from "../../_components/Editor";
+import Editor from "../../_components/core/Editor";
 
 export default async function page({
   params,
@@ -25,6 +25,7 @@ export default async function page({
         },
       },
       tasks: true,
+      products: true,
       people: {
         include: {
           person: true,

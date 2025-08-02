@@ -22,7 +22,7 @@ import { WorkflowStatus } from "@/types/workflow"
 
 import "@xyflow/react/dist/style.css"
 // import MenuBar from "../Header"
-import NodeContextMenu from "../ContextMenu"
+import NodeContextMenu from "../ui/ContextMenu"
 import { Badge } from "@/components/ui/badge"
 import { useTheme } from "next-themes"
 

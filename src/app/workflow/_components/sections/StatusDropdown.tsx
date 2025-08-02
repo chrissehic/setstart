@@ -1,0 +1,51 @@
+import React from "react";
+import { TaskStatus } from "@/types";
+import { Badge } from "@/components/ui/badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { cn, getStatusConfig } from "@/lib/utils";
+
+interface StatusDropdownProps {
+  status: TaskStatus;
+  onStatusChange: (newStatus: TaskStatus) => void;
+}
+
+const StatusDropdown: React.FC<StatusDropdownProps> = ({
+  status,
+  onStatusChange,
+}) => {
+  const statusConfig = getStatusConfig(status);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Badge
+          className={cn("text-xs cursor-pointer", statusConfig.color)}
+        >
+          {statusConfig.label}
+        </Badge>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {[
+          TaskStatus.NOT_STARTED,
+          TaskStatus.IN_PROGRESS,
+          TaskStatus.COMPLETE,
+        ].map((statusOption) => {
+          const config = getStatusConfig(statusOption);
+          return (
+            <DropdownMenuItem
+              key={statusOption}
+              onClick={() => onStatusChange(statusOption)}
+            >
+              <span className="text-muted-foreground text-xs">Set as</span> 
+              <Badge className={cn("text-xs", config.color)}>
+                {config.label}
+              </Badge>
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+export default StatusDropdown; 

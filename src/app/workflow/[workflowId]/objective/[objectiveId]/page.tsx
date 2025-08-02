@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useObjective } from "@/hooks/useObjectives";
 import { useTasks } from "@/hooks/useTasks";
-import TaskCard from "@/app/workflow/_components/TaskCard";
+import TaskCard from "@/app/workflow/_components/ui/TaskCard";
 import { TaskPriority, TaskStatus } from "@/types/workflow";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";

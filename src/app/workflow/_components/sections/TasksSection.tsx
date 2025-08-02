@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { classWrapper } from "@/styles/commonStyles";
 import { type Person, TaskStatus, Task } from "@/types";
-import TaskCard from "../TaskCard";
+import TaskCard from "../ui/TaskCard";
 import { cn } from "@/lib/utils";
 import { useTasks } from "@/hooks/useTasks";
 import {
@@ -30,8 +30,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { TaskModal } from "../TaskModal";
-import { TaskSelectorDialog } from "../TaskSelectorDialog";
+import { TaskModal } from "../modals/TaskModal";
+import { TaskSelectorDialog } from "../modals/TaskSelectorDialog";
 import { SECTION_CLASS } from "@/lib/constants";
 
 type TasksSectionProps = {
@@ -178,7 +178,7 @@ function TasksSection({ workflowId, people, objectiveId, selectedTask, setSelect
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All</SelectItem>
-                  <SelectItem value={TaskStatus.COMPLETE}>Complete</SelectItem>
+                  <SelectItem value={TaskStatus.COMPLETE}>Completed</SelectItem>
                   <SelectItem value={TaskStatus.NOT_STARTED}>
                     Not Started
                   </SelectItem>

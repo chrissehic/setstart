@@ -1,7 +1,7 @@
 "use client";
 
 import { useTasks } from "@/hooks/useTasks";
-import TasksPreview from "../TasksPreview";
+import TasksPreview from "../tasks/TasksPreview";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";

@@ -1,5 +1,5 @@
 import React from "react";
-import RolesList from "../RolesList";
+import RolesList from "../ui/RolesList";
 import { WorkflowData } from "@/types/workflow";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";

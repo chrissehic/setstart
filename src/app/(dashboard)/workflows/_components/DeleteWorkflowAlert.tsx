@@ -20,12 +20,14 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 interface Props {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   workflowName: string;
   workflowId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-function DeleteWorkflowAlert({ children, workflowName, workflowId }: Props) {
+function DeleteWorkflowAlert({ children, workflowName, workflowId, open, onOpenChange }: Props) {
   const [confirmText, setConfirmText] = useState("");
 
   const deleteMutation = useMutation({
@@ -40,7 +42,7 @@ function DeleteWorkflowAlert({ children, workflowName, workflowId }: Props) {
   });
 
   return (
-    <AlertDialog>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogTrigger
         onClick={(e) => {
           e.stopPropagation();

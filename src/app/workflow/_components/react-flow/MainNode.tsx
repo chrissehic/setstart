@@ -2,15 +2,15 @@ import { memo } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { ArrowUpRight, Circle, Info } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { EditableImage } from "../EditableImage";
+import { EditableImage } from "../ui/EditableImage";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import Link from "next/link";
-import TagsList from "../TagsList";
-import RolesList from "../RolesList";
+import TagsList from "../ui/TagsList";
+import RolesList from "../ui/RolesList";
 import { MainNodeData } from "@/types/workflow-components";
 
 const sectionClass =

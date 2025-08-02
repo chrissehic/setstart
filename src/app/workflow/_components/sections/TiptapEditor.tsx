@@ -1,0 +1,300 @@
+import React, { useState, useEffect } from "react";
+import { EditorContent, useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import { BubbleMenu } from "@tiptap/react/menus";
+import Link from "@tiptap/extension-link";
+import Placeholder from "@tiptap/extension-placeholder";
+import { useDebouncedCallback } from "use-debounce";
+import { cn } from "@/lib/utils";
+import EditorToolbar from "./EditorToolbar";
+import {
+  BulletList,
+  OrderedList,
+  TaskItem,
+  TaskList,
+} from "@tiptap/extension-list";
+import Heading from "@tiptap/extension-heading";
+import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
+
+// load all languages with "all" or common languages with "common"
+import { all, createLowlight } from "lowlight";
+
+// create a lowlight instance with all languages loaded
+const lowlight = createLowlight(all);
+
+interface TiptapEditorProps {
+  content: string;
+  onUpdate: (value: string) => void;
+  isEditing: boolean;
+  onStartEdit: () => void;
+  onSave?: (content: string) => void;
+  placeholder?: string;
+  debounceMs?: number;
+}
+
+const TiptapEditor: React.FC<TiptapEditorProps> = ({
+  content,
+  onUpdate,
+  isEditing,
+  onStartEdit,
+  onSave,
+  placeholder = "Describe the task and involvement...",
+  debounceMs = 600,
+}) => {
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [lastSavedContent, setLastSavedContent] = useState(content);
+  const [hasInitialized, setHasInitialized] = useState(false);
+
+  // Single Tiptap editor instance
+  const editor = useEditor({
+    immediatelyRender: false,
+    extensions: [
+      StarterKit,
+      Link.configure({
+        openOnClick: false,
+        autolink: true,
+        defaultProtocol: "https",
+        protocols: ["http", "https"],
+        isAllowedUri: (url, ctx) => {
+          try {
+            // construct URL
+            const parsedUrl = url.includes(":")
+              ? new URL(url)
+              : new URL(`${ctx.defaultProtocol}://${url}`);
+
+            // use default validation
+            if (!ctx.defaultValidate(parsedUrl.href)) {
+              return false;
+            }
+
+            // disallowed protocols
+            const disallowedProtocols = ["ftp", "file", "mailto"];
+            const protocol = parsedUrl.protocol.replace(":", "");
+
+            if (disallowedProtocols.includes(protocol)) {
+              return false;
+            }
+
+            // only allow protocols specified in ctx.protocols
+            const allowedProtocols = ctx.protocols.map((p) =>
+              typeof p === "string" ? p : p.scheme
+            );
+
+            if (!allowedProtocols.includes(protocol)) {
+              return false;
+            }
+
+            // disallowed domains
+            const disallowedDomains = [
+              "example-phishing.com",
+              "malicious-site.net",
+            ];
+            const domain = parsedUrl.hostname;
+
+            if (disallowedDomains.includes(domain)) {
+              return false;
+            }
+
+            // all checks have passed
+            return true;
+          } catch {
+            return false;
+          }
+        },
+        shouldAutoLink: (url) => {
+          try {
+            // construct URL
+            const parsedUrl = url.includes(":")
+              ? new URL(url)
+              : new URL(`https://${url}`);
+
+            // only auto-link if the domain is not in the disallowed list
+            const disallowedDomains = [
+              "example-no-autolink.com",
+              "another-no-autolink.com",
+            ];
+            const domain = parsedUrl.hostname;
+
+            return !disallowedDomains.includes(domain);
+          } catch {
+            return false;
+          }
+        },
+      }),
+      TaskList,
+      TaskItem.configure({
+        nested: true,
+      }),
+      OrderedList.configure({
+        HTMLAttributes: {
+          class: "list-decimal",
+        },
+      }),
+      BulletList.configure({
+        HTMLAttributes: {
+          class: "list-disc",
+        },
+      }),
+      Heading.configure({
+        levels: [1, 2, 3],
+        HTMLAttributes: {
+          class: "font-bold",
+        },
+      }),
+      Placeholder.configure({
+        placeholder,
+      }),
+      CodeBlockLowlight.configure({
+        lowlight,
+      }),
+    ],
+    content,
+    editable: isEditing,
+
+    editorProps: {
+      attributes: {
+        class:
+          "prose max-w-none text-base flex-1 min-h-[100px] h-full bg-transparent outline-none border border-transparent rounded-md transition-all resize-none",
+        tabIndex: "0",
+        style: "cursor: text; height: 100%;",
+      },
+      handlePaste() {
+        return false;
+      },
+    },
+    onUpdate: ({ editor }) => {
+      const newContent = editor.getHTML();
+      onUpdate(newContent);
+    },
+  });
+
+  // Auto-save with debounce
+  const debouncedSave = useDebouncedCallback((desc: string) => {
+    if (onSave) {
+      onSave(desc);
+      setSaving(false);
+      setSaved(true);
+      setLastSaved(new Date());
+      setLastSavedContent(desc);
+      setTimeout(() => setSaved(false), 1200);
+    }
+  }, debounceMs);
+
+  // Update editor editable state and focus when editing mode changes
+  useEffect(() => {
+    if (editor) {
+      editor.setEditable(isEditing);
+      if (isEditing) {
+        setTimeout(() => {
+          editor.commands.focus();
+        }, 0);
+      }
+    }
+  }, [isEditing, editor]);
+
+  // Update editor content when content changes
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content);
+    }
+  }, [content, editor]);
+
+  // Handle content changes for auto-save
+  useEffect(() => {
+    if (
+      onSave &&
+      hasInitialized &&
+      content &&
+      content !== lastSavedContent &&
+      content.trim() !== lastSavedContent.trim()
+    ) {
+      setSaving(true);
+      debouncedSave(content);
+    }
+  }, [content, onSave, lastSavedContent, debouncedSave, hasInitialized]);
+
+  // Mark as initialized after first render
+  useEffect(() => {
+    setHasInitialized(true);
+  }, []);
+
+  if (!editor) return null;
+
+  if (isEditing) {
+    return (
+      <>
+        <EditorContent
+          editor={editor}
+          onClick={onStartEdit}
+          className="cursor-text h-full"
+        />
+        {/* BubbleMenu for formatting */}
+        <BubbleMenu
+          editor={editor}
+          options={{ placement: "bottom", offset: 8 }}
+        >
+          <EditorToolbar editor={editor} />
+        </BubbleMenu>
+        {/* Saving indicator */}
+        {onSave && (
+          <div className="flex items-center gap-2 mt-1 min-h-[20px]">
+            {saving ? (
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <span className="animate-spin inline-block w-3 h-3 border-2 border-muted-foreground border-t-transparent rounded-full"></span>
+                Saving...
+              </span>
+            ) : saved ? (
+              <span className="text-xs text-green-600 flex items-center gap-1">
+                ✓ Saved
+                {lastSaved &&
+                  ` at ${lastSaved.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                  })}`}
+              </span>
+            ) : null}
+            {lastSaved && !saving && !saved && (
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                Saved at{" "}
+                {lastSaved.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                })}
+              </span>
+            )}
+          </div>
+        )}
+      </>
+    );
+  }
+
+  if (!editor) return null;
+
+  // Read-only display mode
+  const isEmpty = !content || content.trim() === "" || content === "<p></p>";
+
+  return (
+    <div
+      className={cn(
+        "prose max-w-none text-base flex-1 min-h-[100px] bg-transparent border border-transparent rounded-md cursor-text",
+        isEmpty && "text-muted-foreground"
+      )}
+      tabIndex={0}
+      role="textbox"
+      aria-label="Task description"
+      onClick={onStartEdit}
+    >
+      {isEmpty ? (
+        "Click to add a description..."
+      ) : (
+        <EditorContent editor={editor} />
+      )}
+    </div>
+  );
+};
+
+export default TiptapEditor;

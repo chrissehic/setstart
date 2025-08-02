@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import RolesList from "../RolesList"
+import RolesList from "../ui/RolesList"
 import type { WorkflowData } from "@/types/workflow"
 import { SECTION_CLASS } from "@/lib/constants"
 
