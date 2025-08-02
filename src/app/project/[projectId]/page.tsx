@@ -30,6 +30,7 @@ export default async function ProjectPage({
         },
       },
       tasks: true,
+      products: true,
       people: {
         include: {
           person: true,

@@ -1,113 +1,138 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Product } from "@/types/workflow"
-import { getProducts } from "@/actions/products/getProducts"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
 import { addProduct } from "@/actions/products/addProduct"
 import { updateProduct } from "@/actions/products/updateProduct"
 import { deleteProduct } from "@/actions/products/deleteProduct"
-import { toast } from "sonner"
+import { Product } from "@/types/workflow"
 
-export function useProducts(workflowId: string) {
-  const [products, setProducts] = useState<Product[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isAdding, setIsAdding] = useState(false)
-  const [isUpdating, setIsUpdating] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
+// Query keys for products
+export const productKeys = {
+  all: ['products'] as const,
+  byWorkflow: (workflowId: string) => [...productKeys.all, 'workflow', workflowId] as const,
+}
 
-  useEffect(() => {
-    loadProducts()
-  }, [workflowId])
-
-  const loadProducts = async () => {
-    try {
-      setIsLoading(true)
-      const data = await getProducts(workflowId)
-      setProducts(data)
-    } catch (error) {
-      console.error("Error loading products:", error)
-      toast.error("Failed to load products")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const createProduct = async (productData: {
-    name: string
-    description?: string
-    type?: string
-    image?: string
-  }) => {
-    try {
-      setIsAdding(true)
-      const newProduct = await addProduct({
+export function useAddProduct(workflowId: string) {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: addProduct,
+    onMutate: async (newProduct) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: productKeys.byWorkflow(workflowId) });
+      
+      // Snapshot previous value
+      const previousProducts = queryClient.getQueryData<Product[]>(productKeys.byWorkflow(workflowId));
+      
+      // Optimistically update
+      const optimisticProduct: Product = {
+        id: `temp-${Date.now()}`,
         workflowId,
-        ...productData,
-      })
-      setProducts((prev) => [newProduct, ...prev])
-      toast.success("Product added successfully")
-      return newProduct
-    } catch (error) {
-      console.error("Error creating product:", error)
-      toast.error("Failed to add product")
-      throw error
-    } finally {
-      setIsAdding(false)
-    }
-  }
+        name: newProduct.name,
+        description: newProduct.description || null,
+        type: newProduct.type || null,
+        image: newProduct.image || null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      
+      queryClient.setQueryData<Product[]>(
+        productKeys.byWorkflow(workflowId),
+        (old) => old ? [optimisticProduct, ...old] : [optimisticProduct]
+      );
+      
+      return { previousProducts };
+    },
+    onError: (err, newProduct, context) => {
+      // Rollback on error
+      queryClient.setQueryData(productKeys.byWorkflow(workflowId), context?.previousProducts);
+      console.error("Failed to add product:", err);
+      toast.error("Failed to add product");
+    },
+    onSuccess: () => {
+      toast.success("Product added successfully");
+    },
+    onSettled: () => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: productKeys.byWorkflow(workflowId) });
+    },
+  });
+}
 
-  const updateProductById = async (
-    productId: string,
-    productData: {
-      name?: string
-      description?: string
-      type?: string
-      image?: string
-    }
-  ) => {
-    try {
-      setIsUpdating(true)
-      const updatedProduct = await updateProduct(productId, productData)
-      setProducts((prev) =>
-        prev.map((product) =>
-          product.id === productId ? updatedProduct : product
-        )
-      )
-      toast.success("Product updated successfully")
-      return updatedProduct
-    } catch (error) {
-      console.error("Error updating product:", error)
-      toast.error("Failed to update product")
-      throw error
-    } finally {
-      setIsUpdating(false)
-    }
-  }
+export function useUpdateProduct(workflowId: string, showToast: boolean = true) {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: updateProduct,
+    onMutate: async (updatedProduct) => {
+      await queryClient.cancelQueries({ queryKey: productKeys.byWorkflow(workflowId) });
+      
+      const previousProducts = queryClient.getQueryData<Product[]>(productKeys.byWorkflow(workflowId));
+      
+      // Optimistically update
+      queryClient.setQueryData<Product[]>(
+        productKeys.byWorkflow(workflowId),
+        (old) => old?.map(product => 
+          product.id === updatedProduct.id 
+            ? { 
+                ...product, 
+                name: updatedProduct.name ?? product.name,
+                description: updatedProduct.description ?? product.description,
+                type: updatedProduct.type ?? product.type,
+                image: updatedProduct.image ?? product.image,
+                updatedAt: new Date() 
+              }
+            : product
+        ) || []
+      );
+      
+      return { previousProducts };
+    },
+    onError: (err, updatedProduct, context) => {
+      queryClient.setQueryData(productKeys.byWorkflow(workflowId), context?.previousProducts);
+      console.error("Failed to update product:", err);
+      toast.error("Failed to update product");
+    },
+    onSuccess: () => {
+      if (showToast) {
+        toast.success("Product updated successfully");
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: productKeys.byWorkflow(workflowId) });
+    },
+  });
+}
 
-  const deleteProductById = async (productId: string) => {
-    try {
-      setIsDeleting(true)
-      await deleteProduct(productId)
-      setProducts((prev) => prev.filter((product) => product.id !== productId))
-      toast.success("Product deleted successfully")
-    } catch (error) {
-      console.error("Error deleting product:", error)
-      toast.error("Failed to delete product")
-      throw error
-    } finally {
-      setIsDeleting(false)
-    }
-  }
-
-  return {
-    products,
-    isLoading,
-    isAdding,
-    isUpdating,
-    isDeleting,
-    createProduct,
-    updateProductById,
-    deleteProductById,
-    refreshProducts: loadProducts,
-  }
+export function useDeleteProduct(workflowId: string) {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: deleteProduct,
+    onMutate: async (productId) => {
+      await queryClient.cancelQueries({ queryKey: productKeys.byWorkflow(workflowId) });
+      
+      const previousProducts = queryClient.getQueryData<Product[]>(productKeys.byWorkflow(workflowId));
+      
+      // Optimistically remove
+      queryClient.setQueryData<Product[]>(
+        productKeys.byWorkflow(workflowId),
+        (old) => old?.filter(product => product.id !== productId) || []
+      );
+      
+      return { previousProducts };
+    },
+    onError: (err, productId, context) => {
+      queryClient.setQueryData(productKeys.byWorkflow(workflowId), context?.previousProducts);
+      console.error("Failed to delete product:", err);
+      toast.error("Failed to delete product");
+    },
+    onSuccess: () => {
+      toast.success("Product deleted successfully");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: productKeys.byWorkflow(workflowId) });
+    },
+  });
 } 

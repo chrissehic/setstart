@@ -224,6 +224,7 @@ function TasksSection({ workflowId, people, objectiveId, selectedTask, setSelect
                 variant="default"
                 maxCount={3}
                 className="bg-muted"
+                modalPopover={true}
               />
             </div>
           </div>

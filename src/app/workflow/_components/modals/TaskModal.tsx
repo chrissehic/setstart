@@ -342,6 +342,7 @@ export function TaskModal({
               variant="default"
               maxCount={3}
               disabled={isLoading}
+              modalPopover={true}
             />
           </div>
 
