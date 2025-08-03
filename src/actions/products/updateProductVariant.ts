@@ -21,6 +21,7 @@ export async function updateProductVariant(data: any) {
     });
 
     revalidatePath(`/workflow/editor/${variant.productId}`);
+    revalidatePath(`/project/${variant.productId}`);
     return { success: true, data: variant };
   } catch (error) {
     console.error("Error updating product variant:", error);

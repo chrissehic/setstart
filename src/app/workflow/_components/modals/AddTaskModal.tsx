@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -128,7 +128,7 @@ export function AddTaskModal({ workflowId, people, objectiveId, children }: AddT
             <Label htmlFor="description">Description</Label>
             <Textarea id="description" name="description" rows={4} />
           </div>
-          <div className="flex justify-end gap-2 pt-4">
+          <DialogFooter className="flex flex-row justify-between w-full">
             <Button
               type="button"
               variant="outline"
@@ -140,7 +140,7 @@ export function AddTaskModal({ workflowId, people, objectiveId, children }: AddT
             <Button type="submit" disabled={isLoading}>
               {isLoading ? "Creating..." : "Create Task"}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

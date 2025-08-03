@@ -1,6 +1,6 @@
 "use client"
 
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { addProduct } from "@/actions/products/addProduct"
 import { updateProduct } from "@/actions/products/updateProduct"
@@ -11,6 +11,19 @@ import { Product } from "@/types/workflow"
 export const productKeys = {
   all: ['products'] as const,
   byWorkflow: (workflowId: string) => [...productKeys.all, 'workflow', workflowId] as const,
+}
+
+export function useProducts(workflowId: string) {
+  return useQuery({
+    queryKey: productKeys.byWorkflow(workflowId),
+    queryFn: async () => {
+      const response = await fetch(`/api/products/${workflowId}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    },
+  });
 }
 
 export function useAddProduct(workflowId: string) {
@@ -33,6 +46,7 @@ export function useAddProduct(workflowId: string) {
         description: newProduct.description || null,
         type: newProduct.type || null,
         image: newProduct.image || null,
+        variants: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       };

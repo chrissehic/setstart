@@ -34,6 +34,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ThemeModeToggle";
 import { useUser } from "@clerk/nextjs";
+import { Separator } from "@/components/ui/separator";
 
 // Extended type for workflows that include tasks
 type WorkflowWithTasks = WorkflowWithDetails & {
@@ -78,14 +79,14 @@ function Sidebar({
     <>
       {/* Project Selection Header */}
       {allWorkflows && currentWorkflow && (
-        <SidebarHeader className="border-b p-1 pb-4">
+        <SidebarHeader className="w-full">
           <SidebarMenu>
-            <SidebarMenuItem>
+            <SidebarMenuItem className="w-full">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <SidebarMenuButton
                     size="lg"
-                    className="cursor-pointer  data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                    className="cursor-pointer w-full data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                   >
                     <Avatar className="size-8">
                       <AvatarImage src={currentWorkflow.logoImage || ""} />
@@ -146,22 +147,24 @@ function Sidebar({
           </SidebarMenu>
         </SidebarHeader>
       )}
+      <Separator className="" />
       <CreateWorkflowModal
         open={showCreateModal}
         onOpenChange={setShowCreateModal}
       />
 
-      <SidebarContent>
+      <SidebarContent className="w-full">
         <SidebarGroup className="px-1">
-          <SidebarGroupLabel className="mb-4">Sections</SidebarGroupLabel>
+          <SidebarGroupLabel className="mb-2">Sections</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.title} className="w-full">
                   <SidebarMenuButton
                     asChild
                     isActive={item.value === active}
                     onClick={() => onTabChange(item.value)}
+                    className="w-full"
                   >
                     <a href={`#${item.value}`} className="text-sm">
                       {item.icon && <item.icon className="size-4! text-xs" />}

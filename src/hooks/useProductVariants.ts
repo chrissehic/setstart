@@ -3,8 +3,9 @@ import { addProductVariant } from "@/actions/products/addProductVariant";
 import { toast } from "sonner";
 import { updateProductVariant } from "@/actions/products/updateProductVariant";
 import { deleteProductVariant } from "@/actions/products/deleteProductVariant";
+import { productKeys } from "./useProducts";
 
-export function useAddProductVariant() {
+export function useAddProductVariant(workflowId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -12,7 +13,7 @@ export function useAddProductVariant() {
     onSuccess: (result) => {
       if (result.success) {
         toast.success("Variant added successfully");
-        queryClient.invalidateQueries({ queryKey: ["products"] });
+        queryClient.invalidateQueries({ queryKey: productKeys.byWorkflow(workflowId) });
       } else {
         toast.error(result.error || "Failed to add variant");
       }
@@ -24,7 +25,7 @@ export function useAddProductVariant() {
   });
 }
 
-export function useUpdateProductVariant() {
+export function useUpdateProductVariant(workflowId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -32,7 +33,7 @@ export function useUpdateProductVariant() {
     onSuccess: (result) => {
       if (result.success) {
         toast.success("Variant updated successfully");
-        queryClient.invalidateQueries({ queryKey: ["products"] });
+        queryClient.invalidateQueries({ queryKey: productKeys.byWorkflow(workflowId) });
       } else {
         toast.error(result.error || "Failed to update variant");
       }
@@ -44,7 +45,7 @@ export function useUpdateProductVariant() {
   });
 }
 
-export function useDeleteProductVariant() {
+export function useDeleteProductVariant(workflowId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -52,7 +53,7 @@ export function useDeleteProductVariant() {
     onSuccess: (result) => {
       if (result.success) {
         toast.success("Variant deleted successfully");
-        queryClient.invalidateQueries({ queryKey: ["products"] });
+        queryClient.invalidateQueries({ queryKey: productKeys.byWorkflow(workflowId) });
       } else {
         toast.error(result.error || "Failed to delete variant");
       }

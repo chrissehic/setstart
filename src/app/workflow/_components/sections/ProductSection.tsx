@@ -4,16 +4,44 @@ import { Plus, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Product } from "@/types/workflow";
 import { ProductModal } from "../modals/ProductModal";
 import Image from "next/image";
+import { useProducts } from "@/hooks/useProducts";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { Product } from "@/types/workflow";
 
 interface ProductSectionProps {
   workflowId: string;
-  products: Product[];
 }
 
-export function ProductSection({ workflowId, products }: ProductSectionProps) {
+export function ProductSection({ workflowId }: ProductSectionProps) {
+  const { data: products = [], isLoading, error } = useProducts(workflowId);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-semibold tracking-tight">Products</h2>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <LoadingSpinner />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-semibold tracking-tight">Products</h2>
+        </div>
+        <div className="text-center py-12">
+          <p className="text-red-500">Error loading products</p>
+        </div>
+      </div>
+    );
+  }
   if (products.length === 0) {
     return (
       <div className="space-y-6">
@@ -61,10 +89,10 @@ export function ProductSection({ workflowId, products }: ProductSectionProps) {
       </div>
 
       <div className="space-y-4">
-        {products.map((product) => (
+        {products.map((product: Product) => (
           <Card
             key={product.id}
-            className="overflow-hidden group p-0 hover:shadow-md transition-shadow"
+            className="overflow-hidden group p-0 hover:shadow-md hover:bg-muted/50 transition-all duration-200 ease-in-out"
           >
             <ProductModal workflowId={workflowId} product={product}>
               <div className="cursor-pointer">
@@ -93,7 +121,7 @@ export function ProductSection({ workflowId, products }: ProductSectionProps) {
                             {product.type}
                           </Badge>
                         )}
-                        <h3 className="text-lg font-semibold text-foreground truncate">
+                        <h3 className="text-2xl font-semibold text-foreground truncate">
                           {product.name}
                         </h3>
                       </div>

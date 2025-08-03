@@ -24,7 +24,7 @@ export const TabContent = ({ data, stageObj }: WorkspaceTabContentProps) => (
       <RolesSection data={data} />
     </TabsContent>
     <TabsContent value="product">
-      <ProductSection workflowId={data.id} products={data.products || []} />
+      <ProductSection workflowId={data.id} />
     </TabsContent>
     <TabsContent value="taskboard">
       <ObjectivesSection

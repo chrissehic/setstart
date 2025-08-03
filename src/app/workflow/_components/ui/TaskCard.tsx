@@ -15,13 +15,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Task, Person, TaskStatus } from "@/types";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn, getCategoryConfig, getStatusConfig } from "@/lib/utils";
 import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import { TaskModal } from "../modals/TaskModal";
-import { getInitials } from "@/lib/helpers/getInitials";
+import AssignedPeopleBadge from "../sections/AssignedPeopleBadge";
 
 interface TaskCardProps {
   task: Task;
@@ -55,6 +54,9 @@ function TaskCard({ task, workflowId, people }: TaskCardProps) {
   const handleEditTask = () => {
     setIsEditModalOpen(true);
   };
+
+  const assignedPeople = task.assignedPeople.map((ap) => ap.person);
+
 
   return (
     <Card className="relative space-y-2 hover:bg-accent/20 transition-colors duration-100 ease-in-out">
@@ -148,37 +150,10 @@ function TaskCard({ task, workflowId, people }: TaskCardProps) {
       <CardContent>
         <div className="flex flex-row justify-between items-center">
           <div className="flex flex-col justify-center gap-1">
-            {task.assignedPeople.length > 0 ? (
-              <Badge className="flex py-0.5 pl-0.5 pr-3 gap-0.5 bg-accent items-center space-x-1 rounded-full">
-                <div className="flex -space-x-1 flex-row">
-                  {task.assignedPeople.map(({ person }) => (
-                    <Avatar key={person.id} className="w-6 h-6 rounded-full">
-                      <AvatarImage
-                        src={person?.avatarImage}
-                        alt={person.name}
-                      />
-                      <AvatarFallback className="bg-input text-accent-foreground border-input border rounded-full">
-                        {getInitials(person.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                  ))}
-                </div>
-                <span className="text-xs">
-                  {task.assignedPeople.length > 1
-                    ? task.assignedPeople
-                        .map(({ person }) =>
-                          typeof person?.name === "string"
-                            ? person.name.split(" ")[0]
-                            : null
-                        )
-                        .filter(Boolean)
-                        .join(", ")
-                    : task.assignedPeople
-                        .map(({ person }) => person.name)
-                        .filter(Boolean)
-                        .join(", ")}
-                </span>
-              </Badge>
+            {assignedPeople.length > 0 ? (
+          <AssignedPeopleBadge people={assignedPeople} />
+
+   
             ) : (
               <p className="text-sm text-muted-foreground">
                 No one assigned yet.

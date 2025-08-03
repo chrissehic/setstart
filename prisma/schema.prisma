@@ -11,161 +11,110 @@ datasource db {
 model Workflow {
   id                String            @id @default(cuid())
   userId            String
-  name              String
+  name              String            @unique
   tagline           String?
   description       String?
   logoImage         String?
   backgroundImage   String?
-  tags              Tag[] // Many-to-many relation with Tag
-  people            RolesInWorkflow[] // People + roles in this workflow
-  estimatedDuration String? // Optional estimated duration
-
-  stage  WorkflowStage  @default(existence)
-  status WorkflowStatus @default(BLUEPRINT)
-
-  definition String
-
-  objectives Objective[] // 🚀 Objectives
-  tasks      Task[] // 🚀 Tasks
-  products   Product[] // 🚀 Products
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([name])
-}
-
-enum WorkflowStage {
-  existence
-  survival
-  success
-  takeoff
-  maturity
-}
-
-enum WorkflowStatus {
-  BLUEPRINT
-  OPERATIONAL
+  estimatedDuration String?
+  stage             String            @default("existence")
+  status            String            @default("BLUEPRINT")
+  definition        String
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  objectives        Objective[]
+  products          Product[]
+  people            RolesInWorkflow[]
+  tasks             Task[]
+  tags              Tag[]             @relation("TagToWorkflow")
 }
 
 model Objective {
-  id         String   @id @default(cuid())
-  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  workflowId String
-
+  id          String   @id @default(cuid())
+  workflowId  String
   title       String
   description String?
-  priority    TaskPriority?
-
-  tasks Task[] // Tasks under this objective
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  priority    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  tasks       Task[]
 }
 
 model Task {
-  id         String   @id @default(cuid())
-  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  workflowId String
-
-  objective   Objective? @relation(fields: [objectiveId], references: [id], onDelete: SetNull)
-  objectiveId String?
-
-  title       String
-  category    String // e.g., "Photography", "Web Development", etc.
-  description String?
-
-  status         TaskStatus     @default(NOT_STARTED)
-  responsibility Responsibility @default(IN_HOUSE)
-  priority       TaskPriority?
-
-  dueDate DateTime?
-
-  assignedPeople PersonOnTask[] // 🚀 Many-to-many: who is assigned
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String         @id @default(cuid())
+  workflowId     String
+  objectiveId    String?
+  title          String
+  category       String
+  description    String?
+  status         String         @default("NOT_STARTED")
+  responsibility String         @default("IN_HOUSE")
+  priority       String?
+  dueDate        DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  assignedPeople PersonOnTask[]
+  objective      Objective?     @relation(fields: [objectiveId], references: [id])
+  workflow       Workflow       @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 }
 
 model Tag {
   id        String     @id @default(cuid())
   name      String     @unique
-  workflows Workflow[]
+  workflows Workflow[] @relation("TagToWorkflow")
 }
 
 model Person {
   id          String            @id @default(cuid())
   name        String            @unique
   avatarImage String?
+  tasks       PersonOnTask[]
   workflows   RolesInWorkflow[]
-  tasks       PersonOnTask[] // 🚀 Tasks assigned to this person
 }
 
 model RolesInWorkflow {
-  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
   workflowId String
-  person     Person   @relation(fields: [personId], references: [id])
   personId   String
   role       String
+  person     Person   @relation(fields: [personId], references: [id])
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 
   @@id([workflowId, personId])
 }
 
 model PersonOnTask {
-  task     Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
   taskId   String
-  person   Person @relation(fields: [personId], references: [id])
   personId String
+  person   Person @relation(fields: [personId], references: [id])
+  task     Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@id([taskId, personId])
 }
 
 model Product {
-  id          String   @id @default(cuid())
-  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  id          String           @id @default(cuid())
   workflowId  String
-
   name        String
   description String?
-  type        String? // e.g., "SaaS", "Food", "Service", etc.
-  image       String? // URL or path to product image
-  // Add more fields as needed for flexibility
-
-  variants    ProductVariant[] // Product variants
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  type        String?
+  image       String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  workflow    Workflow         @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  variants    ProductVariant[]
 }
 
 model ProductVariant {
   id          String   @id @default(cuid())
-  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId   String
-
-  name        String   // e.g., "Chocolate", "Vanilla", "Strawberry"
+  name        String
   description String?
-  attributes  String   // JSON string for flexible attributes like flavor, size, color, etc.
-  price       Float?   // Optional price for the variant
-  image       String?  // Optional variant-specific image
+  attributes  String
+  price       Float?
+  image       String?
   isActive    Boolean  @default(true)
-
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-}
-
-enum TaskStatus {
-  NOT_STARTED
-  IN_PROGRESS
-  COMPLETE
-}
-
-enum Responsibility {
-  IN_HOUSE
-  OUTSOURCED
-}
-
-enum TaskPriority {
-  LOW
-  MEDIUM
-  HIGH
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }

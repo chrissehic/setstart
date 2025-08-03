@@ -13,6 +13,7 @@ export async function deleteProductVariant(data: any) {
     });
 
     revalidatePath(`/workflow/editor/${variant.productId}`);
+    revalidatePath(`/project/${variant.productId}`);
     return { success: true };
   } catch (error) {
     console.error("Error deleting product variant:", error);

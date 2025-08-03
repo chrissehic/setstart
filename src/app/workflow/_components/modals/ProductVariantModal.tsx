@@ -29,7 +29,7 @@ import { useAddProductVariant, useUpdateProductVariant } from "@/hooks/useProduc
 import { ProductVariant } from "@/types/workflow";
 import { toast } from "sonner";
 import Image from "next/image";
-import { parseVariantAttributes, stringifyVariantAttributes, getExampleAttributes } from "@/lib/helpers/variantUtils";
+import { getExampleAttributes } from "@/lib/helpers/variantUtils";
 
 const variantSchema = z.object({
   name: z.string().min(1, "Variant name is required"),
@@ -43,6 +43,7 @@ type VariantSchemaType = z.infer<typeof variantSchema>;
 
 interface ProductVariantModalProps {
   productId: string;
+  workflowId?: string;
   variant?: ProductVariant; // If provided, we're editing
   children?: React.ReactNode;
   onSuccess?: () => void;
@@ -53,6 +54,7 @@ interface ProductVariantModalProps {
 
 export function ProductVariantModal({
   productId,
+  workflowId,
   variant,
   children,
   open: controlledOpen,
@@ -62,14 +64,14 @@ export function ProductVariantModal({
   const [internalOpen, setInternalOpen] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [attributes, setAttributes] = useState<Record<string, any>>({});
+  const [attributes, setAttributes] = useState<Record<string, string>>({});
 
   // Use controlled state if provided, otherwise use internal state
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = controlledOnOpenChange || setInternalOpen;
 
-  const addVariant = useAddProductVariant();
-  const updateVariant = useUpdateProductVariant();
+  const addVariant = useAddProductVariant(workflowId || "");
+  const updateVariant = useUpdateProductVariant(workflowId || "");
 
   const isEditing = !!variant;
   const isLoading = addVariant.isPending || updateVariant.isPending;
@@ -90,16 +92,15 @@ export function ProductVariantModal({
     if (open) {
       if (variant) {
         // Editing mode - populate form
-        const parsedAttributes = parseVariantAttributes(variant.attributes as string);
         form.reset({
           name: variant.name,
           description: variant.description || "",
           price: variant.price || undefined,
           image: variant.image || "",
-          attributes: parsedAttributes || {},
+          attributes: variant.attributes || {},
         });
         setImageUrl(variant.image || null);
-        setAttributes(parsedAttributes || {});
+        setAttributes(variant.attributes || {});
       } else {
         // Creating mode - clear form
         form.reset({
@@ -217,7 +218,7 @@ export function ProductVariantModal({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {isEditing ? "Edit Variant" : "Add New Variant"}
@@ -231,146 +232,13 @@ export function ProductVariantModal({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Variant Name *</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="e.g., Chocolate, Vanilla, Large, Premium..."
-                        {...field}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Price</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        {...field}
-                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Describe this variant..."
-                      rows={3}
-                      {...field}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Dynamic Attributes Section */}
-                          <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <FormLabel>Attributes</FormLabel>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const examples = getExampleAttributes("Food");
-                        setAttributes(examples);
-                      }}
-                      disabled={isLoading}
-                    >
-                      Load Examples
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={addAttribute}
-                      disabled={isLoading}
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add Attribute
-                    </Button>
-                  </div>
-                </div>
-              
-              {Object.keys(attributes).length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No attributes added yet. Click "Add Attribute" to define specific characteristics like flavor, size, color, etc.
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {Object.entries(attributes).map(([key, value]) => (
-                    <div key={key} className="flex gap-2">
-                      <Input
-                        placeholder="Attribute name (e.g., Flavor, Size, Color)"
-                        value={key}
-                        onChange={(e) => {
-                          const newKey = e.target.value;
-                          setAttributes(prev => {
-                            const newAttrs = { ...prev };
-                            delete newAttrs[key];
-                            newAttrs[newKey] = value;
-                            return newAttrs;
-                          });
-                        }}
-                        disabled={isLoading}
-                        className="flex-1"
-                      />
-                      <Input
-                        placeholder="Value"
-                        value={value as string}
-                        onChange={(e) => updateAttribute(key, e.target.value)}
-                        disabled={isLoading}
-                        className="flex-1"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeAttribute(key)}
-                        disabled={isLoading}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <div className="flex flex-row gap-4">
 
             <FormField
               control={form.control}
               name="image"
               render={() => (
-                <FormItem>
+                <FormItem className="flex-1">
                   <FormLabel>Variant Image (Optional)</FormLabel>
                   <FormControl>
                     <div className="space-y-4">
@@ -426,9 +294,148 @@ export function ProductVariantModal({
                 </FormItem>
               )}
             />
+            <div className="flex flex-col gap-4 flex-1">
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Variant Name *</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="e.g., Chocolate, Vanilla, Large, Premium..."
+                        {...field}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              {/* <FormField
+                control={form.control}
+                name="price"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Price</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              /> */}
+            </div>
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Describe this variant..."
+                      rows={3}
+                      {...field}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            </div>
+            </div>
+
+            {/* Dynamic Attributes Section */}
+                          <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <FormLabel>Attributes</FormLabel>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const examples = getExampleAttributes("Food");
+                        setAttributes(examples);
+                      }}
+                      disabled={isLoading}
+                    >
+                      Load Examples
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addAttribute}
+                      disabled={isLoading}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Attribute
+                    </Button>
+                  </div>
+                </div>
+              
+              {Object.keys(attributes).length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No attributes added yet. Click &quot;Add Attribute&quot; to define specific characteristics like flavor, size, color, etc.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {Object.entries(attributes).map(([key, value]) => (
+                    <div key={key} className="flex gap-2">
+                      <Input
+                        placeholder="Attribute name (e.g., Flavor, Size, Color)"
+                        value={key}
+                        onChange={(e) => {
+                          const newKey = e.target.value;
+                          setAttributes(prev => {
+                            const newAttrs = { ...prev };
+                            delete newAttrs[key];
+                            newAttrs[newKey] = value;
+                            return newAttrs;
+                          });
+                        }}
+                        disabled={isLoading}
+                        className="flex-1"
+                      />
+                      <Input
+                        placeholder="Value"
+                        value={value as string}
+                        onChange={(e) => updateAttribute(key, e.target.value)}
+                        disabled={isLoading}
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeAttribute(key)}
+                        disabled={isLoading}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            
 
             <DialogFooter>
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full justify-between">
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                   Cancel
                 </Button>

@@ -25,7 +25,6 @@ export default async function page({
         },
       },
       tasks: true,
-      products: true,
       people: {
         include: {
           person: true,
@@ -38,6 +37,5 @@ export default async function page({
     return <div>Workflow not found</div>;
   }
 
-  // return <Editor workflow={workflow}></Editor>;
-    return <Editor workflow={workflow}></Editor>;
+  return <Editor workflow={workflow}></Editor>;
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -72,6 +73,8 @@ export function ProductModal({
 }: ProductModalProps) {
   const [internalOpen, setInternalOpen] = useState(false);
 
+
+
   // Use controlled state if provided, otherwise use internal state
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = controlledOnOpenChange || setInternalOpen;
@@ -79,6 +82,7 @@ export function ProductModal({
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
+  const router = useRouter();
   const addProduct = useAddProduct(workflowId);
   const updateProduct = useUpdateProduct(workflowId);
   const deleteProduct = useDeleteProduct(workflowId);
@@ -184,6 +188,7 @@ export function ProductModal({
           onSuccess: () => {
             setOpen(false);
             onSuccess?.();
+            router.refresh();
           },
         }
       );
@@ -197,6 +202,7 @@ export function ProductModal({
           onSuccess: () => {
             setOpen(false);
             onSuccess?.();
+            router.refresh();
           },
         }
       );
@@ -210,6 +216,7 @@ export function ProductModal({
       await deleteProduct.mutateAsync(product.id);
       setOpen(false);
       onSuccess?.();
+      router.refresh();
     } catch {
       toast.error("Failed to delete product");
     }
@@ -238,12 +245,12 @@ export function ProductModal({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-4 flex flex-row gap-4">
+            <div className="flex flex-row gap-4">
               <FormField
                 control={form.control}
                 name="image"
                 render={() => (
-                  <FormItem className="w-full h-full">
+                  <FormItem className="w-full h-full flex-2">
                     <FormLabel>Product Image</FormLabel>
                     <FormControl>
                       <div className="space-y-4 w-full h-full">
@@ -301,7 +308,7 @@ export function ProductModal({
                   </FormItem>
                 )}
               />
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4 flex-3">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -365,6 +372,7 @@ export function ProductModal({
                 <Separator />
                 <ProductVariantsList
                   productId={product.id}
+                  workflowId={workflowId}
                   variants={product.variants || []}
                   onVariantChange={onSuccess}
                 />

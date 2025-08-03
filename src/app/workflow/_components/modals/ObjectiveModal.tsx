@@ -169,7 +169,7 @@ export function ObjectiveModal({
             </Select>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex flex-row justify-between w-full">
             <Button
               type="button"
               variant="outline"

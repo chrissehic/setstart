@@ -124,7 +124,7 @@ export interface ProductVariant {
   productId: string;
   name: string;
   description?: string | null;
-  attributes?: Record<string, any> | null;
+  attributes?: Record<string, string> | null;
   price?: number | null;
   image?: string | null;
   isActive: boolean;

@@ -12,14 +12,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { Search } from "lucide-react";
 import { useTasks, useUpdateTask } from "@/hooks/useTasks";
 import { Person } from "@/types/workflow";
 import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getInitials } from "@/lib/helpers/getInitials";
 import { cn, getCategoryConfig, getStatusConfig } from "@/lib/utils";
+import AssignedPeopleBadge from "../sections/AssignedPeopleBadge";
 
 interface TaskSelectorDialogProps {
   workflowId: string;
@@ -71,13 +70,9 @@ export function TaskSelectorDialog({
 
   useEffect(() => {
     if (open) {
-      setSelectedTasks(
-        allTasks
-          .filter((task) => task.objectiveId === objectiveId)
-          .map((task) => task.id)
-      );
+      setSelectedTasks(originallyAssigned);
     }
-  }, [open, allTasks, objectiveId]);
+  }, [open, originallyAssigned]);
 
   const filteredTasks = useMemo(() => {
     if (!searchQuery.trim()) return allTasks;
@@ -150,18 +145,18 @@ export function TaskSelectorDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[80vh]">
-        <DialogHeader>
-          <DialogTitle>Select Existing Tasks</DialogTitle>
+      <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
+          <DialogTitle>Select existing tasks</DialogTitle>
           <DialogDescription>
             Choose existing tasks to assign to this objective. Only tasks not
             already assigned to an objective are shown.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 flex-1 min-h-0 h-full">
+        <div className="flex flex-col gap-4 flex-1 min-h-0">
           {/* Search Input */}
-          <div className="relative">
+          <div className="relative flex-shrink-0">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search tasks by title, description, or category..."
@@ -171,113 +166,92 @@ export function TaskSelectorDialog({
             />
           </div>
 
-          <ScrollArea className="h-96">
-            <div className="py-4">
-              {filteredTasks.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  {filteredTasks.length === 0 ? (
-                    <p>No unassigned tasks available</p>
-                  ) : (
-                    <p>No tasks match your search</p>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {filteredTasks.map((task) => {
-                    const statusConfig = getStatusConfig(task.status);
-                    const categoryConfig = getCategoryConfig(task.category);
-                    return (
-                      <div
-                        key={task.id}
-                        onClick={() => handleTaskToggle(task.id)}
-                        className={cn(
-                          `p-3 rounded-lg border cursor-pointer transition-colors duration-150 ease-in-out`,
-                          selectedTasks.includes(task.id)
-                            ? "border-primary bg-primary/5 shadow-sm"
-                            : "border-border hover:bg-muted/40"
-                        )}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 min-w-0 space-y-1">
-                            <div className="flex items-center justify-between gap-2">
-                              <Badge
-                                variant="secondary"
-                                className={cn("text-xs", categoryConfig.color)}
-                              >
-                                {task.category}
-                              </Badge>
-                              <Badge
-                                className={cn("text-xs", statusConfig.color)}
-                              >
-                                {/* {task.status.replace("_", " ")} */}
-                                {statusConfig.label}
-                              </Badge>
-                            </div>
-                            <h4 className="text-base font-medium truncate">
-                              {task.title}
-                            </h4>
-                            {task.description && (
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            {filteredTasks.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                {filteredTasks.length === 0 ? (
+                  <p>No unassigned tasks available</p>
+                ) : (
+                  <p>No tasks match your search</p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {filteredTasks.map((task) => {
+                  const statusConfig = getStatusConfig(task.status);
+                  const categoryConfig = getCategoryConfig(task.category);
+                  return (
+                    <div
+                      key={task.id}
+                      onClick={() => handleTaskToggle(task.id)}
+                      className={cn(
+                        `p-3 rounded-lg border cursor-pointer transition-colors duration-150 ease-in-out`,
+                        selectedTasks.includes(task.id)
+                          ? "border-primary bg-primary/5 shadow-sm"
+                          : "border-border hover:bg-muted/40"
+                      )}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <Badge
+                              variant="secondary"
+                              className={cn("text-xs", categoryConfig.color)}
+                            >
+                              {task.category}
+                            </Badge>
+                            <Badge
+                              className={cn("text-xs", statusConfig.color)}
+                            >
+                              {/* {task.status.replace("_", " ")} */}
+                              {statusConfig.label}
+                            </Badge>
+                          </div>
+                          <h4 className="text-base font-medium truncate">
+                            {task.title}
+                          </h4>
+                                                      {task.description && (
                               <p className="text-xs text-muted-foreground line-clamp-2">
-                                {task.description}
+                                <span dangerouslySetInnerHTML={{ __html: task.description }} />
                               </p>
                             )}
-                            {task.assignedPeople.length > 0 && (
-                              <div className="flex items-center gap-2 mt-1">
-                                <div className="flex -space-x-1">
-                                  {task.assignedPeople
-                                    .slice(0, 3)
-                                    .map(({ person }) => (
-                                      <Avatar
-                                        key={person.id}
-                                        className="w-5 h-5"
-                                      >
-                                        <AvatarImage
-                                          src={person?.avatarImage}
-                                          alt={person?.name}
-                                        />
-                                        <AvatarFallback className="text-xs bg-input text-muted-foreground">
-                                          {getInitials(person.name)}
-                                        </AvatarFallback>
-                                      </Avatar>
-                                    ))}
-                                </div>
-                                <span className="text-xs text-muted-foreground">
-                                  {task.assignedPeople
-                                    .map(
-                                      ({ person }) =>
-                                        person?.name?.split(" ")[0]
-                                    )
-                                    .filter(Boolean)
-                                    .join(", ")}
-                                </span>
-                              </div>
-                            )}
-                          </div>
+                          {task.assignedPeople.length > 0 ? (
+                            <AssignedPeopleBadge
+                              people={task.assignedPeople.map(
+                                (ap) => ap.person
+                              )}
+                            />
+                          ) : (
+                            <p className="text-sm text-muted-foreground">
+                              No one assigned yet.
+                            </p>
+                          )}
+                        </div>
 
-                          <div className="flex-shrink-0">
-                            <div
-                              className={cn(
-                                `w-5 h-5 rounded-full flex items-center justify-center border border-muted transition-colors duration-150`,
-                                selectedTasks.includes(task.id)
-                                  ? "bg-muted border-muted shadow-inner"
-                                  : "bg-muted"
-                              )}
-                            >
-                              {selectedTasks.includes(task.id) && (
-                                <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-                              )}
-                            </div>
+                        <div className="flex-shrink-0">
+                          <div
+                            className={cn(
+                              `w-5 h-5 rounded-full flex items-center justify-center border border-muted transition-colors duration-150`,
+                              selectedTasks.includes(task.id)
+                                ? "bg-muted border-muted shadow-inner"
+                                : "bg-muted"
+                            )}
+                          >
+                            {selectedTasks.includes(task.id) && (
+                              <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                            )}
                           </div>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </ScrollArea>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {/* Footer */}
-          <div className="flex items-center justify-between pt-4 border-t">
+          <div className="flex items-center justify-between pt-4 border-t flex-shrink-0">
             <div className="text-sm text-muted-foreground">
               {selectedTasks.length} task(s) selected
               {hasChanges && (
