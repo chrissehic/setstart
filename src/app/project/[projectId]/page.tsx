@@ -36,6 +36,7 @@ export default async function ProjectPage({
           person: true,
         },
       },
+      socialLinks: true,
     },
     orderBy: {
       createdAt: "desc",
@@ -46,18 +47,12 @@ export default async function ProjectPage({
   const currentWorkflow = allWorkflows.find(w => w.id === projectId);
 
   if (!currentWorkflow) {
-    // If project not found, redirect to first available project or show error
-    if (allWorkflows.length > 0) {
-      redirect(`/project/${allWorkflows[0].id}`);
+    // If project not found and no projects exist, redirect to onboarding
+    if (allWorkflows.length === 0) {
+      redirect("/");
     } else {
-      return (
-        <div className="flex items-center justify-center h-screen">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">No Projects Found</h1>
-            <p className="text-muted-foreground">Create your first project to get started.</p>
-          </div>
-        </div>
-      );
+      // If project not found but other projects exist, redirect to first available project
+      redirect(`/project/${allWorkflows[0].id}`);
     }
   }
 

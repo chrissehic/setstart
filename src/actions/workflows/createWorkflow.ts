@@ -29,7 +29,6 @@ export async function CreateWorkflow(form: createWorkflowSchemaType) {
         },
     });
 
-    // Redirect to the workflow editor
-    // redirect(`/workflow/editor/${result.id}`);
-    console.log(result.id)
+    // Return the created workflow
+    return result;
 }

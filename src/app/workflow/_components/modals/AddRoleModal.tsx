@@ -87,7 +87,6 @@ export function AddRoleModal({
       onClose={() => setOpen(false)}
       workflowId={workflowId}
       person={person}
-      className="px-4"
       
     />
   );

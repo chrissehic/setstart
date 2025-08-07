@@ -505,7 +505,7 @@ const ObjectivesSection = ({
 
           ) : (
             <div className="text-center py-12 space-y-4 h-full">
-              <LibrarySquare className="h-12 w-12 mx-auto text-muted-foreground" />
+              <LibrarySquare className="size-12 stroke-1 mx-auto text-muted-foreground" />
               <div>
                 <h3 className="text-lg font-medium">No objectives yet</h3>
                 <p className="text-muted-foreground text-sm">

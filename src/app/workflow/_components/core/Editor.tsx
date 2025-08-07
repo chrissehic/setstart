@@ -3,6 +3,7 @@
 import React from "react";
 import { WorkflowStatus, WorkflowWithDetails } from "@/types";
 import Workspace from "../layout/Workspace";
+import { OnboardingOverlay } from "../ui/OnboardingOverlay";
 // import AIInputForm from "@/components/SearchInput";
 
 function Editor({ 
@@ -13,16 +14,32 @@ function Editor({
   allWorkflows?: WorkflowWithDetails[];
 }) {
   // Transform workflow data to match WorkflowData interface
+  const workflowData = {
+    ...workflow, 
+    status: WorkflowStatus.BLUEPRINT
+  };
 
   return (
-    <div className="w-full flex flex-col h-screen">
+    <div className="w-full flex flex-col h-screen relative">
       {/* <MenuBar workflow={workflow}/> */}
       <Workspace 
         id={`workspace-${workflow.id}`} 
-        data={{...workflow, status: WorkflowStatus.BLUEPRINT}} 
+        data={workflowData} 
         allWorkflows={allWorkflows}
         currentWorkflow={workflow}
       />
+      
+      {/* Conditional Onboarding Overlay */}
+      <OnboardingOverlay 
+        workflow={workflowData}
+        onDismiss={() => {
+          console.log("Onboarding dismissed");
+        }}
+        onComplete={() => {
+          console.log("Onboarding completed");
+        }}
+      />
+      
       {/* <AIInputForm workflowId={workflow.id}/> */}
     </div>
   );

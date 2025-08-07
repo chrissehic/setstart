@@ -3,6 +3,18 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* 3D Animation Keyframes */
+@keyframes fadeIn3D {
+  0% {
+    opacity: 0;
+    transform: perspective(1000px) scale(0.6) translateZ(-200px) rotateX(10deg);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1000px) scale(1) translateZ(0px) rotateX(0deg);
+  }
+}
+
 body {
   font-family: var(--font-geist-sans), sans-serif;
 }
@@ -161,7 +173,7 @@ html {
   --accent: oklch(0.92 0.015 90);
   --accent-foreground: oklch(0.25 0.01 260);
 
-  --destructive: oklch(0.65 0.16 30);
+  --destructive: oklch(66.607% 0.19723 14.581);
 
   --border: oklch(0.88 0.003 260);
   --input: oklch(0.88 0.003 260);
@@ -203,7 +215,7 @@ html {
   --muted-foreground: oklch(0.7 0.005 260);
   --accent: oklch(29.022% 0.0154 252.405);
   --accent-foreground: oklch(0.98 0 0);
-  --destructive: oklch(0.65 0.16 30);
+  --destructive: oklch(56.719% 0.18272 15.764);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.55 0.12 280);

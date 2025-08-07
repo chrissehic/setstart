@@ -38,6 +38,17 @@ export type WorkflowWithTasks = Prisma.WorkflowGetPayload<{
   };
 }>;
 
+export interface SocialLink {
+  id: string;
+  workflowId: string;
+  name: string;
+  url: string;
+  handle?: string | null;
+  icon?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 /**
  * Editable / consumable Workflow DTO
  */
@@ -58,7 +69,8 @@ export interface WorkflowData {
   people?: WorkflowWithDetails["people"];
   tasks?: Task[];
   products?: Product[];
-  objectives?: Objective[],
+  objectives?: Objective[];
+  socialLinks?: SocialLink[];
 
   createdAt: Date;
   updatedAt: Date;

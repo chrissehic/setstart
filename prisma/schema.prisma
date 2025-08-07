@@ -11,7 +11,7 @@ datasource db {
 model Workflow {
   id                String            @id @default(cuid())
   userId            String
-  name              String            @unique
+  name              String
   tagline           String?
   description       String?
   logoImage         String?
@@ -27,6 +27,9 @@ model Workflow {
   people            RolesInWorkflow[]
   tasks             Task[]
   tags              Tag[]             @relation("TagToWorkflow")
+  socialLinks       SocialLink[]
+
+  @@unique([userId, name])
 }
 
 model Objective {
@@ -117,4 +120,18 @@ model ProductVariant {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model SocialLink {
+  id         String   @id @default(cuid())
+  workflowId String
+  name       String
+  url        String
+  handle     String?
+  icon       String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@unique([workflowId, name])
 }

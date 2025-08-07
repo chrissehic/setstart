@@ -21,26 +21,7 @@ import Link from "next/link";
 import { InstagramIcon } from "@/components/SimpleIcons";
 import { classWrapper } from "@/styles/commonStyles";
 import { SECTION_CLASS } from "@/lib/constants";
-
-const socials = [
-  {
-    name: "Company Website",
-    url: "https://www.upliftfibre.com",
-    handle: "www.upliftfibre.com",
-    icon: Globe,
-  },
-  {
-    name: "Linkedin",
-    url: "https://www.linkedin.com/company/upliftfibre",
-    handle: "company/upliftfibre",
-  },
-  {
-    name: "Instagram",
-    url: "https://www.instagram.com/uplift.fibre/",
-    handle: "@uplift.fibre",
-    icon: InstagramIcon,
-  },
-];
+import SocialLinksList from "../../ui/SocialLinksList";
 
 function AboutSection({ data }: { data: WorkflowData }) {
   return (
@@ -190,58 +171,8 @@ function AboutSection({ data }: { data: WorkflowData }) {
         <TagsList tags={data.tags} />
       </div>
       <Separator className="h-0.5" />
-      {/* <div className={classWrapper}>
-        <span className="uppercase text-xs font-semibold text-muted-foreground">
-          Marketing
-        </span>
-        <div className="flex flex-row justify-start gap-3 overflow-auto">
-          <div className="flex flex-col justify-start gap-1 ">
-            <EditableImage
-              alt="icon"
-              workflowId={data.id}
-              field="iconFile"
-              imageUrl={undefined}
-              className="relative w-fit aspect-video h-28 bg-accent rounded-lg border-input/60 border"
-              imageClassName="object-cover object-center rounded-lg"
-            >
-              <Plus
-                className="size-8 opacity-30
-                group-hover/image:opacity-5 transition-opacity duration-150 ease-in-out select-none"
-              />
-            </EditableImage>
-          </div>
-        </div>
-      </div> */}
-
-      <Separator className="h-0.5" />
       <div className={cn(classWrapper, "py-5")}>
-        <span className="uppercase text-xs font-semibold text-muted-foreground">
-          Socials
-        </span>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] justify-start gap-3 overflow-auto">
-          {socials.map((social) => (
-            <Link
-              key={social.name}
-              href={social.url}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Card className="bg-card cursor-pointer hover:bg-accent/50 transition-colors duration-200">
-                <CardHeader>
-                  <CardTitle>
-                    <div className="flex flex-row items-center gap-2">
-                      {social.icon && (
-                        <social.icon className="size-4 shrink-0" />
-                      )}
-                      <span>{social.name}</span>
-                    </div>
-                  </CardTitle>
-                  <CardDescription>{social.handle}</CardDescription>
-                </CardHeader>
-              </Card>
-            </Link>
-          ))}
-        </div>
+        <SocialLinksList workflowId={data.id} socialLinks={data.socialLinks || []} />
       </div>
     </div>
   );

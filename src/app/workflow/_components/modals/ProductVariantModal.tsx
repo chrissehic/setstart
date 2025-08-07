@@ -238,7 +238,7 @@ export function ProductVariantModal({
               control={form.control}
               name="image"
               render={() => (
-                <FormItem className="flex-1">
+                <FormItem className="flex-2">
                   <FormLabel>Variant Image (Optional)</FormLabel>
                   <FormControl>
                     <div className="space-y-4">
@@ -294,7 +294,7 @@ export function ProductVariantModal({
                 </FormItem>
               )}
             />
-            <div className="flex flex-col gap-4 flex-1">
+            <div className="flex flex-col gap-4 flex-3">
             <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
               <FormField
                 control={form.control}

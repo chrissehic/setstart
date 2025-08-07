@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,12 +30,25 @@ interface Props {
 
 function DeleteWorkflowAlert({ children, workflowName, workflowId, open, onOpenChange }: Props) {
   const [confirmText, setConfirmText] = useState("");
+  const router = useRouter();
 
   const deleteMutation = useMutation({
     mutationFn: DeleteWorkflow,
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("Project deleted successfully", { id: workflowId });
       setConfirmText("");
+      onOpenChange(false);
+      
+      // Handle redirect based on remaining workflows
+      if (data.hasRemainingWorkflows && data.nextWorkflowId) {
+        // Redirect to the next available workflow
+        router.push(`/project/${data.nextWorkflowId}`);
+        toast.success(`Redirected to "${data.remainingWorkflows[0].name}"`);
+      } else {
+        // No workflows left, redirect to onboarding
+        router.push("/");
+        toast.success("No projects remaining. Create your first workspace!");
+      }
     },
     onError: () => {
       toast.error("Something went wrong", { id: workflowId });
@@ -44,10 +58,11 @@ function DeleteWorkflowAlert({ children, workflowName, workflowId, open, onOpenC
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogTrigger
+      asChild
         onClick={(e) => {
           e.stopPropagation();
         }}
-        className="w-full"
+        className="w-fit"
       >
         {children}
       </AlertDialogTrigger>

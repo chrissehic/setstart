@@ -88,20 +88,17 @@ export default function MultiPurposeInput({
         onClick={(e) => e.stopPropagation()}
         className={cn(
           // Base styles
-          "pointer-events-auto flex flex-row items-end w-full p-3 max-w-3xl transition-all duration-300 ease-out",
+          "pointer-events-auto flex flex-row items-end w-full p-3 max-w-4xl transition-all duration-300 ease-out",
           "rounded-3xl backdrop-blur-xl",
 
           // Quiet luxury soft background
-          "bg-gradient-to-br from-muted/10 via-muted/5 to-background/5",
-          "dark:bg-gradient-to-br dark:from-muted/15 dark:via-muted/10 dark:to-background/8",
+          "bg-gradient-to-br from-muted/5 via-muted/5 to-background/10",
+          "dark:bg-gradient-to-br dark:from-muted/5 dark:via-muted/10 dark:to-background/8",
 
           // Subtle linear-gradient border with primary mauve accent
           "border border-transparent bg-clip-padding",
-          "before:content-[''] before:absolute before:inset-0 before:rounded-3xl before:border before:border-input before:bg-gradient-to-br before:from-primary/20 before:to-transparent before:pointer-events-none",
+          "before:content-[''] before:absolute before:inset-0 before:rounded-3xl before:border before:border-input before:pointer-events-none",
 
-          // Shadow refinement
-          "shadow-[0_1px_3px_rgba(0,0,0,0.02),0_8px_24px_rgba(0,0,0,0.04)]",
-          "dark:shadow-[0_1px_3px_rgba(0,0,0,0.1),0_8px_24px_rgba(0,0,0,0.15)]",
 
           // Focus: add glow & stronger mauve border
           focus && [

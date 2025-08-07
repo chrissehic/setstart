@@ -12,7 +12,7 @@ export async function DeleteWorkflow(id: string) {
         throw new Error("Unauthenticated");
     }
 
-    // Create workflow in the database
+    // Delete the workflow
     await prisma.workflow.delete({
         where: {
             userId,
@@ -20,5 +20,27 @@ export async function DeleteWorkflow(id: string) {
         },
     });
 
+    // Get remaining workflows to determine redirect
+    const remainingWorkflows = await prisma.workflow.findMany({
+        where: {
+            userId,
+        },
+        orderBy: {
+            createdAt: "desc",
+        },
+        select: {
+            id: true,
+            name: true,
+        },
+    });
+
     revalidatePath("/workflows");
+    revalidatePath("/");
+
+    return {
+        success: true,
+        remainingWorkflows,
+        hasRemainingWorkflows: remainingWorkflows.length > 0,
+        nextWorkflowId: remainingWorkflows.length > 0 ? remainingWorkflows[0].id : null,
+    };
 }

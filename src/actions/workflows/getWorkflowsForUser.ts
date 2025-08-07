@@ -16,7 +16,10 @@ export async function GetWorkflowsForUser() {
         where: {
             userId,
         },
-        include: { tags: true },
+        include: { 
+            tags: true,
+            socialLinks: true,
+        },
 
         orderBy: {
             createdAt: "asc",

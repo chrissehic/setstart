@@ -21,6 +21,7 @@ import { ChevronsUpDown, LogOut, Plus } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { WorkflowWithDetails } from "@/types";
 import { CreateWorkflowModal } from "@/app/(dashboard)/workflows/_components/CreateWorkflowModal";
+import { SettingsDialog } from "../ui/SettingsDialog";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState } from "react";
@@ -64,6 +65,8 @@ function Sidebar({
   allWorkflows?: WorkflowWithTasks[];
   currentWorkflow?: WorkflowWithTasks;
 }) {
+  // Check if sections should be disabled (no description)
+  const sectionsDisabled = !currentWorkflow?.description || currentWorkflow.description.trim() === "";
   const isMobile = useIsMobile();
   const router = useRouter();
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -163,10 +166,11 @@ function Sidebar({
                   <SidebarMenuButton
                     asChild
                     isActive={item.value === active}
-                    onClick={() => onTabChange(item.value)}
-                    className="w-full"
+                    onClick={() => !sectionsDisabled && onTabChange(item.value)}
+                    className={`w-full ${sectionsDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={sectionsDisabled}
                   >
-                    <a href={`#${item.value}`} className="text-sm">
+                    <a href={`#${item.value}`} className={`text-sm ${sectionsDisabled ? 'pointer-events-none' : ''}`}>
                       {item.icon && <item.icon className="size-4! text-xs" />}
                       <span>{item.title}</span>
                     </a>
@@ -179,6 +183,16 @@ function Sidebar({
       </SidebarContent>
       <SidebarFooter className="flex flex-col gap-2 p-1">
         <SidebarMenu className="flex flex-col gap-2">
+          {/* Settings button */}
+          {currentWorkflow && (
+            <>
+              <SidebarMenuItem>
+                <SettingsDialog currentWorkflow={currentWorkflow} />
+              </SidebarMenuItem>
+              <Separator />
+            </>
+          )}
+
           {/* Mode toggle */}
           <SidebarMenuItem>
             <ModeToggle />

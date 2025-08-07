@@ -3,7 +3,7 @@ import { z } from "zod"
 
 // Schema for creating a new workflow
 export const createWorkflowSchema = z.object({
-    name: z.string().min(1).max(50),
+    name: z.string().min(1).max(100),
 })
 
 const companyStageKeys = COMPANY_STAGES.map((s) => s.key);
@@ -13,7 +13,7 @@ export type createWorkflowSchemaType = z.infer<typeof createWorkflowSchema>
 // Schema for updating an existing workflow
 export const updateWorkflowSchema = z.object({
     id: z.string().min(1, "Workflow ID is required"),
-    name: z.string().min(1).max(50).optional(),
+    name: z.string().min(1).max(100).optional(),
     tagline: z.string().optional(),
     description: z.string().max(1200).optional(),
     tags: z.array(z.string()).optional(),

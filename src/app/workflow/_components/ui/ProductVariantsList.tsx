@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Plus, Edit, Trash2, Shapes } from "lucide-react"
+import { Plus, Trash2, Shapes } from "lucide-react"
 import type { ProductVariant } from "@/types/workflow"
 import { ProductVariantModal } from "../modals/ProductVariantModal"
 import { useDeleteProductVariant } from "@/hooks/useProductVariants"
@@ -43,29 +43,18 @@ const VariantImage = ({ variant }: { variant: ProductVariant }) => {
   )
 }
 
-// Variant Actions Component
+// Variant Actions Component (Delete only)
 const VariantActions = ({
   variant,
-  productId,
-  workflowId,
-  onVariantChange,
   handleDelete,
 }: {
   variant: ProductVariant
-  productId: string
-  workflowId: string
-  onVariantChange?: () => void
   handleDelete: (variantId: string) => void
 }) => (
   <div className="flex items-center gap-1 opacity-0 group-hover/variant:opacity-100 transition-opacity">
-    <ProductVariantModal productId={productId} workflowId={workflowId} variant={variant} onSuccess={onVariantChange}>
-      <Button variant="ghost" size="sm">
-        <Edit className="h-4 w-4" />
-      </Button>
-    </ProductVariantModal>
     <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="sm">
+      <AlertDialogTrigger asChild onClick={(e) => e.stopPropagation()}>
+        <Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>
           <Trash2 className="h-4 w-4" />
         </Button>
       </AlertDialogTrigger>
@@ -131,26 +120,25 @@ export function ProductVariantsList({ productId, workflowId, variants, onVariant
       ) : (
         <div className="grid gap-2">
           {variants.map((variant) => (
-            <Card key={variant.id} className="group/variant hover:bg-muted/50 transition-colors p-0">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                  <VariantImage variant={variant} />
+            <ProductVariantModal key={variant.id} productId={productId} workflowId={workflowId} variant={variant} onSuccess={onVariantChange}>
+              <Card className="group/variant hover:bg-muted/50 transition-colors p-0 cursor-pointer">
+                <CardContent className="p-1">
+                  <div className="flex items-center gap-4">
+                    <VariantImage variant={variant} />
 
-                  <div className="flex-1">
-                    <h4 className="font-medium text-sm">{variant.name}</h4>
-                    {variant.description && <p className="text-sm text-muted-foreground">{variant.description}</p>}
+                    <div className="flex-1">
+                      <h4 className="font-medium text-sm">{variant.name}</h4>
+                      {variant.description && <p className="text-sm text-muted-foreground">{variant.description}</p>}
+                    </div>
+
+                    <VariantActions
+                      variant={variant}
+                      handleDelete={handleDelete}
+                    />
                   </div>
-
-                  <VariantActions
-                    variant={variant}
-                    productId={productId}
-                    workflowId={workflowId}
-                    onVariantChange={onVariantChange}
-                    handleDelete={handleDelete}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </ProductVariantModal>
           ))}
         </div>
       )}

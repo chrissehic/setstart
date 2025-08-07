@@ -42,7 +42,13 @@ type TasksSectionProps = {
   setSelectedTask?: (task: Task | null) => void;
 };
 
-function TasksSection({ workflowId, people, objectiveId, selectedTask, setSelectedTask }: TasksSectionProps) {
+function TasksSection({
+  workflowId,
+  people,
+  objectiveId,
+  selectedTask,
+  setSelectedTask,
+}: TasksSectionProps) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | TaskStatus>("all");
   const [categoryFilter, setCategoryFilter] = useState<"all" | string>("all");
@@ -145,13 +151,20 @@ function TasksSection({ workflowId, people, objectiveId, selectedTask, setSelect
   if (selectedTask) {
     return (
       <div className={SECTION_CLASS + " flex flex-col gap-4"}>
-        <Button variant="outline" size="sm" onClick={() => setSelectedTask && setSelectedTask(null)}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setSelectedTask && setSelectedTask(null)}
+        >
           Back to tasks
         </Button>
         <div className="p-4 border rounded-lg bg-background flex flex-col gap-2">
           <h2 className="text-2xl font-bold">{selectedTask.title}</h2>
           {selectedTask.description && (
-            <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: selectedTask.description }} />
+            <div
+              className="prose max-w-none"
+              dangerouslySetInnerHTML={{ __html: selectedTask.description }}
+            />
           )}
           {/* Add more task details here as needed */}
         </div>
@@ -241,7 +254,11 @@ function TasksSection({ workflowId, people, objectiveId, selectedTask, setSelect
           {filteredTasks.length > 0 ? (
             <div className="space-y-3">
               {filteredTasks.map((task) => (
-                <div key={task.id} onClick={() => setSelectedTask && setSelectedTask(task)} style={{ cursor: 'pointer' }}>
+                <div
+                  key={task.id}
+                  onClick={() => setSelectedTask && setSelectedTask(task)}
+                  style={{ cursor: "pointer" }}
+                >
                   <TaskCard
                     task={task}
                     workflowId={workflowId}
@@ -270,12 +287,20 @@ function TasksSection({ workflowId, people, objectiveId, selectedTask, setSelect
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <p className="text-muted-foreground text-sm text-center flex flex-col justify-center items-center gap-3">
-                    <BookmarkCheck className="size-12 stroke-1 stroke-input bg-transparent" />
-                    {objectiveId
-                      ? "No tasks found for this objective."
-                      : "No tasks yet"}
-                  </p>
+                  <div className="text-center space-y-4">
+                    <BookmarkCheck className="size-12 stroke-1 mx-auto text-muted-foreground" />
+                    <div>
+                      <h3 className="text-lg font-medium">
+                        {objectiveId
+                          ? "No tasks found for this objective."
+                          : "No tasks yet"}
+                      </h3>
+                      <p className="text-muted-foreground text-sm">
+                        Create your first task to start organizing your workflow
+                      </p>
+                    </div>
+                  </div>
+
                   <TaskModal workflowId={workflowId} people={people}>
                     <Button variant="default" className="gap-2">
                       <Plus className="h-4 w-4" />
