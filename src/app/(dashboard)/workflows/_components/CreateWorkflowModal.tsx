@@ -40,6 +40,7 @@ import { useMutation } from "@tanstack/react-query";
 import { CreateWorkflow } from "@/actions/workflows/createWorkflow";
 import { toast } from "sonner";
 import { useCallback } from "react";
+import { useRouter } from "next/navigation";
 
 export function CreateWorkflowModal({
   triggerLabel,
@@ -105,6 +106,8 @@ function WorkflowForm({
   className?: string;
   onClose: () => void;
 }) {
+  const router = useRouter();
+  
   // Initialize the form with validation
   const form = useForm<createWorkflowSchemaType>({
     resolver: zodResolver(createWorkflowSchema),
@@ -114,9 +117,13 @@ function WorkflowForm({
   // Mutation hook for creating a workflow
   const { mutate, isPending } = useMutation({
     mutationFn: CreateWorkflow,
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("Project created successfully", { id: "create-workflow" });
       onClose(); // Close the modal on success
+      // Redirect to the newly created project
+      if (data && data.id) {
+        router.push(`/project/${data.id}`);
+      }
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {

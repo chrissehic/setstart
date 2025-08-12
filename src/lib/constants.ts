@@ -1,4 +1,4 @@
-import { Presentation, ListTodo, Layers, UsersRound, Eclipse } from "lucide-react"
+import { Presentation, ListTodo, Layers, UsersRound, Eclipse, BookOpen } from "lucide-react"
 
 export const WORKSPACE_ITEMS = [
   {
@@ -18,6 +18,12 @@ export const WORKSPACE_ITEMS = [
     url: "#product",
     value: "product",
     icon: Layers,
+  },
+  {
+    title: "Reference Hub",
+    url: "#reference-hub",
+    value: "reference-hub",
+    icon: BookOpen,
   },
   {
     title: "Roles",

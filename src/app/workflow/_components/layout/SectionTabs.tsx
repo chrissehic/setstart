@@ -7,6 +7,7 @@ import type { Stage, WorkflowData } from "@/types/workflow";
 import { OverviewTab } from "../tabs/OverviewTab";
 import { RolesTab } from "../tabs/RolesTab";
 import { ProductTab } from "../tabs/ProductTab";
+import { ReferenceHubTab } from "../tabs/ReferenceHubTab";
 import { TaskboardTab } from "../tabs/TaskboardTab";
 import { GrowthStageTab } from "../tabs/GrowthStageTab";
 
@@ -36,22 +37,28 @@ export const SectionTabs = ({
         >
           {item.value === "overview" && <OverviewTab data={data} />}
           {item.value === "roles" && (
-            <RolesTab data={data} title={item.title} value={item.value} />
+            <RolesTab data={data} title={item.title} value={item.title} />
           )}
           {item.value === "product" && (
-            <ProductTab title={item.title} value={item.value} products={data.products} />
+            <ProductTab title={item.title} value={item.title} products={data.products} />
+          )}
+          {item.value === "reference-hub" && (
+            <ReferenceHubTab
+              title={item.title}
+              value={item.title}
+            />
           )}
           {item.value === "taskboard" && (
             <TaskboardTab
               workflowId={data.id}
               title={item.title}
-              value={item.value}
+              value={item.title}
             />
           )}
           {item.value === "growth-stage" && (
             <GrowthStageTab
               title={item.title}
-              value={item.value}
+              value={item.title}
               stageObj={stageObj}
             />
           )}
