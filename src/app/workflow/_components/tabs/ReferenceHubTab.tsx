@@ -1,19 +1,14 @@
 import { SECTION_CLASS } from "@/lib/constants";
-import { ReferencesPreview } from "../ui/ReferencesPreview";
+import { ReferencesSection } from "../sections/ReferencesSection";
 
 interface ReferenceHubTabProps {
-  title: string;
-  value: string;
+  workflowId: string;
 }
 
-export const ReferenceHubTab = ({ title, value }: ReferenceHubTabProps) => (
+export const ReferenceHubTab = ({ workflowId }: ReferenceHubTabProps) => (
   <section className={SECTION_CLASS}>
     <div className="flex flex-col justify-start gap-2 w-full">
-      <h4 id={value} className="scroll-m-20 text-lg font-medium text-start">
-        {title}
-      </h4>
-      
-      <ReferencesPreview />
+      <ReferencesSection workflowId={workflowId} />
     </div>
   </section>
 );

@@ -4,6 +4,7 @@ import StagesSection from "../sections/StagesSection"
 import RolesSection from "../sections/RolesSection"
 import ObjectivesSection from "../sections/ObjectivesSection"
 import { ProductSection } from "../sections/ProductSection"
+import { ReferencesSection } from "../sections/ReferencesSection"
 import type { Stage, WorkflowData } from "@/types/workflow"
 import { COMPANY_STAGES } from "@/types/companyStages"
 
@@ -33,6 +34,9 @@ export const TabContent = ({ data, stageObj }: WorkspaceTabContentProps) => (
         tasks={data.tasks || []}
         people={data.people?.map(p => ({ ...p.person, avatarImage: p.person.avatarImage || undefined })) || []}
       />
+    </TabsContent>
+    <TabsContent value="reference-hub">
+      <ReferencesSection workflowId={data.id} />
     </TabsContent>
   </div>
 )

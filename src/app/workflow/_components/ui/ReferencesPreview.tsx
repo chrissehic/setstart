@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Instagram, Globe, Hash } from "lucide-react";
 import { mockReferences } from "@/mock/mockReferences";
 import { cn } from "@/lib/utils";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 
 interface PlatformSummary {
   platform: string;
@@ -19,46 +19,26 @@ interface PlatformSummary {
 }
 
 export const ReferencesPreview = () => {
-  const [isHovered, setIsHovered] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [scrollDirection, setScrollDirection] = useState<
+    "left" | "right" | null
+  >(null);
 
+  // Continuous scroll animation based on hover position
   useEffect(() => {
-    if (!isHovered || !scrollContainerRef.current) return;
+    if (!isHovered || !scrollContainerRef.current || !scrollDirection) return;
 
     const container = scrollContainerRef.current;
-    const scrollSpeed = 0.8; // pixels per frame
+    const scrollSpeed = 2;
     let animationId: number;
-    let direction = 1; // 1 for right, -1 for left
-    let pauseFrames = 0;
-    const pauseDuration = 90; // frames to pause at each end
 
     const scroll = () => {
-      if (pauseFrames > 0) {
-        pauseFrames--;
-        animationId = requestAnimationFrame(scroll);
-        return;
+      if (scrollDirection === "left") {
+        container.scrollLeft -= scrollSpeed;
+      } else if (scrollDirection === "right") {
+        container.scrollLeft += scrollSpeed;
       }
-
-      const maxScroll = container.scrollWidth - container.clientWidth;
-
-      if (direction === 1) {
-        // Scrolling right
-        if (container.scrollLeft >= maxScroll) {
-          direction = -1;
-          pauseFrames = pauseDuration;
-        } else {
-          container.scrollLeft += scrollSpeed;
-        }
-      } else {
-        // Scrolling left
-        if (container.scrollLeft <= 0) {
-          direction = 1;
-          pauseFrames = pauseDuration;
-        } else {
-          container.scrollLeft -= scrollSpeed;
-        }
-      }
-
       animationId = requestAnimationFrame(scroll);
     };
 
@@ -69,16 +49,28 @@ export const ReferencesPreview = () => {
         cancelAnimationFrame(animationId);
       }
     };
-  }, [isHovered]);
+  }, [isHovered, scrollDirection]);
 
-  useEffect(() => {
-    if (!isHovered && scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo({
-        left: 0,
-        behavior: "smooth",
-      });
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!scrollContainerRef.current) return;
+
+    const container = scrollContainerRef.current;
+    const rect = container.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const containerWidth = rect.width;
+
+    // Calculate scroll direction based on mouse position
+    const leftThreshold = containerWidth * 0.3; // Left 30% of container
+    const rightThreshold = containerWidth * 0.7; // Right 30% of container
+
+    if (mouseX < leftThreshold) {
+      setScrollDirection("left");
+    } else if (mouseX > rightThreshold) {
+      setScrollDirection("right");
+    } else {
+      setScrollDirection(null);
     }
-  }, [isHovered]);
+  };
 
   // Group references by platform and count them
   const platformCounts = mockReferences.reduce((acc, reference) => {
@@ -230,13 +222,17 @@ export const ReferencesPreview = () => {
 
       <div
         ref={scrollContainerRef}
-        className="flex flex-row gap-2 overflow-hidden p-0.5 transition-all duration-300 scrollbar-hide"
+        className="flex flex-row gap-2 overflow-x-auto overflow-y-hidden p-0.5 transition-all duration-300 scrollbar-hide"
         style={{
           scrollbarWidth: "none",
           msOverflowStyle: "none",
         }}
         onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseLeave={() => {
+          setIsHovered(false);
+          setScrollDirection(null);
+        }}
+        onMouseMove={handleMouseMove}
       >
         {platformSummaries.map((platform) => {
           const IconComponent = platform.icon;
@@ -245,29 +241,36 @@ export const ReferencesPreview = () => {
               key={platform.platform}
               className="w-fit hover:shadow-md transition-shadow cursor-pointer p-0"
             >
-              <CardContent className="p-2">
-                <div className="flex items-center gap-2">
+              <CardContent className="p-2 flex flex-row items-center gap-2 h-full">
+                <div className="flex items-center gap-2 flex-1">
                   <div
                     className={cn(
-                      "size-8 rounded-sm flex items-center justify-center text-white",
+                      "size-6 rounded-sm flex items-center justify-center text-white",
                       `${platform.color}`
                     )}
                   >
                     <IconComponent className="size-5" />
                   </div>
                   <div className="flex min-w-0 flex-row items-center gap-2">
-                    <h4 className="font-medium text-sm truncate">
-                      {platform.displayName}
-                    </h4>
-                    <div className="flex items-center gap-1">
-                      <Badge variant="secondary" className="text-xs">
-                        {platform.count}
-                      </Badge>
+                    <div className="flex flex-col items-start justify-center">
+                      <h4 className="font-medium text-sm truncate">
+                        {platform.displayName}
+                      </h4>
                       {platform.directCount > 0 && (
-                        <Badge variant="default" className="text-xs">
+                        <span className="text-xs text-muted-foreground">
+                          {platform.directCount} direct references
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-0.5">
+                      {/* {platform.directCount > 0 && (
+                        <Badge variant="default" className="text-xs px-1.5">
                           {platform.directCount}
                         </Badge>
-                      )}
+                      )} */}
+                      <Badge variant="outline" className="text-xs px-1.5">
+                        {platform.count}
+                      </Badge>
                     </div>
                   </div>
                 </div>
