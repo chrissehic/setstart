@@ -16,6 +16,9 @@ model Workflow {
   description       String?
   logoImage         String?
   backgroundImage   String?
+  mainLogo          String?           // Main logo for identity
+  logoIcon          String?           // Logo icon for identity
+  additionalAssets  String?           // JSON array of additional asset URLs
   estimatedDuration String?
   stage             String            @default("existence")
   status            String            @default("BLUEPRINT")

@@ -20,7 +20,10 @@ export const updateWorkflowSchema = z.object({
     estimatedDuration: z.string().optional(),
     logoImage: z.string().optional(),
     backgroundImage: z.string().optional(),
-      stage: z.enum(companyStageKeys as [string, ...string[]]).optional(),
+    mainLogo: z.string().optional(),
+    logoIcon: z.string().optional(),
+    additionalAssets: z.string().optional(), // JSON string of asset URLs
+    stage: z.enum(companyStageKeys as [string, ...string[]]).optional(),
 })
 
 export type updateWorkflowSchemaType = z.infer<typeof updateWorkflowSchema>

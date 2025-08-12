@@ -28,7 +28,7 @@ const TagsList = memo(function TagsList({
   }
 
   return (
-    <div className={`flex flex-wrap gap-2 ${className}`}>
+    <div className={`flex py-2 flex-wrap gap-2 ${className}`}>
       {tags.map((tag) => (
         <Badge
           key={tag.id}

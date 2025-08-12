@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { useRef, useEffect, useState } from "react";
 
 export default function Description({
@@ -31,12 +32,12 @@ export default function Description({
     <div>
       <p
         ref={pRef}
-        className={className}
+        className={cn(className, `line-clamp-${clampLines} leading-6 text-md font-normal`)}
       >
         {text}
       </p>
       {isClamped && (
-        <span className="text-muted-foreground dark:text-foreground dark:group-data-[state=active]/tabstrigger:text-muted-foreground group-data-[state=active]/tabstrigger:text-muted-foreground">Read more...</span>
+        <span className="text-muted-foreground text-xs dark:text-foreground dark:group-data-[state=active]/tabstrigger:text-muted-foreground group-data-[state=active]/tabstrigger:text-muted-foreground">Read more...</span>
       )}
     </div>
   );

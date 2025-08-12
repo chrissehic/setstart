@@ -1,9 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import TagsList from "../../ui/TagsList";
 import { Separator } from "@/components/ui/separator";
 import { EditableImage } from "../../ui/EditableImage";
-import { AsteriskSquare, Globe, Info, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Info, Plus, X, AsteriskSquare } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { UpdateWorkflow } from "@/actions/workflows/updateWorkflow";
 import {
   Tooltip,
   TooltipContent,
@@ -11,171 +15,263 @@ import {
 } from "@/components/ui/tooltip";
 import { WorkflowData } from "@/types/workflow";
 import EditableField from "../../ui/EditableField";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import Link from "next/link";
-import { InstagramIcon } from "@/components/SimpleIcons";
 import { classWrapper } from "@/styles/commonStyles";
 import { SECTION_CLASS } from "@/lib/constants";
 import SocialLinksList from "../../ui/SocialLinksList";
 
 function AboutSection({ data }: { data: WorkflowData }) {
+  const queryClient = useQueryClient();
+
+  const { mutate: updateWorkflow } = useMutation({
+    mutationFn: UpdateWorkflow,
+    onSuccess: () => {
+      toast.success("Assets updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["workflow", data.id] });
+    },
+    onError: (error) => {
+      toast.error("Failed to update assets.");
+      console.error(error);
+    },
+  });
+
+  // Parse additional assets from JSON string or use empty array
+  const [additionalAssets, setAdditionalAssets] = useState<string[]>(() => {
+    if (data.additionalAssets) {
+      try {
+        return typeof data.additionalAssets === "string"
+          ? JSON.parse(data.additionalAssets)
+          : data.additionalAssets;
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+
   return (
     <div className={cn(SECTION_CLASS)}>
-      <EditableField
-        workflowId={data.id}
-        field="name"
-        value={data.name}
-        label="Name"
-        className={cn(classWrapper, "py-5")}
-        placeholder="Your company name here"
-      />
-      <Separator className="h-0.5" />
+      {/* Company Core Info - Name, Tagline, Description, Tags */}
       <div className={cn(classWrapper, "py-5")}>
-        <Tooltip>
-          <TooltipTrigger className="w-fit">
-            <span className="w-fit uppercase text-xs font-semibold text-muted-foreground inline-flex justify-center items-center gap-1">
-              Identity
-              <Info className="size-3" />
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p className="text-xs">The company&apos;s visual identity</p>
-          </TooltipContent>
-        </Tooltip>
-        <div className="flex flex-row justify-start gap-3 overflow-auto">
-          <div className="flex flex-col justify-start gap-1">
+        <EditableField
+          workflowId={data.id}
+          field="name"
+          value={data.name}
+          label="Name"
+          placeholder="Your company name here"
+        />
+        
+        <div className="mt-4">
+          <EditableField
+            workflowId={data.id}
+            field="tagline"
+            value={data.tagline || ""}
+            label="Tagline"
+            placeholder="Your tagline here"
+          />
+        </div>
+        
+        <div className="mt-4">
+          <EditableField
+            workflowId={data.id}
+            field="description"
+            value={data.description || ""}
+            label="Description"
+            placeholder="Your description here"
+            className=""
+          />
+        </div>
+        
+        <div className="mt-4">
+          <span className="uppercase text-xs font-semibold text-muted-foreground">
+            Categories
+          </span>
+          <TagsList tags={data.tags} />
+        </div>
+      </div>
+
+      <Separator className="h-0.5" />
+      
+      {/* Identity & Assets Section - Combined */}
+      <div className={cn(classWrapper, "py-5")}>
+        <div className="flex items-center justify-between">
+          <Tooltip>
+            <TooltipTrigger className="w-fit">
+              <span className="w-fit uppercase text-xs font-semibold text-muted-foreground inline-flex justify-center items-center gap-1">
+                Identity & Assets
+                <Info className="size-3" />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-xs">The company&apos;s visual identity and additional assets</p>
+            </TooltipContent>
+          </Tooltip>
+          
+          {/* Simple Add Asset Button */}
+          <Button variant="outline" size="sm" onClick={() => {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/png, image/jpeg, image/gif, image/webp';
+            fileInput.onchange = async (e) => {
+              const file = (e.target as HTMLInputElement).files?.[0];
+              if (file) {
+                const formData = new FormData();
+                formData.append("file", file);
+                
+                try {
+                  const response = await fetch("/api/upload", {
+                    method: "POST",
+                    body: formData,
+                  });
+                  
+                  const result = await response.json();
+                  if (result.success) {
+                    const newAssets = [...additionalAssets, result.url];
+                    setAdditionalAssets(newAssets);
+                    updateWorkflow({
+                      id: data.id,
+                      additionalAssets: JSON.stringify(newAssets),
+                    });
+                  }
+                } catch (error) {
+                  toast.error(error instanceof Error ? error.message : "Failed to upload asset");
+                }
+              }
+            };
+            fileInput.click();
+          }}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Asset
+          </Button>
+        </div>
+        
+        <div className="flex flex-row justify-start gap-3 overflow-auto items-start mt-3">
+          {/* Main Logo */}
+          <div className="flex flex-col items-start gap-1">
             <EditableImage
-              alt="icon"
+              alt="Main logo"
               workflowId={data.id}
-              field="iconFile"
-              imageUrl={undefined}
-              className="relative w-fit h-28 bg-accent rounded-lg border-input/60 border px-4"
-              imageClassName="object-cover object-center rounded-lg"
+              field="mainLogo"
+              imageUrl={data.mainLogo || undefined}
+              className="relative h-40 w-fit bg-accent aspect-video rounded-lg border border-input/60"
+              imageClassName="w-full h-full object-contain"
+              showRemoveButton={true}
             >
-              <span
-                className="
+              <span className="
                 wordmark
-                text-4xl font-bold text-transparent bg-clip-text opacity-30
+                text-5xl font-bold text-transparent bg-clip-text opacity-30
                 group-hover/image:opacity-10 transition-opacity duration-150 ease-in-out select-none
-                "
-              >
+              ">
                 setstart®
               </span>
             </EditableImage>
-            <span className="text-sm">Main logo</span>
+            <span className="text-sm text-muted-foreground">Main logo</span>
           </div>
-          <div className="flex flex-col justify-start gap-1 ">
+
+          {/* Logo Icon */}
+          <div className="flex flex-col items-start gap-1">
             <EditableImage
-              alt="icon"
+              alt="Logo icon"
               workflowId={data.id}
-              field="iconFile"
-              imageUrl={undefined}
-              className="relative w-fit aspect-square h-28 bg-accent rounded-lg border-input/60 border"
-              imageClassName="object-cover object-center rounded-lg"
+              field="logoIcon"
+              imageUrl={data.logoIcon || undefined}
+              className="relative h-40 aspect-square bg-accent rounded-lg border border-input/60"
+              imageClassName="w-full h-full object-contain"
+              showRemoveButton={true}
             >
               <AsteriskSquare
-                className="size-12 stroke-1 stroke-foreground
-                flex items-center justify-center
-                text-4xl font-medium bg-clip-text opacity-30
+                className="h-3/4 w-auto stroke-1 stroke-foreground opacity-30
                 group-hover/image:opacity-5 transition-opacity duration-150 ease-in-out select-none"
               />
             </EditableImage>
-            <span className="text-sm">Logo icon</span>
+            <span className="text-sm text-muted-foreground">Logo icon</span>
           </div>
-          <div className="flex flex-col justify-start gap-1 ">
-            <EditableImage
-              alt="icon"
-              workflowId={data.id}
-              field="iconFile"
-              imageUrl={undefined}
-              className="relative w-fit aspect-square h-28 bg-accent rounded-lg border-input/60 border"
-              imageClassName="object-cover object-center rounded-lg"
-            >
-              <Plus
-                className="size-8 opacity-30
-                group-hover/image:opacity-5 transition-opacity duration-150 ease-in-out select-none"
-              />
-            </EditableImage>
-            <span className="text-sm">Add asset</span>
-          </div>
+
+          {/* Existing Assets */}
+          {additionalAssets.map((asset, index) => (
+            <div key={index} className="flex flex-col items-start gap-1">
+              <div className="relative h-40 aspect-square bg-accent rounded-lg border border-input/60 overflow-hidden">
+                <img
+                  src={asset}
+                  alt={`Asset ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute top-1 right-1 h-6 w-6 p-0 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const newAssets = additionalAssets.filter((_, i) => i !== index);
+                    setAdditionalAssets(newAssets);
+                    updateWorkflow({
+                      id: data.id,
+                      additionalAssets: JSON.stringify(newAssets),
+                    });
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+              <span className="text-sm text-muted-foreground">Asset {index + 1}</span>
+            </div>
+          ))}
         </div>
       </div>
+
       <Separator className="h-0.5" />
+      
+      {/* Avatar & Banner Section */}
       <div className={cn(classWrapper, "py-5")}>
         <span className="uppercase text-xs font-semibold text-muted-foreground">
-          Avatar & banner
+          Avatar & Banner
         </span>
-        <div className="flex flex-row justify-start gap-3 h-fit relative overflow-auto">
-          <div className="flex flex-col justify-start gap-1 min-h-0">
+        <div className="flex flex-row justify-start gap-3 overflow-auto items-start mt-3">
+          {/* Avatar */}
+          <div className="flex flex-col items-start gap-1">
             <EditableImage
               workflowId={data.id}
               field="logoImage"
               imageUrl={data.logoImage || undefined}
-              alt="Logo"
-              className="relative aspect-square bg-accent h-32 rounded-lg border-input/60 border"
+              alt="Avatar"
+              className="relative aspect-square bg-accent h-32 rounded-lg border border-input/60"
               imageClassName="object-cover object-center rounded-lg"
+              showRemoveButton={true}
             >
-              <Plus
-                className="size-8 opacity-30
-                group-hover/image:opacity-5 transition-opacity duration-150 ease-in-out select-none"
-              />
+              <Plus className="size-8 opacity-30 group-hover/image:opacity-5 transition-opacity duration-150 ease-in-out select-none" />
             </EditableImage>
-            <span className="text-sm shrink-0 h-fit">Avatar</span>
+            <span className="text-sm text-muted-foreground">Avatar</span>
           </div>
-          <div className="flex flex-col justify-start gap-1 min-h-0">
+
+          {/* Background Banner */}
+          <div className="flex flex-col items-start gap-1">
             <EditableImage
               workflowId={data.id}
               field="backgroundImage"
               imageUrl={data.backgroundImage || undefined}
-              alt="Background"
-              className="relative bg-accent z-10 h-32 aspect-7/2 rounded-lg border-input/60 border overflow-hidden"
-              imageClassName="object-center brightness-90 w-auto object-cover"
+              alt="Background banner"
+              className="relative bg-accent h-32 aspect-7/2 rounded-lg border border-input/60"
+              imageClassName="object-cover object-center brightness-90"
+              showRemoveButton={true}
             >
-              <Plus
-                className="size-8 opacity-30
-                group-hover/image:opacity-5 transition-opacity duration-150 ease-in-out select-none"
-              />
+              <Plus className="size-8 opacity-30 group-hover/image:opacity-5 transition-opacity duration-150 ease-in-out select-none" />
             </EditableImage>
-            <span className="text-sm shrink-0 h-fit">Background banner</span>
+            <span className="text-sm text-muted-foreground">Background banner</span>
           </div>
         </div>
       </div>
+      
       <Separator className="h-0.5" />
-      <EditableField
-        workflowId={data.id}
-        field="tagline"
-        value={data.tagline}
-        label="Tagline"
-        placeholder="Your tagline here"
-        className={cn(classWrapper, "py-5")}
-      />
-      <Separator className="h-0.5" />
-      <EditableField
-        workflowId={data.id}
-        field="description"
-        value={data.description || ""}
-        label="Description"
-        placeholder="Your description here"
-        className={cn(classWrapper, "py-5")}
-      />
-      <Separator className="h-0.5" />
+      
+      {/* Social Links - Keep at bottom */}
       <div className={cn(classWrapper, "py-5")}>
-        <span className="uppercase text-xs font-semibold text-muted-foreground">
-          Categories
-        </span>
-        <TagsList tags={data.tags} />
-      </div>
-      <Separator className="h-0.5" />
-      <div className={cn(classWrapper, "py-5")}>
-        <SocialLinksList workflowId={data.id} socialLinks={data.socialLinks || []} />
+        <SocialLinksList
+          workflowId={data.id}
+          socialLinks={data.socialLinks || []}
+        />
       </div>
     </div>
   );
 }
 
 export default AboutSection;
+

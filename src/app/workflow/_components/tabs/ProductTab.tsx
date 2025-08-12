@@ -44,7 +44,7 @@ export const ProductTab = ({
               {products.length} product{products.length !== 1 ? "s" : ""}
             </span>
           </div> */}
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2 relative mb-2">
             {products.slice(0, 3).map((product) => (
               <Card
                 key={product.id}
@@ -93,8 +93,12 @@ export const ProductTab = ({
               </Card>
             ))}
             {products.length > 3 && (
-              <div className="text-xs text-muted-foreground text-center">
-                +{products.length - 3} more products
+              <div className="absolute flex flex-row w-full items-center justify-center bg-transparent -bottom-2">
+                <Badge variant="inverse" className="text-xs opacity-70">
+                  <span className="text-accent px-2">
+                    +{products.length - 3} more
+                  </span>
+                </Badge>
               </div>
             )}
           </div>

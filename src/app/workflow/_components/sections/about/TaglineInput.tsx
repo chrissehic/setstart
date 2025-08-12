@@ -97,13 +97,13 @@ export default function TaglineInput({
         )}
       </div>
 
-      <blockquote>
-        <h1 className="scroll-m-20 flex text-[2.5rem] font-light tracking-tight leading-tight font-tobias text-wrap">
+      <blockquote className="w-full flex flex-1">
+        <h1 className="scroll-m-20 w-full flex-1 text-[2.5rem] font-light tracking-tight leading-tight font-tobias text-wrap">
           {isEditing ? (
             <textarea
               ref={textareaRef}
               placeholder="Your tagline here"
-              className="outline-none bg-transparent text-inherit font-inherit resize-none min-w-0 break-words border-b-2 border-input focus:border-primary transition-colors duration-200 overflow-hidden"
+              className="outline-none flex-1 w-full bg-transparent text-inherit font-inherit resize-none min-w-0 break-words border-b-2 border-input focus:border-primary transition-colors duration-200 overflow-hidden"
               value={value}
               onChange={handleChange}
               rows={1}

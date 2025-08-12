@@ -9,7 +9,7 @@ interface TaskboardTabProps {
 
 export const TaskboardTab = ({ workflowId, title, value }: TaskboardTabProps) => (
   <section className={SECTION_CLASS}>
-    <div className="flex flex-col justify-start gap-4 w-full">
+    <div className="flex flex-col justify-start gap-2 w-full">
       <h4 id={value} className="scroll-m-20 text-lg font-medium text-start">
         {title}
       </h4>

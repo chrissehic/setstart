@@ -37,8 +37,8 @@ interface SocialLink {
   id: string;
   name: string;
   url: string;
-  handle?: string;
-  icon?: string;
+  handle?: string | null;
+  icon?: string | null;
 }
 
 interface SocialLinksListProps {
@@ -161,7 +161,7 @@ export default function SocialLinksList({
                   {/* Action buttons */}
                   <div className="absolute top-2 right-2 opacity-0 group-hover/linkcard:opacity-100 transition-opacity duration-200">
                     <DropdownMenu>
-                      <DropdownMenuTrigger>
+                      <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
                           size="sm"

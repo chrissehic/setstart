@@ -61,6 +61,9 @@ export interface WorkflowData {
   mission?: string | null;
   logoImage?: string | null;
   backgroundImage?: string | null;
+  mainLogo?: string | null;
+  logoIcon?: string | null;
+  additionalAssets?: string[] | null;
   estimatedDuration?: string | null;
   stage: CompanyStage;
   status: WorkflowStatus;

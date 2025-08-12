@@ -77,11 +77,10 @@ export function OnboardingOverlay({
           <div className="space-y-3">
             <SetIcon className="h-14 text-foreground mb-6" />
             <h1 className="text-3xl font-medium tracking-tight text-foreground">
-              Let&apos;s set up your workspace
+              Let&apos;s set up your workspace for {workflow.name}
             </h1>
             <p className="text-base text-muted-foreground leading-relaxed max-w-lg">
-              Describe what you&apos;re building and we&apos;ll help generate
-              your project details automatically.
+              Describe what you&apos;re building at {workflow.name} and we&apos;ll help generate your project details automatically.
             </p>
           </div>
 

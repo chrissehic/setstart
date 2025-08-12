@@ -30,7 +30,7 @@ export const OverviewTab = ({ data }: OverviewTabProps) => (
         {data.tagline && (
           <h3 className="scroll-m-20 text-2xl font-medium tracking-tight text-foreground">{data.tagline}</h3>
         )}
-        {data.description && <Description text={data.description} className="line-clamp-4 leading-6 text-md" />}
+        {data.description && <Description text={data.description} clampLines={2} />}
       </div>
     </div>
   </div>

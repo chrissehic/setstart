@@ -75,7 +75,7 @@ export default function EditableField({
     <textarea
       ref={textareaRef}
       placeholder={placeholder}
-      className="outline-none bg-transparent text-inherit font-inherit resize-none min-w-0 break-words border-b-2 border-input focus:border-primary transition-colors duration-200 overflow-hidden"
+      className="outline-none flex-1 bg-transparent text-inherit font-inherit resize-none min-w-0 break-words border-b-2 border-input focus:border-primary transition-colors duration-200 overflow-hidden"
       value={value || ""}
       onChange={handleChange}
       rows={1}
@@ -137,7 +137,7 @@ export default function EditableField({
           <h1
             className={cn(
               isEditing ? "after:align-super" : "after:align-baseline",
-              'scroll-m-20 after:content-["”"] after:self-end before:content-["“"] before:float-start inline-block text-[2.5rem] font-light tracking-tight leading-tight font-tobias text-wrap'
+              'w-full flex scroll-m-20 after:content-["”"] after:self-end before:content-["“"] before:float-start text-[2.5rem] font-light tracking-tight leading-tight font-tobias text-wrap'
             )}
           >
             {Content}
@@ -148,7 +148,9 @@ export default function EditableField({
           {Content}
         </h1>
       ) : (
-        Content
+        <div className="w-full flex">
+          {Content}
+        </div>
       )}
     </div>
   );
