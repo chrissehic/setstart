@@ -25,7 +25,7 @@ export const OverviewTab = ({ data }: OverviewTabProps) => (
       {data.name}
     </h2>
     <div className="flex flex-col justify-start gap-4 w-full text-start text-wrap">
-      <TagsList tags={data.tags} />
+      <TagsList tags={data.tags} maxTags={6} />
       <div className={cn(SECTION_CLASS, "gap-2")}>
         {data.tagline && (
           <h3 className="scroll-m-20 text-2xl font-medium tracking-tight text-foreground">{data.tagline}</h3>

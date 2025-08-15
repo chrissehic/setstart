@@ -136,8 +136,8 @@ export default function EditableField({
         <blockquote>
           <h1
             className={cn(
-              isEditing ? "after:align-super" : "after:align-baseline",
-              'w-full flex scroll-m-20 after:content-["”"] after:self-end before:content-["“"] before:float-start text-[2.5rem] font-light tracking-tight leading-tight font-tobias text-wrap'
+              isEditing ? "after:align-super flex" : "after:align-baseline inline-block",
+              'w-full  scroll-m-20 after:content-["”"] after:self-end before:content-["“"] before:float-start text-[2.5rem] font-light tracking-tight leading-tight font-tobias text-wrap'
             )}
           >
             {Content}

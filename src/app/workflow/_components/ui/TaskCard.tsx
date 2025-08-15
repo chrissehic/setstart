@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Card,
   CardContent,
@@ -26,10 +26,10 @@ interface TaskCardProps {
   task: Task;
   workflowId: string;
   people: Person[];
+  onEditTask?: (task: Task) => void;
 }
 
-function TaskCard({ task, workflowId, people }: TaskCardProps) {
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+function TaskCard({ task, workflowId, people, onEditTask }: TaskCardProps) {
   const categoryConfig = getCategoryConfig(task.category);
   const statusConfig = getStatusConfig(task.status);
 
@@ -52,7 +52,9 @@ function TaskCard({ task, workflowId, people }: TaskCardProps) {
   };
 
   const handleEditTask = () => {
-    setIsEditModalOpen(true);
+    if (onEditTask) {
+      onEditTask(task);
+    }
   };
 
   const assignedPeople = task.assignedPeople.map((ap) => ap.person);
@@ -73,11 +75,12 @@ function TaskCard({ task, workflowId, people }: TaskCardProps) {
                 <DropdownMenuTrigger asChild>
                   <Badge
                     className={cn("text-xs cursor-pointer", statusConfig.color)}
+                    onClick={(e) => e.stopPropagation()}
                   >
                     {statusConfig.label}
                   </Badge>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                   {[
                     TaskStatus.NOT_STARTED,
                     TaskStatus.IN_PROGRESS,
@@ -87,7 +90,10 @@ function TaskCard({ task, workflowId, people }: TaskCardProps) {
                     return (
                       <DropdownMenuItem
                         key={status}
-                        onClick={() => handleStatusChange(status)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStatusChange(status);
+                        }}
                       >
                         <span className="text-muted-foreground text-xs">Set as</span> 
                         <Badge className={cn("text-xs", config.color)}>
@@ -105,22 +111,21 @@ function TaskCard({ task, workflowId, people }: TaskCardProps) {
                     variant="ghost"
                     size="sm"
                     className="h-6 w-6 p-0 opacity-100 transition-opacity"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                   <TaskModal
                     workflowId={workflowId}
                     task={task}
                     people={people}
-                    open={isEditModalOpen}
-                    onOpenChange={setIsEditModalOpen}
                   >
                     <DropdownMenuItem
                       onClick={(e) => {
-                        e.stopPropagation(); // prevent bubbling if needed
-                        handleEditTask(); // then call your edit logic
+                        e.stopPropagation();
+                        handleEditTask();
                       }}
                     >
                       <Edit className="h-4 w-4 mr-2" />
@@ -129,7 +134,10 @@ function TaskCard({ task, workflowId, people }: TaskCardProps) {
                   </TaskModal>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={handleDeleteTask}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteTask();
+                    }}
                     className="text-destructive focus:text-destructive"
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
@@ -151,9 +159,9 @@ function TaskCard({ task, workflowId, people }: TaskCardProps) {
         <div className="flex flex-row justify-between items-center">
           <div className="flex flex-col justify-center gap-1">
             {assignedPeople.length > 0 ? (
-          <AssignedPeopleBadge people={assignedPeople} />
-
-   
+              <div onClick={(e) => e.stopPropagation()}>
+                <AssignedPeopleBadge people={assignedPeople} />
+              </div>
             ) : (
               <p className="text-sm text-muted-foreground">
                 No one assigned yet.
@@ -167,13 +175,6 @@ function TaskCard({ task, workflowId, people }: TaskCardProps) {
           )}
         </div>
       </CardContent>
-      <TaskModal
-        workflowId={workflowId}
-        task={task}
-        people={people}
-        open={isEditModalOpen}
-        onOpenChange={setIsEditModalOpen}
-      />
     </Card>
   );
 }

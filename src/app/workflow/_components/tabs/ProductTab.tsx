@@ -24,7 +24,7 @@ export const ProductTab = ({
       </h4>
       {products.length === 0 ? (
         <div className="flex flex-col items-center justify-center text-center">
-          <h2 className="text-xl font-medium tracking-tight">
+          <h2 className="text-base font-medium tracking-tight">
             Define your Products
           </h2>
           <p className="text-sm text-muted-foreground max-w-lg text-wrap">
@@ -32,9 +32,9 @@ export const ProductTab = ({
             your team understand what you&apos;re building and delivering to
             customers.
           </p>
-          <Button variant="link">
-            Set it up
-            <ArrowRight className="size-4" />
+          <Button variant="link" className="no-underline font-normal">
+            Set up your offering
+            <ArrowRight className="size-3" />
           </Button>
         </div>
       ) : (

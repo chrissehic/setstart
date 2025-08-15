@@ -70,6 +70,7 @@ function ObjectiveTasksDisplay({
   const { data: tasks, isLoading, error } = useTasks(workflowId);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showTaskSelector, setShowTaskSelector] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   // Filter tasks by objectiveId
   const objectiveTasks =
@@ -164,7 +165,12 @@ function ObjectiveTasksDisplay({
                 onClick={() => setSelectedTask(task)}
                 style={{ cursor: "pointer" }}
               >
-                <TaskCard task={task} workflowId={workflowId} people={people} />
+                <TaskCard 
+                  task={task} 
+                  workflowId={workflowId} 
+                  people={people} 
+                  onEditTask={setEditingTask}
+                />
               </div>
             ))}
           </div>
@@ -187,6 +193,19 @@ function ObjectiveTasksDisplay({
         people={people}
         objectiveId={objectiveId}
       />
+
+      {/* Edit Task Modal */}
+      {editingTask && (
+        <TaskModal
+          workflowId={workflowId}
+          task={editingTask}
+          people={people}
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) setEditingTask(null);
+          }}
+        />
+      )}
     </>
   );
 }

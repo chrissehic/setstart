@@ -74,7 +74,7 @@ const MainNode = memo(function MainNode({
 
         {/* Tags Section */}
         <div className={sectionClass}>
-          <TagsList tags={data.tags} />
+          <TagsList tags={data.tags} maxTags={6} />
           <Handle
             id="tags-source"
             type="source"

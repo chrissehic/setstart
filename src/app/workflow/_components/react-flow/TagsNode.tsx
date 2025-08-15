@@ -25,7 +25,7 @@ const TagsNode = ({ data }: TagsNodeProps) => {
     <BaseNode>
       <Handle type="target" position={Position.Top} />
       <NodeHeader>
-        <TagsList tags={tags} />
+        <TagsList tags={tags} maxTags={6} />
       </NodeHeader>
     </BaseNode>
   );

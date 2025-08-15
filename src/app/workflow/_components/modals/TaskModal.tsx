@@ -38,7 +38,14 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { categories, cn } from "@/lib/utils";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 
 interface TaskModalProps {
   workflowId: string;
@@ -193,13 +200,14 @@ export function TaskModal({
                 required
               />
             </div>
-           
+
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
 
               <Popover
                 open={categoryPopoverOpen}
                 onOpenChange={setCategoryPopoverOpen}
+                modal={true}
               >
                 <PopoverTrigger asChild>
                   <Button
@@ -216,7 +224,7 @@ export function TaskModal({
                   </Button>
                 </PopoverTrigger>
 
-                <PopoverContent className="w-full p-0">
+                <PopoverContent  className="w-full p-0">
                   <Command>
                     <CommandInput
                       placeholder="Search category..."
@@ -261,7 +269,7 @@ export function TaskModal({
                 onValueChange={(value: TaskStatus) => setStatus(value)}
                 disabled={isLoading}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -283,7 +291,7 @@ export function TaskModal({
                 onValueChange={(value: TaskPriority) => setPriority(value)}
                 disabled={isLoading}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
                 <SelectContent>
@@ -303,7 +311,7 @@ export function TaskModal({
                 }
                 disabled={isLoading}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select responsibility" />
                 </SelectTrigger>
                 <SelectContent>
@@ -325,6 +333,7 @@ export function TaskModal({
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
                 disabled={isLoading}
+                className="w-full flex flex-col content-normal justify-center"
               />
             </div>
           </div>
@@ -346,19 +355,21 @@ export function TaskModal({
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe what needs to be done..."
-              rows={4}
-              disabled={isLoading}
-            />
-          </div>
+          {!isEditing && (
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Describe what needs to be done..."
+                rows={4}
+                disabled={isLoading}
+              />
+            </div>
+          )}
 
-          <DialogFooter>
+          <DialogFooter className="flex flex-row justify-between">
             <Button
               type="button"
               variant="outline"

@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { updateWorkflowSchema } from "@/../schema/workflow";
+import { addObjective } from "@/actions/objectives/addObjective";
+import { AddTask } from "@/actions/tasks/addTask";
+import { addProduct } from "@/actions/products/addProduct";
 
 export function useProcessAIPrompt() {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -25,7 +28,16 @@ export function useProcessAIPrompt() {
         logoImage: "",
       });
 
-      return validatedData;
+      // Extract the entities to create separately
+      const { objectives, tasks, product, ...workflowData } = validatedData;
+
+      // Return the workflow data along with the entities to create
+      return {
+        ...workflowData,
+        objectives: objectives || [],
+        tasks: tasks || [],
+        product: product || null,
+      };
     } catch (err) {
       console.error(err);
       throw new Error(

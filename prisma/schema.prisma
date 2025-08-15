@@ -31,6 +31,8 @@ model Workflow {
   tasks             Task[]
   tags              Tag[]             @relation("TagToWorkflow")
   socialLinks       SocialLink[]
+  references        Reference[]
+  documents         Document[]
 
   @@unique([userId, name])
 }
@@ -137,4 +139,98 @@ model SocialLink {
   workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 
   @@unique([workflowId, name])
+}
+
+model Reference {
+  id              String   @id @default(cuid())
+  workflowId      String
+  title           String
+  sourcePlatform  String
+  url             String
+  tags            String   // JSON array of tags
+  description     String?
+  relatedProductId String?
+  addedBy         String?
+  dateAdded       DateTime @default(now())
+  thumbnailUrl    String?
+  durationSeconds Int      @default(0)
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  workflow        Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  workflowId  String
+  name        String
+  fileUrl     String
+  fileType    DocumentFileType
+  sizeBytes   Int
+  status      DocumentStatus @default(uploaded)
+  metadata    String? // JSON string for SQLite compatibility
+  convertedUrl String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdById String
+  
+  // Relations
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  createdBy  User     @relation(fields: [createdById], references: [id])
+  tags       DocumentTag[]
+  pages      DocumentPage[]
+  
+  @@index([workflowId])
+  @@index([createdById])
+  @@index([status])
+}
+
+model DocumentPage {
+  id            String   @id @default(cuid())
+  documentId    String
+  pageNumber    Int
+  imageUrl      String
+  text          String?
+  bboxTextItems String? // JSON string for SQLite compatibility
+  createdAt     DateTime @default(now())
+  
+  // Relations
+  document     Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  @@unique([documentId, pageNumber])
+  @@index([documentId])
+}
+
+model DocumentTag {
+  id       String @id @default(cuid())
+  name     String @unique
+  
+  // Relations
+  documents Document[]
+  
+  @@index([name])
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  documents Document[]
+}
+
+enum DocumentFileType {
+  pdf
+  image
+}
+
+enum DocumentStatus {
+  uploaded
+  processing
+  converted
+  failed
 }

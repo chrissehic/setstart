@@ -54,6 +54,7 @@ function TasksSection({
   const [categoryFilter, setCategoryFilter] = useState<"all" | string>("all");
   const [personFilter, setPersonFilter] = useState<string[]>([]);
   const [isCreatingWithAI, setIsCreatingWithAI] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   // Remove local selectedTask state
 
   const { data: allTasks = [], isLoading, error } = useTasks(workflowId);
@@ -263,6 +264,7 @@ function TasksSection({
                     task={task}
                     workflowId={workflowId}
                     people={people}
+                    onEditTask={setEditingTask}
                   />
                 </div>
               ))}
@@ -350,6 +352,19 @@ function TasksSection({
           )}
         </div>
       </div>
+
+      {/* Edit Task Modal */}
+      {editingTask && (
+        <TaskModal
+          workflowId={workflowId}
+          task={editingTask}
+          people={people}
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) setEditingTask(null);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -1,13 +1,15 @@
-import { prisma } from "@/lib/prisma";
-import { NextRequest, NextResponse } from "next/server";
+"use server";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ workflowId: string }> }
-) {
+import { prisma } from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
+
+export async function getProducts(workflowId: string) {
+  const { userId } = await auth();
+  if (!userId) {
+    throw new Error("Unauthenticated");
+  }
+
   try {
-    const { workflowId } = await params;
-    
     const products = await prisma.product.findMany({
       where: { workflowId },
       orderBy: { createdAt: "desc" },
@@ -27,12 +29,9 @@ export async function GET(
       })),
     }));
     
-    return NextResponse.json(productsWithParsedVariants);
+    return productsWithParsedVariants;
   } catch (error) {
-    console.error("Error in API route getProducts:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch products" },
-      { status: 500 }
-    );
+    console.error("Error fetching products:", error);
+    throw new Error("Failed to fetch products");
   }
-} 
+}

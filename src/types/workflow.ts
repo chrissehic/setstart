@@ -159,6 +159,31 @@ export interface Product {
   updatedAt: Date;
 }
 
+export interface Reference {
+  id: string;
+  workflowId: string;
+  title: string;
+  sourcePlatform: string;
+  url: string;
+  tags: string[]; // Parsed from JSON string
+  description?: string | null;
+  relatedProductId?: string | null;
+  addedBy?: string | null;
+  dateAdded: Date;
+  thumbnailUrl?: string | null;
+  durationSeconds: number;
+  notes?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ImportedFile {
+  id: string;
+  name: string;
+  type: 'pdf' | 'image';
+  url: string;
+}
+
 export enum TaskStatus {
   NOT_STARTED = "NOT_STARTED",
   IN_PROGRESS = "IN_PROGRESS",

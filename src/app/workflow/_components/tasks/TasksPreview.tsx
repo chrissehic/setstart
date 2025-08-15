@@ -61,9 +61,9 @@ export default function TasksPreview({
       ))}
 
       {tasks.length > max && (
-        <div className="absolute flex flex-row w-full items-center justify-center bg-transparent -bottom-2">
-          <Badge variant="inverse" className="text-xs opacity-70">
-            <span className="text-accent px-2">+{tasks.length - max} more</span>
+        <div className="absolute flex flex-row w-full items-center justify-center bg-transparent -bottom-4">
+          <Badge variant="inverse" className="text-xs bg-accent-foreground/20 hover:bg-accent-foreground/30">
+            <span className="text-foreground ">+{tasks.length - max} more</span>
           </Badge>
         </div>
       )}

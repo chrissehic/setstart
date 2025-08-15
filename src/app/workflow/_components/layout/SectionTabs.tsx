@@ -10,6 +10,7 @@ import { ProductTab } from "../tabs/ProductTab";
 import { TaskboardTab } from "../tabs/TaskboardTab";
 import { GrowthStageTab } from "../tabs/GrowthStageTab";
 import { ReferencesPreview } from "../ui/ReferencesPreview";
+import { DocumentsTab } from "../tabs/DocumentsTab";
 
 interface WorkspaceTabTriggersProps {
   data: WorkflowData;
@@ -39,19 +40,30 @@ export const SectionTabs = ({
           {item.value === "roles" && (
             <RolesTab data={data} title={item.title} value={item.title} />
           )}
-                     {item.value === "product" && (
-             <ProductTab title={item.title} value={item.title} products={data.products} />
-           )}
-           {item.value === "reference-hub" && (
-             <div className="flex flex-col justify-start gap-2 w-full">
-               <h4 className="scroll-m-20 text-lg font-medium text-start">
-                 {item.title}
-               </h4>
-               <ReferencesPreview />
-             </div>
-           )}
-
-           {item.value === "taskboard" && (
+          {item.value === "product" && (
+            <ProductTab
+              title={item.title}
+              value={item.title}
+              products={data.products}
+            />
+          )}
+          {item.value === "documents" && (
+            <div className="flex flex-col justify-start gap-2 w-full p-1">
+              <h4 className="scroll-m-20 text-lg font-medium text-start">
+                {item.title}
+              </h4>
+              <DocumentsTab workflowId={data.id} />
+            </div>
+          )}
+          {item.value === "reference-hub" && (
+            <div className="flex flex-col justify-start gap-2 w-full p-1">
+              <h4 className="scroll-m-20 text-lg font-medium text-start">
+                {item.title}
+              </h4>
+              <ReferencesPreview workflowId={data.id} />
+            </div>
+          )}
+          {item.value === "taskboard" && (
             <TaskboardTab
               workflowId={data.id}
               title={item.title}

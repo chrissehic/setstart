@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Plus, Hash, Search, Globe, Play, ExternalLink } from "lucide-react";
+import { Plus, Hash, Search, Globe, Play, MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,31 +13,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { mockReferences } from "@/mock/mockReferences";
-import { cn } from "@/lib/utils";
-
-interface Reference {
-  id: string;
-  title: string;
-  sourcePlatform: string;
-  url: string;
-  tags: string[];
-  description: string;
-  relatedProductId: string;
-  addedBy: string;
-  dateAdded: string;
-  thumbnailUrl: string;
-  durationSeconds: number;
-  notes: string;
-}
-
-interface ReferenceCategory {
-  id: string;
-  name: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
-  priority: number;
-}
+import { useReferences } from "@/hooks/useReferences";
+import { AddReferenceModal } from "../modals/AddReferenceModal";
+import { Reference } from "@/types/workflow";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { deleteReference } from "@/actions/references/deleteReference";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ReferencesSectionProps {
   workflowId: string;
@@ -46,128 +34,46 @@ interface ReferencesSectionProps {
 export function ReferencesSection({ workflowId }: ReferencesSectionProps) {
   const [search, setSearch] = useState("");
   const [platformFilter, setPlatformFilter] = useState<string>("all");
+  const [showAddModal, setShowAddModal] = useState(false);
+  const queryClient = useQueryClient();
 
-  // Define reference categories with priority and styling
-  const referenceCategories: ReferenceCategory[] = [
-    {
-      id: "direct-brand",
-      name: "Direct Brand References",
-      description: "Direct mentions of your brand, product, or service",
-      icon: Hash,
-      priority: 1,
-    },
-    {
-      id: "high-fiber",
-      name: "High Fiber & Nutrition",
-      description: "Content related to high fiber foods and nutrition",
-      icon: Hash,
-      priority: 2,
-    },
-    {
-      id: "healthy-snacks",
-      name: "Healthy Snacking",
-      description: "Content about healthy snack alternatives",
-      icon: Hash,
-      priority: 3,
-    },
-    {
-      id: "wellness",
-      name: "Wellness & Lifestyle",
-      description: "General wellness and healthy living content",
-      icon: Hash,
-      priority: 4,
-    },
-    {
-      id: "social-media",
-      name: "Social Media Trends",
-      description: "Relevant social media trends and content",
-      icon: Hash,
-      priority: 5,
-    },
-  ];
+  const { data: references = [], isLoading } = useReferences(workflowId);
 
-  // Categorize references based on tags and content
-  const categorizeReferences = (
-    references: Reference[]
-  ): Record<string, Reference[]> => {
-    const categorized: Record<string, Reference[]> = {};
-
-    referenceCategories.forEach((category) => {
-      let filteredReferences: Reference[] = [];
-
-      switch (category.id) {
-        case "direct-brand":
-          filteredReferences = references.filter((ref) =>
-            ref.tags.some(
-              (tag) =>
-                tag.toLowerCase().includes("your-product") ||
-                ref.title.toLowerCase().includes("your-product") ||
-                ref.description.toLowerCase().includes("your-product")
-            )
-          );
-          break;
-        case "high-fiber":
-          filteredReferences = references.filter((ref) =>
-            ref.tags.some(
-              (tag) =>
-                tag.toLowerCase().includes("fiber") ||
-                tag.toLowerCase().includes("nutrition") ||
-                ref.title.toLowerCase().includes("fiber") ||
-                ref.description.toLowerCase().includes("fiber")
-            )
-          );
-          break;
-        case "healthy-snacks":
-          filteredReferences = references.filter((ref) =>
-            ref.tags.some(
-              (tag) =>
-                tag.toLowerCase().includes("snack") ||
-                tag.toLowerCase().includes("healthy") ||
-                ref.title.toLowerCase().includes("snack") ||
-                ref.description.toLowerCase().includes("snack")
-            )
-          );
-          break;
-        case "wellness":
-          filteredReferences = references.filter((ref) =>
-            ref.tags.some(
-              (tag) =>
-                tag.toLowerCase().includes("wellness") ||
-                tag.toLowerCase().includes("lifestyle") ||
-                tag.toLowerCase().includes("health")
-            )
-          );
-          break;
-        case "social-media":
-          filteredReferences = references.filter((ref) =>
-            ref.tags.some(
-              (tag) =>
-                tag.toLowerCase().includes("social") ||
-                tag.toLowerCase().includes("trend") ||
-                ref.sourcePlatform.toLowerCase() === "tiktok" ||
-                ref.sourcePlatform.toLowerCase() === "instagram"
-            )
-          );
-          break;
+  // Handle reference deletion
+  const handleDeleteReference = async (referenceId: string) => {
+    try {
+      const result = await deleteReference(referenceId);
+      if (result.success) {
+        // Immediately update the UI by removing the deleted reference from the cache
+        queryClient.setQueryData(["references", workflowId], (oldData: Reference[] | undefined) => {
+          if (oldData && Array.isArray(oldData)) {
+            return oldData.filter((ref: Reference) => ref.id !== referenceId);
+          }
+          return oldData;
+        });
+        
+        // Also invalidate the query to ensure data consistency
+        queryClient.invalidateQueries({ queryKey: ["references", workflowId] });
+        
+        toast.success("Reference deleted successfully");
+      } else {
+        toast.error(result.error || "Failed to delete reference");
       }
-
-      if (filteredReferences.length > 0) {
-        categorized[category.id] = filteredReferences;
-      }
-    });
-
-    return categorized;
+    } catch {
+      toast.error("Failed to delete reference");
+    }
   };
 
-  // Filter references based on search and filters
+  // Filter references based on search and platform filter
   const filteredReferences = useMemo(() => {
-    let filtered = mockReferences;
+    let filtered = references;
 
     if (search) {
       filtered = filtered.filter(
         (ref) =>
           ref.title.toLowerCase().includes(search.toLowerCase()) ||
-          ref.description.toLowerCase().includes(search.toLowerCase()) ||
+          (ref.description &&
+            ref.description.toLowerCase().includes(search.toLowerCase())) ||
           ref.tags.some((tag) =>
             tag.toLowerCase().includes(search.toLowerCase())
           )
@@ -182,15 +88,13 @@ export function ReferencesSection({ workflowId }: ReferencesSectionProps) {
     }
 
     return filtered;
-  }, [search, platformFilter]);
-
-  const categorizedReferences = categorizeReferences(filteredReferences);
+  }, [search, platformFilter, references]);
 
   // Get unique platforms for filter
   const uniquePlatforms = useMemo(() => {
-    const platforms = new Set(mockReferences.map((ref) => ref.sourcePlatform));
+    const platforms = new Set(references.map((ref) => ref.sourcePlatform));
     return Array.from(platforms);
-  }, []);
+  }, [references]);
 
   const formatDuration = (seconds: number): string => {
     if (seconds === 0) return "Image";
@@ -236,73 +140,165 @@ export function ReferencesSection({ workflowId }: ReferencesSectionProps) {
     return platformIcons[platform.toLowerCase()] || Globe;
   };
 
-  const totalReferences = mockReferences.length;
-  const totalDirectReferences = mockReferences.filter((ref) =>
-    ref.tags.some((tag) => tag.toLowerCase().includes("your-product"))
-  ).length;
+  // Skeleton component for reference cards
+  function ReferenceCardSkeleton() {
+    return (
+      <Card className="overflow-hidden relative p-0 min-w-[16rem] w-64 aspect-[8/12] flex-shrink-0">
+        <CardContent className="p-0">
+          {/* Thumbnail skeleton */}
+          <div className="aspect-video bg-muted overflow-hidden absolute inset-0 h-full w-full">
+            <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent" />
+            
+            {/* Content skeleton at bottom */}
+            <div className="absolute bottom-0 left-0 right-0 p-3 flex flex-col gap-2">
+              <div className="w-full flex flex-row justify-between">
+                {/* Platform icon skeleton */}
+                <Skeleton className="size-6 rounded bg-black/40" />
+                {/* Duration badge skeleton */}
+                <Skeleton className="h-5 w-12 rounded bg-black/40" />
+              </div>
+              
+              {/* Title skeleton */}
+              <div className="flex flex-col gap-1">
+                <Skeleton className="h-4 w-full rounded bg-black/40" />
+                <Skeleton className="h-3 w-3/4 rounded bg-black/40" />
+                
+                {/* Description skeleton */}
+                <Skeleton className="h-3 w-full rounded bg-black/40" />
+                <Skeleton className="h-3 w-2/3 rounded bg-black/40" />
+                
+                {/* Date skeleton */}
+                <Skeleton className="h-3 w-20 rounded bg-black/40 mt-1" />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
-  if (filteredReferences.length === 0 && (search || platformFilter !== "all")) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
+        {/* Header */}
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold tracking-tight">
-            References Hub
-          </h2>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
+          <div className="flex flex-col items-start gap-1">
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Social Insights
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Collect and analyze social media content to inform your strategy
+            </p>
+          </div>
+          <Button disabled>
+            <Plus className="h-4 w-4" />
             Add Reference
           </Button>
         </div>
 
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <Hash className="h-12 w-12 stroke-muted-foreground stroke-1 mb-4" />
-            <h3 className="text-lg font-medium mb-2">No references found</h3>
-            <p className="text-sm text-muted-foreground max-w-md mb-6">
-              Try adjusting your search terms or filters to find the references
-              you&apos;re looking for.
-            </p>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setSearch("");
-                setPlatformFilter("all");
-              }}
-            >
-              Clear Filters
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Stats skeleton */}
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-6 w-32 rounded" />
+        </div>
+
+        {/* Filters skeleton */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Skeleton className="h-10 flex-1 rounded" />
+          <Skeleton className="h-10 w-[180px] rounded" />
+        </div>
+
+        {/* Loading references grid */}
+        <div className="flex flex-row overflow-x-auto w-full gap-4 pb-2 scrollbar-hide">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <ReferenceCardSkeleton key={index} />
+          ))}
+        </div>
       </div>
     );
   }
+
+  if (!references || references.length === 0) {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col items-start gap-1">
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Social Insights
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Collect and analyze social media content to inform your strategy
+            </p>
+          </div>
+          <Button onClick={() => setShowAddModal(true)}>
+            <Plus className="h-4 w-4" />
+            Add Reference
+          </Button>
+        </div>
+
+        {/* Stats */}
+        <div className="flex items-center gap-2">
+          <Badge
+            variant="secondary"
+            className="text-xs bg-accent text-primary-foreground border-foreground/20"
+          >
+            0 total references
+          </Badge>
+        </div>
+
+        {/* Empty state */}
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+            <Hash className="h-12 w-12 stroke-muted-foreground stroke-1 mb-4" />
+            <h3 className="text-lg font-medium mb-2">No references yet</h3>
+            <p className="text-sm text-muted-foreground max-w-md mb-6">
+              Start building your knowledge base by adding references to
+              relevant content, trends, and insights that relate to your
+              business.
+            </p>
+            <Button onClick={() => setShowAddModal(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add your first reference
+            </Button>
+          </CardContent>
+        </Card>
+        
+        <AddReferenceModal
+          workflowId={workflowId}
+          open={showAddModal}
+          onOpenChange={setShowAddModal}
+        />
+      </div>
+    );
+  }
+
+  const totalReferences = references.length;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold tracking-tight">
-          References Hub
-        </h2>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
+        <div className="flex flex-col items-start gap-1">
+          <h2 className="text-2xl font-semibold tracking-tight">
+            Social Insights
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Collect and analyze social media content to inform your strategy
+          </p>
+        </div>
+        <Button onClick={() => setShowAddModal(true)}>
+          <Plus className="h-4 w-4" />
           Add Reference
         </Button>
       </div>
 
       {/* Stats */}
-      <div className="flex items-center gap-4">
-        <Badge
-          variant="default"
-          className="text-sm bg-primary/20 text-primary border-primary/80"
-        >
-          {totalDirectReferences} direct references
-        </Badge>
+      <div className="flex items-center gap-2">
         <Badge
           variant="secondary"
-          className="text-sm bg-accent text-primary-foreground border-foreground/20"
+          className="text-xs bg-accent text-primary-foreground border-foreground/20"
         >
-          {totalReferences} total references
+          {totalReferences} total reference{totalReferences > 1 ? "s" : ""}
         </Badge>
       </div>
 
@@ -332,114 +328,144 @@ export function ReferencesSection({ workflowId }: ReferencesSectionProps) {
         </Select>
       </div>
 
-      {/* Reference Categories */}
-      {Object.entries(categorizedReferences).map(([categoryId, references]) => {
-        const category = referenceCategories.find(
-          (cat) => cat.id === categoryId
-        );
-        if (!category) return null;
-
-        return (
-          <div key={categoryId} className="space-y-4">
-            {/* Category Header */}
-            <div className="flex items-center gap-3">
-              <div
-                className={cn(
-                  "size-8 rounded-lg flex items-center justify-center border"
-                )}
+      {/* Content or Empty States */}
+      {filteredReferences.length === 0 &&
+      (search || platformFilter !== "all") ? (
+        // No search results found
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+            <Hash className="h-12 w-12 stroke-muted-foreground stroke-1 mb-4" />
+            <h3 className="text-lg font-medium mb-2">No references found</h3>
+            <p className="text-sm text-muted-foreground max-w-md mb-6">
+              Try adjusting your search terms or filters to find the references
+              you&apos;re looking for.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearch("");
+                setPlatformFilter("all");
+              }}
+            >
+              Clear Filters
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        // Show references grid
+        <div className="flex flex-row overflow-x-auto w-full gap-4 pb-2 scrollbar-hide">
+          {filteredReferences.map((reference) => {
+            const PlatformIcon = getPlatformIcon(
+              reference.sourcePlatform
+            );
+            const isVideo = reference.durationSeconds > 0;
+            
+            return (
+              <Card
+                key={reference.id}
+                className="overflow-hidden relative group hover:shadow-lg transition-all duration-200 cursor-pointer p-0 min-w-[16rem] w-64 aspect-[8/12] group/refcard flex-shrink-0"
+                onClick={() => window.open(reference.url, "_blank")}
               >
-                <category.icon className="size-4" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg">{category.name}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {category.description}
-                </p>
-              </div>
-           
-            </div>
+                <CardContent className="p-0">
+                  {/* Thumbnail */}
+                  <div className="aspect-video bg-muted overflow-hidden absolute inset-0 h-full w-full">
+                    <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent" />
 
-            {/* References Grid */}
-            <div className="flex flex-row overflow-x-auto w-full gap-4 pb-2 scrollbar-hide">
-              {references.map((reference) => {
-                const PlatformIcon = getPlatformIcon(reference.sourcePlatform);
-                return (
-                  <Card
-                    key={reference.id}
-                    className="overflow-hidden relative group hover:shadow-lg transition-all duration-200 cursor-pointer p-0 min-w-[16rem] w-64 aspect-[8/12] group/refcard flex-shrink-0"
-                    onClick={() => window.open(reference.url, "_blank")}
-                  >
-                    <CardContent className="p-0">
-                      {/* Thumbnail */}
-                      <div className="aspect-video bg-muted overflow-hidden absolute inset-0 h-full w-full">
-                        <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent" />
+                    {/* 3-Dots Menu - Upper Right Corner */}
+                    <div className="absolute top-2 right-2 opacity-0 group-hover/refcard:opacity-100 transition-opacity duration-200">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={(e) => e.stopPropagation()}
+                            className="h-7 w-7 p-0 bg-black/60 hover:bg-black/80 border-0"
+                          >
+                            <MoreHorizontal className="h-3 w-3 text-white" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // TODO: Implement edit functionality
+                              toast.info("Edit functionality coming soon");
+                            }}
+                            className="cursor-pointer"
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm("Are you sure you want to delete this reference?")) {
+                                handleDeleteReference(reference.id);
+                              }
+                            }}
+                            className="cursor-pointer text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
 
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/refcard:opacity-100 transition-opacity duration-200">
-                          <div className="size-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                            <Play className="size-6 text-white fill-white" />
-                          </div>
-                        </div>
-                        <div className="absolute bottom-0 left-0 right-0 p-3 flex flex-col gap-2">
-                          <div className="w-full flex flex-row justify-between">
-                            <div className="size-6 rounded bg-black/60 flex items-center justify-center">
-                              <PlatformIcon className="size-3 text-white" />
-                            </div>
-                            <Badge
-                              variant="secondary"
-                              className="text-xs bg-black/60 text-white border-0"
-                            >
-                              {formatDuration(reference.durationSeconds)}
-                            </Badge>
-                          </div>
-                          {/* Content */}
-                          <div className="flex flex-col gap-1">
-                            <h4 className="font-medium text-sm line-clamp-2 text-foreground/80 group-hover/refcard:text-foreground transition-colors">
-                              {reference.title}
-                            </h4>
-                            <p className="text-xs text-muted-foreground line-clamp-2">
-                              {reference.description}
-                            </p>
-
-                            {/* Actions */}
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs text-muted-foreground">
-                                {new Date(
-                                  reference.dateAdded
-                                ).toLocaleDateString()}
-                              </span>
-                            </div>
-                          </div>
+                    {/* Video Play Button - Only show for videos */}
+                    {isVideo && (
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/refcard:opacity-200 transition-opacity duration-200">
+                        <div className="size-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                          <Play className="size-6 text-white fill-white" />
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
+                    )}
 
-      {/* Empty State */}
-      {Object.keys(categorizedReferences).length === 0 &&
-        !search &&
-        platformFilter === "all" && (
-          <Card className="border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-              <Hash className="h-12 w-12 stroke-muted-foreground stroke-1 mb-4" />
-              <h3 className="text-lg font-medium mb-2">No references yet</h3>
-              <p className="text-sm text-muted-foreground max-w-md mb-6">
-                Start building your knowledge base by adding references to
-                relevant content, trends, and insights that relate to your
-                business.
-              </p>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add your first reference
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+                    <div className="absolute bottom-0 left-0 right-0 p-3 flex flex-col gap-2">
+                      <div className="w-full flex flex-row justify-between">
+                        <div className="size-6 rounded bg-black/60 flex items-center justify-center">
+                          <PlatformIcon className="size-3 text-white" />
+                        </div>
+                        <Badge
+                          variant="secondary"
+                          className="text-xs bg-black/60 text-white border-0"
+                        >
+                          {formatDuration(reference.durationSeconds)}
+                        </Badge>
+                      </div>
+                      {/* Content */}
+                      <div className="flex flex-col gap-1">
+                        <h4 className="font-medium text-sm line-clamp-2 text-foreground/80 group-hover/refcard:text-foreground transition-colors">
+                          {reference.title}
+                        </h4>
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {reference.description}
+                        </p>
+
+                        {/* Date */}
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(
+                              reference.dateAdded
+                            ).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+      
+      <AddReferenceModal
+        workflowId={workflowId}
+        open={showAddModal}
+        onOpenChange={setShowAddModal}
+      />
     </div>
   );
 }
