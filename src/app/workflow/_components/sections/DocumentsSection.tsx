@@ -1,11 +1,24 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Plus, FileText, ImageIcon, Upload, Search, Trash2 } from "lucide-react";
+import {
+  FileText,
+  ImageIcon,
+  Upload,
+  Search,
+  Trash2,
+  Ellipsis,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
@@ -15,7 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { useDocuments, useDeleteDocument } from "@/hooks/useDocuments";
-import { DocumentsModal, ImportedFile } from "../modals/DocumentsModal";
+import { DocumentsModal } from "../modals/DocumentsModal";
 import { Button } from "@/components/ui/button";
 
 interface DocumentsSectionProps {
@@ -26,76 +39,51 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
 
-  const [localDocuments, setLocalDocuments] = useState<ImportedFile[]>([]);
-  
-
-  
-
-
   const { data: documents = [], isLoading } = useDocuments(workflowId);
   const deleteDocumentMutation = useDeleteDocument();
-
-  // Combine server documents with local documents
-  const allDocuments = useMemo(() => {
-    return [...documents, ...localDocuments];
-  }, [documents, localDocuments]);
 
   const getFileIcon = (type: string) => {
     switch (type) {
       case "pdf":
-        return <FileText className="size-8 stroke-1 stroke-white fill-transparent" />;
+        return (
+          <FileText className="size-6 mt-1" />
+        );
       case "image":
-        return <ImageIcon className="size-8 stroke-1 stroke-white fill-transparent" />;
+        return (
+          <ImageIcon className="size-6 mt-1" />
+        );
       default:
-        return <FileText className="size-8 stroke-1 stroke-white fill-transparent" />;
+        return (
+          <FileText className="size-6 mt-1" />
+        );
     }
   };
 
   // Filter documents based on search and type filter
   const filteredDocuments = useMemo(() => {
-    let filtered = allDocuments;
+    let filtered = documents;
 
     if (search) {
-      filtered = filtered.filter(
-        (doc) =>
-          doc.name.toLowerCase().includes(search.toLowerCase())
+      filtered = filtered.filter((doc) =>
+        doc.name.toLowerCase().includes(search.toLowerCase())
       );
     }
 
     if (typeFilter !== "all") {
-      filtered = filtered.filter(
-        (doc) => doc.type === typeFilter
-      );
+      filtered = filtered.filter((doc) => doc.fileType === typeFilter);
     }
 
     return filtered;
-  }, [search, typeFilter, allDocuments]);
+  }, [search, typeFilter, documents]);
 
   // Handle document deletion
   const handleDeleteDocument = async (documentId: string) => {
     try {
-      // Check if it's a local document
-      const localDoc = localDocuments.find(d => d.id === documentId);
-      if (localDoc) {
-        // Remove from local state and revoke blob URL
-        setLocalDocuments(prev => prev.filter(d => d.id !== documentId));
-        URL.revokeObjectURL(localDoc.url);
-        toast.success("Document removed");
-        return;
-      }
-
-      // Otherwise, it's a server document
       await deleteDocumentMutation.mutateAsync({ documentId, workflowId });
       toast.success("Document deleted successfully");
     } catch {
       toast.error("Failed to delete document");
     }
-  };
-
-  // Handle importing new documents
-  const handleImportDocuments = (files: ImportedFile[]) => {
-    setLocalDocuments(prev => [...prev, ...files]);
-    toast.success(`Imported ${files.length} document${files.length !== 1 ? 's' : ''}`);
   };
 
   if (isLoading) {
@@ -146,7 +134,7 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
     );
   }
 
-  if (allDocuments.length === 0) {
+  if (documents.length === 0) {
     return (
       <div className="space-y-6">
         {/* Header */}
@@ -157,16 +145,16 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
               Store and manage PDFs and images for your business
             </p>
           </div>
-                  <DocumentsModal workflowId={workflowId} onImport={handleImportDocuments}>
-          <Button>
-            <Upload className="h-4 w-4" />
-            Upload Document
-          </Button>
-        </DocumentsModal>
+          <DocumentsModal workflowId={workflowId}>
+            <Button>
+              <Upload className="h-4 w-4" />
+              Upload Document
+            </Button>
+          </DocumentsModal>
         </div>
 
         {/* Empty state */}
-        <Card className="border-dashed">
+        <Card className="border-none">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <FileText className="h-12 w-12 stroke-muted-foreground stroke-1 mb-4" />
             <h3 className="text-lg font-medium mb-2">No documents yet</h3>
@@ -174,7 +162,7 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
               Start building your document library by uploading PDFs and images
               that are relevant to your business.
             </p>
-            <DocumentsModal workflowId={workflowId} onImport={handleImportDocuments}>
+            <DocumentsModal workflowId={workflowId}>
               <Button>
                 <Upload className="h-4 w-4" />
                 Upload your first document
@@ -196,7 +184,7 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
             Store and manage PDFs and images for your business
           </p>
         </div>
-        <DocumentsModal workflowId={workflowId} onImport={handleImportDocuments}>
+        <DocumentsModal workflowId={workflowId}>
           <Button>
             <Upload className="h-4 w-4" />
             Upload Document
@@ -206,14 +194,18 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
 
       {/* Stats */}
       <div className="flex items-center gap-2">
-        <Badge variant="secondary" className="text-xs bg-accent text-primary-foreground border-foreground/20">
-          {allDocuments.length} total document{allDocuments.length !== 1 ? "s" : ""}
+        <Badge
+          variant="secondary"
+          className="text-xs bg-accent text-primary-foreground border-foreground/20"
+        >
+          {documents.length} total document
+          {documents.length !== 1 ? "s" : ""}
         </Badge>
         <Badge variant="outline" className="text-xs">
-          {allDocuments.filter(d => d.type === "pdf").length} PDFs
+          {documents.filter((d) => d.fileType === "pdf").length} PDFs
         </Badge>
         <Badge variant="outline" className="text-xs">
-          {allDocuments.filter(d => d.type === "image").length} Images
+          {documents.filter((d) => d.fileType === "image").length} Images
         </Badge>
       </div>
 
@@ -243,24 +235,24 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
       {/* Documents Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredDocuments.map((document) => (
-          <Card key={document.id} className="hover:shadow-md transition-shadow">
+          <Card key={document.id} className="hover:shadow-md transition-shadow col-span-1 w-full justify-between">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  {getFileIcon(document.type)}
+                <div className="flex items-start gap-3 w-full">
+                  {getFileIcon(document.fileType)}
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-sm font-medium truncate">
+                    <CardTitle className="text-base font-medium truncate overflow-hidden wrap-anywhere text-ellipsis line-clamp-2">
                       {document.name}
                     </CardTitle>
                     <p className="text-xs text-muted-foreground truncate">
-                      {document.type.toUpperCase()}
+                      {document.fileType.toUpperCase()}
                     </p>
                   </div>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <Plus className="h-4 w-4" />
+                      <Ellipsis className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -276,15 +268,15 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>{document.type === 'pdf' ? 'PDF Document' : 'Image File'}</span>
+              <div className="flex items-baseline justify-between text-xs text-muted-foreground">
+                <span>
+                  {document.fileType === "pdf" ? "PDF Document" : "Image File"}
+                </span>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
-
-
     </div>
   );
 }

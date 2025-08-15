@@ -2,40 +2,33 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { auth } from "@clerk/nextjs/server";
 
 interface AddDocumentInput {
   workflowId: string;
-  title: string;
-  description?: string;
-  type: "pdf" | "image" | "document";
+  name: string;
   fileUrl: string;
-  fileName: string;
-  fileSize: number;
-  mimeType: string;
-  tags: string[];
-  category?: string;
-  status?: "draft" | "review" | "approved" | "archived";
-  version?: string;
-  uploadedBy?: string;
+  fileType: "pdf" | "image";
+  sizeBytes: number;
+  metadata?: string;
 }
 
 export async function addDocument(input: AddDocumentInput) {
+  const { userId } = await auth();
+  if (!userId) {
+    throw new Error("Unauthenticated");
+  }
+
   try {
     const document = await prisma.document.create({
       data: {
         workflowId: input.workflowId,
-        title: input.title,
-        description: input.description,
-        type: input.type,
+        name: input.name,
         fileUrl: input.fileUrl,
-        fileName: input.fileName,
-        fileSize: input.fileSize,
-        mimeType: input.mimeType,
-        tags: JSON.stringify(input.tags),
-        category: input.category,
-        status: input.status || "draft",
-        version: input.version || "1.0",
-        uploadedBy: input.uploadedBy,
+        fileType: input.fileType,
+        sizeBytes: input.sizeBytes,
+        metadata: input.metadata,
+        userId: userId,
       },
     });
 

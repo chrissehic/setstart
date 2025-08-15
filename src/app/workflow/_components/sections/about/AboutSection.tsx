@@ -152,8 +152,8 @@ function AboutSection({ data }: { data: WorkflowData }) {
               workflowId={data.id}
               field="mainLogo"
               imageUrl={data.mainLogo || undefined}
-              className="relative h-40 w-fit bg-accent aspect-video rounded-lg border border-input/60"
-              imageClassName="w-full h-full object-contain"
+              className="relative h-40 w-fit bg-accent aspect-video rounded-lg border border-input/60 p-4"
+              imageClassName="w-full h-full object-contain!"
               showRemoveButton={true}
             >
               <span className="
@@ -174,12 +174,12 @@ function AboutSection({ data }: { data: WorkflowData }) {
               workflowId={data.id}
               field="logoIcon"
               imageUrl={data.logoIcon || undefined}
-              className="relative h-40 aspect-square bg-accent rounded-lg border border-input/60"
+              className="relative h-40 aspect-square bg-accent rounded-lg border border-input/60 overflow-hidden p-4"
               imageClassName="w-full h-full object-contain"
               showRemoveButton={true}
             >
               <AsteriskSquare
-                className="h-3/4 w-auto stroke-1 stroke-foreground opacity-30
+                className="size-30 stroke-1 stroke-foreground opacity-30
                 group-hover/image:opacity-5 transition-opacity duration-150 ease-in-out select-none"
               />
             </EditableImage>
@@ -190,10 +190,13 @@ function AboutSection({ data }: { data: WorkflowData }) {
           {additionalAssets.map((asset, index) => (
             <div key={index} className="flex flex-col items-start gap-1">
               <div className="relative h-40 aspect-square bg-accent rounded-lg border border-input/60 overflow-hidden">
-                <img
-                  src={asset}
+                <EditableImage
+                  workflowId={data.id}
+                  field="additionalAssets"
+                  imageUrl={asset}
                   alt={`Asset ${index + 1}`}
                   className="w-full h-full object-cover"
+                  showRemoveButton={true}
                 />
                 <Button
                   variant="ghost"
@@ -233,7 +236,7 @@ function AboutSection({ data }: { data: WorkflowData }) {
               field="logoImage"
               imageUrl={data.logoImage || undefined}
               alt="Avatar"
-              className="relative aspect-square bg-accent h-32 rounded-lg border border-input/60"
+              className="relative aspect-square bg-accent h-32 rounded-lg border border-input/60 overflow-hidden"
               imageClassName="object-cover object-center rounded-lg"
               showRemoveButton={true}
             >
@@ -249,7 +252,7 @@ function AboutSection({ data }: { data: WorkflowData }) {
               field="backgroundImage"
               imageUrl={data.backgroundImage || undefined}
               alt="Background banner"
-              className="relative bg-accent h-32 aspect-7/2 rounded-lg border border-input/60"
+              className="relative bg-accent h-32 aspect-7/2 rounded-lg border border-input/60 overflow-hidden"
               imageClassName="object-cover object-center brightness-90"
               showRemoveButton={true}
             >

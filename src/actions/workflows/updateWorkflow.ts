@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { updateWorkflowSchema, type updateWorkflowSchemaType } from "../../../schema/workflow"
 import { auth } from "@clerk/nextjs/server"
+import { revalidatePath } from "next/cache"
 import type { Prisma } from "@/generated/prisma"
 
 export async function UpdateWorkflow(form: updateWorkflowSchemaType) {
@@ -26,6 +27,12 @@ export async function UpdateWorkflow(form: updateWorkflowSchemaType) {
   const updateData: Prisma.WorkflowUpdateInput = {
     ...otherUpdates,
   }
+
+  // Debug logging for image field updates
+  console.log("=== UPDATE WORKFLOW DEBUG ===");
+  console.log("Input data:", otherUpdates);
+  console.log("Update data:", updateData);
+  console.log("===================");
 
   // Handle tags relationship if provided
   if (tags !== undefined) {
@@ -54,6 +61,14 @@ export async function UpdateWorkflow(form: updateWorkflowSchemaType) {
       tags: true, // Include tags in the response
     },
   })
+
+  // Revalidate all relevant paths to ensure fresh data
+  revalidatePath(`/project/${id}`)
+  revalidatePath(`/workflow/editor/${id}`)
+  revalidatePath(`/workflow/${id}`)
+  
+  // Also revalidate the workflows list for sidebar updates
+  revalidatePath("/")
 
   // Return the updated workflow with tags as objects (not converted to strings)
   return {

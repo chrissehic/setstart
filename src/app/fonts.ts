@@ -20,3 +20,9 @@ export const generalSans = localFont({
   variable: "--font-general-sans",
   display: "swap",
 });
+
+export const favorit = localFont({
+  src: '../../public/fonts/favorit/ABCFavoritVariable-Trial.woff2',
+  variable: "--font-favorit",
+  display: "swap",
+});

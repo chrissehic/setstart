@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useRef, ReactNode, useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import Image from "next/image";
 import { UpdateWorkflow } from "@/actions/workflows/updateWorkflow";
 import { Loader2, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { imageEventEmitter } from "@/lib/imageEventEmitter";
+import { cn } from "@/lib/utils";
 
 interface EditableImageProps {
   workflowId: string;
@@ -40,12 +42,21 @@ export function EditableImage({
 }: EditableImageProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [localImageUrl, setLocalImageUrl] = useState(imageUrl);
+  const [localImageUrl, setLocalImageUrl] = useState<string | null | undefined>(imageUrl);
+  const [cacheBuster, setCacheBuster] = useState(Date.now());
+  const queryClient = useQueryClient();
 
   const { mutate: updateWorkflow } = useMutation({
     mutationFn: UpdateWorkflow,
     onSuccess: () => {
       toast.success("Image updated successfully!");
+      // Invalidate all workflow-related queries to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ["workflow"] });
+      queryClient.invalidateQueries({ queryKey: ["workflows"] });
+      // Force re-render of all components using this image
+      setCacheBuster(Date.now());
+      // Emit event to notify other components
+      imageEventEmitter.emit({ workflowId, field, imageUrl: localImageUrl || null });
     },
     onError: (error) => {
       toast.error("Failed to update workflow with new image.");
@@ -55,8 +66,27 @@ export function EditableImage({
 
   // Update local state when imageUrl prop changes
   useEffect(() => {
-    setLocalImageUrl(imageUrl);
-  }, [imageUrl]);
+    console.log(`EditableImage [${field}] - imageUrl prop changed:`, imageUrl);
+    // Convert empty strings to undefined for local state
+    const normalizedImageUrl = imageUrl && imageUrl.trim() !== "" ? imageUrl : undefined;
+    setLocalImageUrl(normalizedImageUrl);
+    setCacheBuster(Date.now());
+  }, [imageUrl, field]);
+
+  // Listen for image updates from other components
+  useEffect(() => {
+    const unsubscribe = imageEventEmitter.subscribe((event) => {
+      if (event.workflowId === workflowId && event.field === field) {
+        console.log(`EditableImage [${field}] - received event:`, event);
+        // Convert empty strings to undefined for local state
+        const normalizedImageUrl = event.imageUrl && event.imageUrl.trim() !== "" ? event.imageUrl : undefined;
+        setLocalImageUrl(normalizedImageUrl);
+        setCacheBuster(Date.now());
+      }
+    });
+
+    return unsubscribe;
+  }, [workflowId, field]);
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -101,20 +131,30 @@ export function EditableImage({
   const handleRemove = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
+    // Capture current image URL before clearing state
+    const currentImageUrl = localImageUrl;
+
     try {
-      if (localImageUrl) {
+      // Clear local state immediately for instant UI update
+      setLocalImageUrl(undefined);
+      setCacheBuster(Date.now());
+
+      // Small delay to ensure state update is processed
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      if (currentImageUrl) {
         console.log("=== DELETE DEBUG ===");
-        console.log("localImageUrl:", localImageUrl);
-        console.log("typeof localImageUrl:", typeof localImageUrl);
-        console.log("localImageUrl length:", localImageUrl.length);
+        console.log("currentImageUrl:", currentImageUrl);
+        console.log("typeof currentImageUrl:", typeof currentImageUrl);
+        console.log("currentImageUrl length:", currentImageUrl.length);
         
         // Ensure we have a clean URL path for deletion
-        let urlToDelete = localImageUrl;
+        let urlToDelete = currentImageUrl;
         
         // If it's a Next.js optimized URL, extract the original path
-        if (localImageUrl.includes('/_next/image')) {
+        if (currentImageUrl.includes('/_next/image')) {
           // Extract the original URL from Next.js image URL
-          const urlMatch = localImageUrl.match(/url=([^&]+)/);
+          const urlMatch = currentImageUrl.match(/url=([^&]+)/);
           if (urlMatch) {
             urlToDelete = decodeURIComponent(urlMatch[1]);
             console.log("Extracted original URL:", urlToDelete);
@@ -145,23 +185,36 @@ export function EditableImage({
         console.log("Image deleted successfully from storage");
       }
 
-      // Clear local state immediately for instant UI update
-      setLocalImageUrl(undefined);
-
       if (onRemove) {
         onRemove();
       } else {
-        // Update workflow to remove the image reference
-        updateWorkflow({ id: workflowId, [field]: undefined });
+        // Update workflow to remove the image reference - use empty string instead of null
+        updateWorkflow({ id: workflowId, [field]: "" });
       }
+
+      // Emit event to notify other components
+      imageEventEmitter.emit({ workflowId, field, imageUrl: "" });
     } catch (error) {
       console.error("Error removing image:", error);
       toast.error(error instanceof Error ? error.message : "Failed to remove image.");
+      // Revert local state on error
+      setLocalImageUrl(currentImageUrl);
     }
   };
 
+  // Create cache-busted URL for Next.js Image component
+  const getCacheBustedUrl = (url: string | null | undefined) => {
+    if (!url) return url;
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}v=${cacheBuster}`;
+  };
+
+  // Debug logging
+  console.log(`EditableImage [${field}] - Rendering with localImageUrl:`, localImageUrl, 'type:', typeof localImageUrl, 'truthy:', !!localImageUrl);
+
   return (
     <div
+      key={`${field}-${cacheBuster}`}
       className={`relative group/image hover:brightness-110 transition-all duration-150 ease-in-out cursor-pointer ${
         className || ""
       }`}
@@ -172,23 +225,26 @@ export function EditableImage({
           imageClassName || ""
         }`}
       >
-        {localImageUrl ? (
-          <div className="relative h-full w-full max-h-full flex items-center justify-center ">
+        {localImageUrl && typeof localImageUrl === 'string' && localImageUrl.trim() !== "" ? (
+          <div className="relative h-full w-full max-h-full flex items-center justify-center overflow-hidden">
             <Image
               alt={alt}
-              src={localImageUrl}
+              src={getCacheBustedUrl(localImageUrl)!}
               fill
-              className="max-h-full w-full object-cover"
+              className={cn(imageClassName,)}
+              unoptimized={false}
             />
             {showRemoveButton && (
+              <div className="absolute top-0 right-0 z-10">
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute top-1 right-1 h-6 w-6 p-0 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover/image:opacity-100 transition-opacity"
+                className="h-6 w-6 p-0 bg-black/50 backdrop-blur-sm hover:bg-black/70 text-white opacity-0 group-hover/image:opacity-100 transition-opacity"
                 onClick={handleRemove}
               >
                 <X className="h-3 w-3" />
               </Button>
+              </div>
             )}
           </div>
         ) : (

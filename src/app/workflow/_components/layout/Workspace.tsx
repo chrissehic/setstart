@@ -66,7 +66,7 @@ const Workspace = ({ id, data, allWorkflows, currentWorkflow }: WorkspaceProps) 
               field="backgroundImage"
               imageUrl={data.backgroundImage || undefined}
               alt="Background"
-              className="relative flex-1 bg-card/50 aspect-7/3 max-h-40 z-10"
+              className="relative flex-1 bg-accent/40 aspect-7/3 max-h-40 z-10 border-b border-accent"
               imageClassName="object-cover object-center brightness-90"
             />
 

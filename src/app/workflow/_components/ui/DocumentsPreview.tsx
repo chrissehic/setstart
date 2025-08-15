@@ -18,11 +18,11 @@ export function DocumentsPreview({ workflowId }: DocumentsPreviewProps) {
   const getFileIcon = (type: string) => {
     switch (type) {
       case "pdf":
-        return <FileText className="size-4 text-red-500" />;
+        return <FileText className="size-5" />;
       case "image":
-        return <ImageIcon className="size-4 text-blue-500" />;
+        return <ImageIcon className="size-5" />;
       default:
-        return <FileText className="size-4 text-gray-500" />;
+        return <FileText className="size-5" />;
     }
   };
 
@@ -80,24 +80,24 @@ export function DocumentsPreview({ workflowId }: DocumentsPreviewProps) {
           {documents.length} total
         </Badge>
         <Badge variant="outline" className="text-xs">
-          {documents.filter((d) => d.type === "pdf").length} PDFs
+          {documents.filter((d) => d.fileType === "pdf").length} PDFs
         </Badge>
       </div>
 
       {/* Document List */}
-      <div className="space-y-2">
+      <div className="space-y-2 flex flex-wrap gap-2 items-center">
         {documents.slice(0, 3).map((document) => (
           <Card key={document.id} className="w-fit p-0">
             <CardContent className="p-2 flex flex-row items-center gap-2 h-full">
               <div className="flex items-center gap-2 flex-1">
-                {getFileIcon(document.type)}
-                <div className="flex min-w-0 flex-row items-center gap-2">
-                  <div className="flex flex-col items-start justify-center gap-1">
-                    <p className="text-xs font-medium truncate max-w-[120px]">
+                {getFileIcon(document.fileType)}
+                <div className="flex min-w-0 flex-row items-center gap-1">
+                  <div className="flex flex-col items-start justify-center">
+                    <p className="text-sm font-medium truncate max-w-[120px]">
                       {document.name}
                     </p>
                     <p className="text-xs text-muted-foreground truncate max-w-[120px]">
-                      {document.type.toUpperCase()}
+                      {document.fileType.toUpperCase()}
                     </p>
                   </div>
                 </div>
