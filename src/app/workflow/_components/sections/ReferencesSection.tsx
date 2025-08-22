@@ -236,20 +236,12 @@ export function ReferencesSection({ workflowId }: ReferencesSectionProps) {
           </Button>
         </div>
 
-        {/* Stats */}
-        <div className="flex items-center gap-2">
-          <Badge
-            variant="secondary"
-            className="text-xs bg-accent text-primary-foreground border-foreground/20"
-          >
-            0 total references
-          </Badge>
-        </div>
-
         {/* Empty state */}
-        <Card className="border-dashed">
+        <Card className="border-none">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <Hash className="h-12 w-12 stroke-muted-foreground stroke-1 mb-4" />
+          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+            <Hash className="h-8 w-8 stroke-muted-foreground stroke-1" />
+            </div>
             <h3 className="text-lg font-medium mb-2">No references yet</h3>
             <p className="text-sm text-muted-foreground max-w-md mb-6">
               Start building your knowledge base by adding references to
@@ -257,7 +249,7 @@ export function ReferencesSection({ workflowId }: ReferencesSectionProps) {
               business.
             </p>
             <Button onClick={() => setShowAddModal(true)}>
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4" />
               Add your first reference
             </Button>
           </CardContent>
@@ -369,49 +361,61 @@ export function ReferencesSection({ workflowId }: ReferencesSectionProps) {
                 <CardContent className="p-0">
                   {/* Thumbnail */}
                   <div className="aspect-video bg-muted overflow-hidden absolute inset-0 h-full w-full">
-                    <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent z-10" />
 
-                    {/* 3-Dots Menu - Upper Right Corner */}
-                    <div className="absolute top-2 right-2 opacity-0 group-hover/refcard:opacity-100 transition-opacity duration-200">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            size="sm"
-                            onClick={(e) => e.stopPropagation()}
-                            className="h-7 w-7 p-0 bg-black/60 hover:bg-black/80 border-0"
-                          >
-                            <MoreHorizontal className="h-3 w-3 text-white" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40">
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // TODO: Implement edit functionality
-                              toast.info("Edit functionality coming soon");
-                            }}
-                            className="cursor-pointer"
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (confirm("Are you sure you want to delete this reference?")) {
-                                handleDeleteReference(reference.id);
-                              }
-                            }}
-                            className="cursor-pointer text-destructive focus:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                                         {/* 3-Dots Menu - Upper Right Corner */}
+                     <div 
+                       className="absolute top-2 right-2 opacity-0 group-hover/refcard:opacity-100 transition-opacity duration-200 z-20"
+                       onClick={(e) => e.preventDefault()}
+                     >
+                       <DropdownMenu>
+                         <DropdownMenuTrigger asChild>
+                           <Button
+                             type="button"
+                             variant="secondary"
+                             size="sm"
+                             onClick={(e) => e.preventDefault()}
+                             className="h-7 w-7 p-0 bg-black/60 hover:bg-black/80 border-0"
+                           >
+                             <MoreHorizontal className="h-3 w-3 text-white" />
+                           </Button>
+                         </DropdownMenuTrigger>
+                         <DropdownMenuContent 
+                           align="end" 
+                           className="w-40"
+                           onMouseDown={(e) => e.stopPropagation()}
+                           onClick={(e) => e.stopPropagation()}
+                         >
+                           <DropdownMenuItem
+                             onMouseDown={(e) => e.stopPropagation()}
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               e.preventDefault();
+                               // TODO: Implement edit functionality
+                               toast.info("Edit functionality coming soon");
+                             }}
+                             className="cursor-pointer"
+                           >
+                             <Edit className="h-4 w-4 mr-2" />
+                             Edit
+                           </DropdownMenuItem>
+                           <DropdownMenuItem
+                             onMouseDown={(e) => e.stopPropagation()}
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               e.preventDefault();
+                               if (confirm("Are you sure you want to delete this reference?")) {
+                                 handleDeleteReference(reference.id);
+                               }
+                             }}
+                             className="cursor-pointer text-destructive focus:text-destructive"
+                           >
+                             <Trash2 className="h-4 w-4 mr-2" />
+                             Delete
+                           </DropdownMenuItem>
+                         </DropdownMenuContent>
+                       </DropdownMenu>
+                     </div>
 
                     {/* Video Play Button - Only show for videos */}
                     {isVideo && (

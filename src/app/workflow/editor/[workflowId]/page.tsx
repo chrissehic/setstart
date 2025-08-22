@@ -30,6 +30,7 @@ export default async function page({
           person: true,
         },
       },
+      competitors: true,
     },
   });
 

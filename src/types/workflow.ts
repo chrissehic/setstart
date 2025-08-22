@@ -74,6 +74,7 @@ export interface WorkflowData {
   products?: Product[];
   objectives?: Objective[];
   socialLinks?: SocialLink[];
+  competitors?: Competitor[];
 
   createdAt: Date;
   updatedAt: Date;
@@ -182,6 +183,23 @@ export interface ImportedFile {
   name: string;
   type: 'pdf' | 'image';
   url: string;
+}
+
+export interface Competitor {
+  id: string;
+  workflowId: string;
+  name: string;
+  description?: string | null;
+  website?: string | null;
+  logoImage?: string | null;
+  strengths?: string[] | null;  // Parsed from JSON string
+  weaknesses?: string[] | null; // Parsed from JSON string
+  marketShare?: string | null;
+  pricing?: string | null;
+  features?: string[] | null;   // Parsed from JSON string
+  notes?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export enum TaskStatus {

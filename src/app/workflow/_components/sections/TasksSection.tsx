@@ -33,6 +33,9 @@ import {
 import { TaskModal } from "../modals/TaskModal";
 import { TaskSelectorDialog } from "../modals/TaskSelectorDialog";
 import { SECTION_CLASS } from "@/lib/constants";
+import { TaskSearchInput } from "@/components/TaskSearchInput";
+
+
 
 type TasksSectionProps = {
   workflowId: string;
@@ -55,6 +58,7 @@ function TasksSection({
   const [personFilter, setPersonFilter] = useState<string[]>([]);
   const [isCreatingWithAI, setIsCreatingWithAI] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+
   // Remove local selectedTask state
 
   const { data: allTasks = [], isLoading, error } = useTasks(workflowId);
@@ -98,9 +102,9 @@ function TasksSection({
         categoryFilter === "all" || task.category === categoryFilter;
       const matchesPerson =
         personFilter.length === 0 ||
-        task.assignedPeople.some(({ person }) =>
+        task.assignedPeople?.some(({ person }) =>
           personFilter.includes(person.id)
-        );
+        ) || false;
 
       return matchesSearch && matchesStatus && matchesCategory && matchesPerson;
     });
@@ -250,25 +254,39 @@ function TasksSection({
           </TaskModal>
         </div>
 
+        {/* Search Input */}
+        <div className="w-full">
+          <TaskSearchInput
+            value={search}
+            onChange={setSearch}
+            placeholder="Search tasks..."
+            className="w-full"
+          />
+        </div>
+
         {/* Tasks Display */}
         <div className="flex-1 overflow-y-auto">
           {filteredTasks.length > 0 ? (
-            <div className="space-y-3">
-              {filteredTasks.map((task) => (
-                <div
-                  key={task.id}
-                  onClick={() => setSelectedTask && setSelectedTask(task)}
-                  style={{ cursor: "pointer" }}
-                >
-                  <TaskCard
-                    task={task}
-                    workflowId={workflowId}
-                    people={people}
-                    onEditTask={setEditingTask}
-                  />
-                </div>
-              ))}
-            </div>
+            <>
+              {/* Tasks List */}
+              <div className="space-y-3">
+                
+                {filteredTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    onClick={() => setSelectedTask && setSelectedTask(task)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <TaskCard
+                      task={task}
+                      workflowId={workflowId}
+                      people={people}
+                      onEditTask={setEditingTask}
+                    />
+                  </div>
+                ))}
+              </div>
+            </>
           ) : (
             <div className="text-center py-8 space-y-4">
               {search.trim() ? (
@@ -289,8 +307,10 @@ function TasksSection({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="text-center space-y-4">
-                    <BookmarkCheck className="size-12 stroke-1 mx-auto text-muted-foreground" />
+                  <div className="text-center flex flex-col items-center justify-center space-y-4">
+                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                      <BookmarkCheck className="size-8 stroke-muted-foreground stroke-1" />
+                    </div>
                     <div>
                       <h3 className="text-lg font-medium">
                         {objectiveId
@@ -304,7 +324,7 @@ function TasksSection({
                   </div>
 
                   <TaskModal workflowId={workflowId} people={people}>
-                    <Button variant="default" className="gap-2">
+                    <Button variant="outline" className="gap-2">
                       <Plus className="h-4 w-4" />
                       Add First Task
                     </Button>

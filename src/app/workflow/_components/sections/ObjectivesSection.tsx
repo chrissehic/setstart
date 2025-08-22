@@ -45,6 +45,8 @@ import TaskDetailPane from "../tasks/TaskDetailPane";
 import { Badge } from "@/components/ui/badge";
 import { UpdateTask } from "@/actions/tasks/updateTask";
 
+
+
 type ObjectivesSectionProps = {
   workflowId: string;
   objectives: Objective[];
@@ -129,9 +131,13 @@ function ObjectiveTasksDisplay({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+        
+
         {objectiveTasks.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center py-8 text-muted-foreground space-y-4">
-            <BookmarkCheck className="size-12 stroke-1 stroke-input bg-transparent" />
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+              <BookmarkCheck className="h-8 w-8 stroke-muted-foreground stroke-1" />
+            </div>
             <p>No tasks found for this objective.</p>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -429,6 +435,8 @@ const ObjectivesSection = ({
               </Button>
             </ObjectiveModal>
           </div>
+          
+
           {/* Objectives Table */}
           {objectives.length > 0 ? (
             <div className="border rounded-lg">
@@ -523,8 +531,10 @@ const ObjectivesSection = ({
             </div>
 
           ) : (
-            <div className="text-center py-12 space-y-4 h-full">
-              <LibrarySquare className="size-12 stroke-1 mx-auto text-muted-foreground" />
+            <div className="text-center flex flex-col items-center justify-center py-12 space-y-4 h-full">
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                <LibrarySquare className="size-8 stroke-muted-foreground stroke-1" />
+              </div>
               <div>
                 <h3 className="text-lg font-medium">No objectives yet</h3>
                 <p className="text-muted-foreground text-sm">

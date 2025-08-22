@@ -48,11 +48,10 @@ export function EditableImage({
 
   const { mutate: updateWorkflow } = useMutation({
     mutationFn: UpdateWorkflow,
-    onSuccess: () => {
+    onSuccess: (updatedWorkflow) => {
       toast.success("Image updated successfully!");
-      // Invalidate all workflow-related queries to ensure fresh data
-      queryClient.invalidateQueries({ queryKey: ["workflow"] });
-      queryClient.invalidateQueries({ queryKey: ["workflows"] });
+      // Update the React Query cache with the new data
+      queryClient.setQueryData(["workflow", workflowId], updatedWorkflow);
       // Force re-render of all components using this image
       setCacheBuster(Date.now());
       // Emit event to notify other components

@@ -13,34 +13,24 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { WorkflowData } from "@/types/workflow";
 import EditableField from "../../ui/EditableField";
 import { classWrapper } from "@/styles/commonStyles";
 import { SECTION_CLASS } from "@/lib/constants";
 import SocialLinksList from "../../ui/SocialLinksList";
+import { useWorkflow } from "@/hooks/useWorkflow";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
-function AboutSection({ data }: { data: WorkflowData }) {
+function AboutSection({ workflowId }: { workflowId: string }) {
   const queryClient = useQueryClient();
-
-  const { mutate: updateWorkflow } = useMutation({
-    mutationFn: UpdateWorkflow,
-    onSuccess: () => {
-      toast.success("Assets updated successfully!");
-      queryClient.invalidateQueries({ queryKey: ["workflow", data.id] });
-    },
-    onError: (error) => {
-      toast.error("Failed to update assets.");
-      console.error(error);
-    },
-  });
+  const { data: workflow, isLoading, error } = useWorkflow(workflowId);
 
   // Parse additional assets from JSON string or use empty array
   const [additionalAssets, setAdditionalAssets] = useState<string[]>(() => {
-    if (data.additionalAssets) {
+    if (workflow?.additionalAssets) {
       try {
-        return typeof data.additionalAssets === "string"
-          ? JSON.parse(data.additionalAssets)
-          : data.additionalAssets;
+        return typeof workflow.additionalAssets === "string"
+          ? JSON.parse(workflow.additionalAssets)
+          : workflow.additionalAssets;
       } catch {
         return [];
       }
@@ -48,23 +38,63 @@ function AboutSection({ data }: { data: WorkflowData }) {
     return [];
   });
 
+  const { mutate: updateWorkflow } = useMutation({
+    mutationFn: UpdateWorkflow,
+    onSuccess: (updatedWorkflow) => {
+      toast.success("Assets updated successfully!");
+      // Update the React Query cache with the new data
+      queryClient.setQueryData(["workflow", workflowId], updatedWorkflow);
+    },
+    onError: (error) => {
+      toast.error("Failed to update assets.");
+      console.error(error);
+    },
+  });
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className={cn(SECTION_CLASS)}>
+        <div className="flex items-center justify-center py-12">
+          <LoadingSpinner />
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error || !workflow) {
+    return (
+      <div className={cn(SECTION_CLASS)}>
+        <div className="flex items-center justify-center py-12 text-center">
+          <div className="text-destructive">
+            <p>Failed to load workflow data</p>
+            <p className="text-sm text-muted-foreground">
+              {error instanceof Error ? error.message : "Unknown error occurred"}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={cn(SECTION_CLASS)}>
       {/* Company Core Info - Name, Tagline, Description, Tags */}
       <div className={cn(classWrapper, "py-5")}>
         <EditableField
-          workflowId={data.id}
+          workflowId={workflow.id}
           field="name"
-          value={data.name}
+          value={workflow.name}
           label="Name"
           placeholder="Your company name here"
         />
         
         <div className="mt-4">
           <EditableField
-            workflowId={data.id}
+            workflowId={workflow.id}
             field="tagline"
-            value={data.tagline || ""}
+            value={workflow.tagline || ""}
             label="Tagline"
             placeholder="Your tagline here"
           />
@@ -72,9 +102,9 @@ function AboutSection({ data }: { data: WorkflowData }) {
         
         <div className="mt-4">
           <EditableField
-            workflowId={data.id}
+            workflowId={workflow.id}
             field="description"
-            value={data.description || ""}
+            value={workflow.description || ""}
             label="Description"
             placeholder="Your description here"
             className=""
@@ -85,7 +115,7 @@ function AboutSection({ data }: { data: WorkflowData }) {
           <span className="uppercase text-xs font-semibold text-muted-foreground">
             Categories
           </span>
-          <TagsList tags={data.tags} />
+          <TagsList tags={workflow.tags} />
         </div>
       </div>
 
@@ -128,7 +158,7 @@ function AboutSection({ data }: { data: WorkflowData }) {
                     const newAssets = [...additionalAssets, result.url];
                     setAdditionalAssets(newAssets);
                     updateWorkflow({
-                      id: data.id,
+                      id: workflow.id,
                       additionalAssets: JSON.stringify(newAssets),
                     });
                   }
@@ -149,9 +179,9 @@ function AboutSection({ data }: { data: WorkflowData }) {
           <div className="flex flex-col items-start gap-1">
             <EditableImage
               alt="Main logo"
-              workflowId={data.id}
+              workflowId={workflow.id}
               field="mainLogo"
-              imageUrl={data.mainLogo || undefined}
+              imageUrl={workflow.mainLogo || undefined}
               className="relative h-40 w-fit bg-accent aspect-video rounded-lg border border-input/60 p-4"
               imageClassName="w-full h-full object-contain!"
               showRemoveButton={true}
@@ -171,9 +201,9 @@ function AboutSection({ data }: { data: WorkflowData }) {
           <div className="flex flex-col items-start gap-1">
             <EditableImage
               alt="Logo icon"
-              workflowId={data.id}
+              workflowId={workflow.id}
               field="logoIcon"
-              imageUrl={data.logoIcon || undefined}
+              imageUrl={workflow.logoIcon || undefined}
               className="relative h-40 aspect-square bg-accent rounded-lg border border-input/60 overflow-hidden p-4"
               imageClassName="w-full h-full object-contain"
               showRemoveButton={true}
@@ -191,7 +221,7 @@ function AboutSection({ data }: { data: WorkflowData }) {
             <div key={index} className="flex flex-col items-start gap-1">
               <div className="relative h-40 aspect-square bg-accent rounded-lg border border-input/60 overflow-hidden">
                 <EditableImage
-                  workflowId={data.id}
+                  workflowId={workflow.id}
                   field="additionalAssets"
                   imageUrl={asset}
                   alt={`Asset ${index + 1}`}
@@ -207,7 +237,7 @@ function AboutSection({ data }: { data: WorkflowData }) {
                     const newAssets = additionalAssets.filter((_, i) => i !== index);
                     setAdditionalAssets(newAssets);
                     updateWorkflow({
-                      id: data.id,
+                      id: workflow.id,
                       additionalAssets: JSON.stringify(newAssets),
                     });
                   }}
@@ -232,9 +262,9 @@ function AboutSection({ data }: { data: WorkflowData }) {
           {/* Avatar */}
           <div className="flex flex-col items-start gap-1">
             <EditableImage
-              workflowId={data.id}
+              workflowId={workflow.id}
               field="logoImage"
-              imageUrl={data.logoImage || undefined}
+              imageUrl={workflow.logoImage || undefined}
               alt="Avatar"
               className="relative aspect-square bg-accent h-32 rounded-lg border border-input/60 overflow-hidden"
               imageClassName="object-cover object-center rounded-lg"
@@ -248,9 +278,9 @@ function AboutSection({ data }: { data: WorkflowData }) {
           {/* Background Banner */}
           <div className="flex flex-col items-start gap-1">
             <EditableImage
-              workflowId={data.id}
+              workflowId={workflow.id}
               field="backgroundImage"
-              imageUrl={data.backgroundImage || undefined}
+              imageUrl={workflow.backgroundImage || undefined}
               alt="Background banner"
               className="relative bg-accent h-32 aspect-7/2 rounded-lg border border-input/60 overflow-hidden"
               imageClassName="object-cover object-center brightness-90"
@@ -268,8 +298,8 @@ function AboutSection({ data }: { data: WorkflowData }) {
       {/* Social Links - Keep at bottom */}
       <div className={cn(classWrapper, "py-5")}>
         <SocialLinksList
-          workflowId={data.id}
-          socialLinks={data.socialLinks || []}
+          workflowId={workflow.id}
+          socialLinks={workflow.socialLinks || []}
         />
       </div>
     </div>

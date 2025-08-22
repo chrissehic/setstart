@@ -57,9 +57,19 @@ export default function SocialLinksList({
 
   const deleteMutation = useMutation({
     mutationFn: DeleteSocialLink,
-    onSuccess: () => {
+    onSuccess: (deletedSocialLink) => {
       toast.success("Social link deleted successfully");
-      queryClient.invalidateQueries({ queryKey: ["workflow", workflowId] });
+      // Update the React Query cache by removing the deleted social link
+      const currentWorkflow = queryClient.getQueryData(["workflow", workflowId]);
+      if (currentWorkflow && typeof currentWorkflow === "object" && "socialLinks" in currentWorkflow) {
+        const updatedWorkflow = {
+          ...currentWorkflow,
+          socialLinks: (currentWorkflow.socialLinks as SocialLink[]).filter(
+            link => link.id !== deletedSocialLink.id
+          )
+        };
+        queryClient.setQueryData(["workflow", workflowId], updatedWorkflow);
+      }
     },
     onError: (error: unknown) => {
       toast.error(

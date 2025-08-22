@@ -1,1 +1,2 @@
-# This is an empty migration.
+# This is a migration to add the Competitor model to the database.
+# It creates a new table for tracking competitors with their strengths, weaknesses, and market information.

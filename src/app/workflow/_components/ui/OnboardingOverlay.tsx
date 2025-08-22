@@ -5,6 +5,7 @@ import { useOnboarding } from "@/hooks/useOnboarding";
 import AIInputForm from "@/components/SearchInput";
 import SetIcon from "@/components/SetIcon";
 import { Button } from "@/components/ui/button";
+import SetStartText from "@/components/SetStartText";
 
 interface OnboardingOverlayProps {
   workflow: WorkflowData;
@@ -75,7 +76,10 @@ export function OnboardingOverlay({
         <div className="space-y-2">
           {/* Header */}
           <div className="space-y-3">
-            <SetIcon className="h-14 text-foreground mb-6" />
+            <div className="flex flex-row gap-4 items-center mb-6 text-foreground/80">
+            <SetIcon className="h-10 w-10 fill-foreground" />
+            <SetStartText className="h-5" />
+            </div>
             <h1 className="text-3xl font-medium tracking-tight text-foreground">
               Let&apos;s set up your workspace for {workflow.name}
             </h1>

@@ -11,6 +11,7 @@ import { TaskboardTab } from "../tabs/TaskboardTab";
 import { GrowthStageTab } from "../tabs/GrowthStageTab";
 import { ReferencesPreview } from "../ui/ReferencesPreview";
 import { DocumentsTab } from "../tabs/DocumentsTab";
+import { CompetitorsTab } from "../tabs/CompetitorsTab";
 
 interface WorkspaceTabTriggersProps {
   data: WorkflowData;
@@ -54,6 +55,14 @@ export const SectionTabs = ({
               </h4>
               <DocumentsTab workflowId={data.id} />
             </div>
+          )}
+          {item.value === "competitors" && (
+            <CompetitorsTab
+              workflowId={data.id}
+              title={item.title}
+              value={item.title}
+              competitors={data.competitors}
+            />
           )}
           {item.value === "reference-hub" && (
             <div className="flex flex-col justify-start gap-2 w-full p-1">

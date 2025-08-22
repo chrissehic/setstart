@@ -24,7 +24,7 @@ export function TaskRow({ task }: TaskRowProps) {
       </div>
 
       <div className="flex -space-x-1 flex-row">
-        {task.assignedPeople.map(({ person }) => {
+        {task.assignedPeople?.map(({ person }) => {
           if (!person) return null;
           
           return (

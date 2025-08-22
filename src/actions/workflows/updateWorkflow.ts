@@ -59,6 +59,19 @@ export async function UpdateWorkflow(form: updateWorkflowSchemaType) {
     data: updateData,
     include: {
       tags: true, // Include tags in the response
+      objectives: {
+        include: {
+          tasks: true,
+        },
+      },
+      tasks: true,
+      people: {
+        include: {
+          person: true,
+        },
+      },
+      products: true,
+      socialLinks: true,
     },
   })
 
@@ -70,7 +83,7 @@ export async function UpdateWorkflow(form: updateWorkflowSchemaType) {
   // Also revalidate the workflows list for sidebar updates
   revalidatePath("/")
 
-  // Return the updated workflow with tags as objects (not converted to strings)
+  // Return the updated workflow with all relations for React Query cache updates
   return {
     ...result,
     tags: result.tags.map((tag) => ({

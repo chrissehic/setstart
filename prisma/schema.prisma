@@ -33,6 +33,7 @@ model Workflow {
   socialLinks       SocialLink[]
   references        Reference[]
   documents         Document[]
+  competitors       Competitor[]
 
   @@unique([userId, name])
 }
@@ -229,4 +230,25 @@ enum DocumentStatus {
   processing
   converted
   failed
+}
+
+model Competitor {
+  id          String   @id @default(cuid())
+  workflowId  String
+  name        String
+  description String?
+  website     String?
+  logoImage   String?
+  strengths   String?  // JSON array of strengths
+  weaknesses  String?  // JSON array of weaknesses
+  marketShare String?
+  pricing     String?
+  features    String?  // JSON array of features
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  
+  @@index([workflowId])
 }

@@ -8,6 +8,7 @@ import {
   Search,
   Trash2,
   Ellipsis,
+  ExternalLink,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -45,17 +46,11 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
   const getFileIcon = (type: string) => {
     switch (type) {
       case "pdf":
-        return (
-          <FileText className="size-6 mt-1" />
-        );
+        return <FileText className="size-6 mt-1" />;
       case "image":
-        return (
-          <ImageIcon className="size-6 mt-1" />
-        );
+        return <ImageIcon className="size-6 mt-1" />;
       default:
-        return (
-          <FileText className="size-6 mt-1" />
-        );
+        return <FileText className="size-6 mt-1" />;
     }
   };
 
@@ -156,8 +151,10 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
         {/* Empty state */}
         <Card className="border-none">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <FileText className="h-12 w-12 stroke-muted-foreground stroke-1 mb-4" />
-            <h3 className="text-lg font-medium mb-2">No documents yet</h3>
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+              <FileText className="h-8 w-8 stroke-muted-foreground stroke-1" />
+            </div>
+            <h3 className="text-lg font-medium mb-2">No documents yet</h3>  
             <p className="text-sm text-muted-foreground max-w-md mb-6">
               Start building your document library by uploading PDFs and images
               that are relevant to your business.
@@ -194,19 +191,25 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
 
       {/* Stats */}
       <div className="flex items-center gap-2">
-        <Badge
-          variant="secondary"
-          className="text-xs bg-accent text-primary-foreground border-foreground/20"
-        >
-          {documents.length} total document
-          {documents.length !== 1 ? "s" : ""}
-        </Badge>
-        <Badge variant="outline" className="text-xs">
-          {documents.filter((d) => d.fileType === "pdf").length} PDFs
-        </Badge>
-        <Badge variant="outline" className="text-xs">
-          {documents.filter((d) => d.fileType === "image").length} Images
-        </Badge>
+        {documents.length > 0 && (
+          <Badge
+            variant="secondary"
+            className="text-xs bg-accent text-primary-foreground border-foreground/20"
+          >
+            {documents.length} total document
+            {documents.length !== 1 ? "s" : ""}
+          </Badge>
+        )}
+        {documents.filter((d) => d.fileType === "pdf").length > 0 && (
+          <Badge variant="outline" className="text-xs">
+            {documents.filter((d) => d.fileType === "pdf").length} PDFs
+          </Badge>
+        )}
+        {documents.filter((d) => d.fileType === "image").length > 0 && (
+          <Badge variant="outline" className="text-xs">
+            {documents.filter((d) => d.fileType === "image").length} Images
+          </Badge>
+        )}
       </div>
 
       {/* Filters */}
@@ -235,13 +238,17 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
       {/* Documents Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredDocuments.map((document) => (
-          <Card key={document.id} className="hover:shadow-md transition-shadow col-span-1 w-full justify-between">
+          <Card
+            key={document.id}
+            className="hover:shadow-md col-span-1 w-full justify-between cursor-pointer group/document hover:bg-muted transition-all duration-300"
+            onClick={() => window.open(document.fileUrl, "_blank")}
+          >
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3 w-full">
                   {getFileIcon(document.fileType)}
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-base font-medium truncate overflow-hidden wrap-anywhere text-ellipsis line-clamp-2">
+                    <CardTitle className="text-base font-medium text-accent-foreground truncate overflow-hidden wrap-anywhere text-ellipsis line-clamp-2 group-hover/document:text-primary-foreground transition-colors">
                       {document.name}
                     </CardTitle>
                     <p className="text-xs text-muted-foreground truncate">
@@ -249,22 +256,41 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
                     </p>
                   </div>
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <Ellipsis className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => handleDeleteDocument(document.id)}
-                      className="text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <div className="flex items-center gap-1">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Ellipsis className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(document.fileUrl, "_blank");
+                        }}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Open Document
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteDocument(document.id);
+                        }}
+                        className="text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="pt-0">
@@ -272,9 +298,10 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
                 <span>
                   {document.fileType === "pdf" ? "PDF Document" : "Image File"}
                 </span>
+                <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover/document:opacity-100 transition-opacity" />
               </div>
             </CardContent>
-          </Card>
+          </Card> 
         ))}
       </div>
     </div>

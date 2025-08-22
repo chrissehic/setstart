@@ -215,7 +215,7 @@ export function TaskSelectorDialog({
                                 <span dangerouslySetInnerHTML={{ __html: task.description }} />
                               </p>
                             )}
-                          {task.assignedPeople.length > 0 ? (
+                          {task.assignedPeople && task.assignedPeople.length > 0 ? (
                             <AssignedPeopleBadge
                               people={task.assignedPeople.map(
                                 (ap) => ap.person

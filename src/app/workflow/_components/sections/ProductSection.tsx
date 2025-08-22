@@ -9,6 +9,7 @@ import Image from "next/image";
 import { useProducts } from "@/hooks/useProducts";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { Product } from "@/types/workflow";
+import { PRODUCT_TYPE_ICONS } from "@/lib/constants";
 
 interface ProductSectionProps {
   workflowId: string;
@@ -16,6 +17,12 @@ interface ProductSectionProps {
 
 export function ProductSection({ workflowId }: ProductSectionProps) {
   const { data: products = [], isLoading, error } = useProducts(workflowId);
+
+  // Helper function to get the appropriate icon for a product type
+  const getProductIcon = (productType: string) => {
+    const IconComponent = PRODUCT_TYPE_ICONS[productType] || Layers;
+    return <IconComponent className="size-20 stroke-1 text-muted-foreground" />;
+  };
 
   if (isLoading) {
     return (
@@ -55,9 +62,11 @@ export function ProductSection({ workflowId }: ProductSectionProps) {
           </ProductModal>
         </div>
 
-        <Card className="border-dashed">
+        <Card className="border-none">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <Layers className="h-12 w-12 stroke-muted-foreground stroke-1 mb-4" />
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+              <Layers className="h-8 w-8 stroke-muted-foreground stroke-1" />
+            </div>
             <h3 className="text-lg font-medium mb-2">No products yet</h3>
             <p className="text-sm text-muted-foreground max-w-md mb-6">
               Showcase your current services, products, or offerings. This helps
@@ -97,17 +106,21 @@ export function ProductSection({ workflowId }: ProductSectionProps) {
             <ProductModal workflowId={workflowId} product={product}>
               <div className="cursor-pointer">
                 <div className="flex h-full">
-                  {/* Product Image */}
-                  {product.image && (
-                    <div className="relative flex-1 aspect-video bg-accent rounded-lg">
+                  {/* Product Image or Icon Placeholder */}
+                  <div className="relative flex-1 aspect-video bg-accent flex items-center justify-center">
+                    {product.image ? (
                       <Image
                         src={product.image}
                         alt={product.name}
                         fill
                         className="object-cover"
                       />
-                    </div>
-                  )}
+                    ) : (
+                      <div className="flex flex-col items-center justify-center gap-2 text-center p-4">
+                        {getProductIcon(product.type || "Other")}
+                      </div>
+                    )}
+                  </div>
 
                   {/* Product Information */}
                   <div className="flex-1 p-4">

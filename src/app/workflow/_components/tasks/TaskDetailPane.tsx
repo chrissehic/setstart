@@ -64,7 +64,7 @@ const TaskDetailPane: React.FC<TaskDetailPaneProps> = ({
   };
 
   const categoryConfig = getCategoryConfig(task.category);
-  const assignedPeople = task.assignedPeople.map((ap) => ap.person);
+  const assignedPeople = task.assignedPeople?.map((ap) => ap.person) || [];
 
   return (
     <div

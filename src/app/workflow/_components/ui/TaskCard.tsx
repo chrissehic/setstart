@@ -57,7 +57,7 @@ function TaskCard({ task, workflowId, people, onEditTask }: TaskCardProps) {
     }
   };
 
-  const assignedPeople = task.assignedPeople.map((ap) => ap.person);
+  const assignedPeople = task.assignedPeople?.map((ap) => ap.person) || [];
 
 
   return (

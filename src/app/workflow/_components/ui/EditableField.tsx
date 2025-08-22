@@ -7,6 +7,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { UpdateWorkflow } from "@/actions/workflows/updateWorkflow";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface EditableFieldProps {
   workflowId: string;
@@ -30,10 +31,15 @@ export default function EditableField({
   const [value, setValue] = useState(initialValue);
   const [isEditing, setIsEditing] = useState(initialValue === "");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const queryClient = useQueryClient();
 
   const { mutate: updateWorkflow, isPending } = useMutation({
     mutationFn: UpdateWorkflow,
-    onSuccess: () => toast.success(`${label || field} updated`),
+    onSuccess: (updatedWorkflow) => {
+      toast.success(`${label || field} updated`);
+      // Update the React Query cache with the new data
+      queryClient.setQueryData(["workflow", workflowId], updatedWorkflow);
+    },
     onError: (err) => {
       console.error(err);
       toast.error(`Failed to update ${label || field}`);
@@ -70,6 +76,17 @@ export default function EditableField({
       textareaRef.current?.focus();
     }
   }, [isEditing]);
+
+  // Sync local state with workflow data from React Query
+  useEffect(() => {
+    const workflowData = queryClient.getQueryData(["workflow", workflowId]);
+    if (workflowData && typeof workflowData === "object" && "id" in workflowData) {
+      const newValue = (workflowData as Record<string, unknown>)[field];
+      if (newValue !== undefined && newValue !== value) {
+        setValue(String(newValue || ""));
+      }
+    }
+  }, [queryClient, workflowId, field, value]);
 
   const Content = isEditing ? (
     <textarea

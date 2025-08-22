@@ -36,6 +36,8 @@ import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ThemeModeToggle";
 import { useUser } from "@clerk/nextjs";
 import { Separator } from "@/components/ui/separator";
+// import SetIcon from "@/components/SetIcon";
+// import SetStartText from "@/components/SetStartText";
 
 // Extended type for workflows that include tasks
 type WorkflowWithTasks = WorkflowWithDetails & {
@@ -66,7 +68,8 @@ function Sidebar({
   currentWorkflow?: WorkflowWithTasks;
 }) {
   // Check if sections should be disabled (no description)
-  const sectionsDisabled = !currentWorkflow?.description || currentWorkflow.description.trim() === "";
+  const sectionsDisabled =
+    !currentWorkflow?.description || currentWorkflow.description.trim() === "";
   const isMobile = useIsMobile();
   const router = useRouter();
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -82,8 +85,14 @@ function Sidebar({
     <>
       {/* Project Selection Header */}
       {allWorkflows && currentWorkflow && (
-        <SidebarHeader className="w-full">
+        <SidebarHeader className="w-full px-1">
           <SidebarMenu>
+            {/* <SidebarMenuItem className="relative w-full h-12 overflow-hidden flex items-center justify-start px-2 py-1">
+              <div className="flex flex-row gap-2 items-center text-foreground/60">
+                <SetIcon className="size-7" />
+                <SetStartText className="h-3.5" />
+              </div>
+            </SidebarMenuItem> */}
             <SidebarMenuItem className="w-full">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -129,7 +138,6 @@ function Sidebar({
                       <div className="flex flex-1 flex-col">
                         <span className="font-medium">{workflow.name}</span>
                       </div>
-
                     </DropdownMenuItem>
                   ))}
                   <DropdownMenuSeparator />
@@ -167,10 +175,17 @@ function Sidebar({
                     asChild
                     isActive={item.value === active}
                     onClick={() => !sectionsDisabled && onTabChange(item.value)}
-                    className={`w-full ${sectionsDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`w-full ${
+                      sectionsDisabled ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                     disabled={sectionsDisabled}
                   >
-                    <a href={`#${item.value}`} className={`text-sm ${sectionsDisabled ? 'pointer-events-none' : ''}`}>
+                    <a
+                      href={`#${item.value}`}
+                      className={`text-sm ${
+                        sectionsDisabled ? "pointer-events-none" : ""
+                      }`}
+                    >
                       {item.icon && <item.icon className="size-4! text-xs" />}
                       <span>{item.title}</span>
                     </a>
@@ -209,7 +224,10 @@ function Sidebar({
                     className="cursor-pointer data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                   >
                     <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarImage src={user?.imageUrl || ""} alt={user?.fullName || ""} />
+                      <AvatarImage
+                        src={user?.imageUrl || ""}
+                        alt={user?.fullName || ""}
+                      />
                       <AvatarFallback className="rounded-lg">
                         {user?.fullName?.[0] || "CN"}
                       </AvatarFallback>
@@ -235,7 +253,10 @@ function Sidebar({
                   <DropdownMenuLabel className="p-0 font-normal">
                     <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                       <Avatar className="h-8 w-8 rounded-lg">
-                        <AvatarImage src={user?.imageUrl || ""} alt={user?.fullName || ""} />
+                        <AvatarImage
+                          src={user?.imageUrl || ""}
+                          alt={user?.fullName || ""}
+                        />
                         <AvatarFallback className="rounded-lg">
                           {user?.fullName?.[0] || "CN"}
                         </AvatarFallback>

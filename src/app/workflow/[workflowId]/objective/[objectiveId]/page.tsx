@@ -160,7 +160,7 @@ export default function ObjectiveDetailPage() {
             </div>
             <div className="flex items-center gap-1">
               <Users className="h-4 w-4" />
-              {new Set(objectiveTasks.flatMap(task => task.assignedPeople.map(ap => ap.person.id))).size} people assigned
+              {new Set(objectiveTasks.flatMap(task => task.assignedPeople?.map(ap => ap.person.id) || [])).size} people assigned
             </div>
           </div>
         </div>

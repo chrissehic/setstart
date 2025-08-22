@@ -28,28 +28,10 @@ export function DocumentsPreview({ workflowId }: DocumentsPreviewProps) {
 
   if (isLoading) {
     return (
-      <div className="space-y-2">
-        {/* Stats skeleton */}
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-5 w-16 rounded" />
-          <Skeleton className="h-5 w-12 rounded" />
-        </div>
-        {/* Document list skeleton */}
-        <div className="space-y-2">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <Card key={index} className="w-fit p-0">
-              <CardContent className="p-2 flex flex-row items-center gap-2 h-full">
-                <Skeleton className="size-4 rounded" />
-                <div className="flex min-w-0 flex-row items-center gap-2">
-                  <div className="flex flex-col items-start justify-center gap-1">
-                    <Skeleton className="h-3 w-20 rounded" />
-                    <Skeleton className="h-3 w-16 rounded" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      <div className="flex gap-2">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <Skeleton key={index} className="h-16 w-40 rounded" />
+        ))}
       </div>
     );
   }
