@@ -12,6 +12,7 @@ import { GrowthStageTab } from "../tabs/GrowthStageTab";
 import { ReferencesPreview } from "../ui/ReferencesPreview";
 import { DocumentsTab } from "../tabs/DocumentsTab";
 import { CompetitorsTab } from "../tabs/CompetitorsTab";
+import { MasterbriefTab } from "../tabs/MasterbriefTab";
 
 interface WorkspaceTabTriggersProps {
   data: WorkflowData;
@@ -62,6 +63,12 @@ export const SectionTabs = ({
               title={item.title}
               value={item.title}
               competitors={data.competitors}
+            />
+          )}
+          {item.value === "masterbrief" && (
+            <MasterbriefTab
+              title={item.title}
+              value={item.title}
             />
           )}
           {item.value === "reference-hub" && (

@@ -200,30 +200,30 @@ html {
 }
 
 .dark {
-  --background: oklch(0.15 0.015 260);
-  --foreground: oklch(0.98 0.005 0);
-  --card: oklch(0.20 0.015 260);
-  --card-foreground: oklch(0.98 0.005 0);
-  --popover: oklch(0.20 0.015 260);
-  --popover-foreground: oklch(0.98 0.005 0);
-  
-  /* Dark primary - More sophisticated and confident */
-  --primary: oklch(0.60 0.15 280);
-  --primary-foreground: oklch(0.98 0.005 0);
-  
-  --secondary: oklch(0.25 0.010 260);
-  --secondary-foreground: oklch(0.98 0.005 0);
-  --muted: oklch(0.25 0.010 260);
+  --background: oklch(0.12 0.010 240);          /* deep, muted navy */
+  --foreground: oklch(0.95 0.005 260);          /* near-white */
+  --card: oklch(0.17 0.010 240);                /* muted card background */
+  --card-foreground: oklch(0.95 0.005 260);
+  --popover: oklch(0.17 0.010 240);
+  --popover-foreground: oklch(0.95 0.005 260);
+
+  /* Primary: military/navy blue */
+  --primary: oklch(0.45 0.06 230);              /* slightly grayish deep blue */
+  --primary-foreground: oklch(0.98 0.005 260);
+
+  --secondary: oklch(0.20 0.008 230);           /* soft, muted secondary blue */
+  --secondary-foreground: oklch(0.95 0.005 260);
+  --muted: oklch(0.20 0.008 230);
   --muted-foreground: oklch(0.65 0.010 260);
-  
-  /* Dark accent - More character while maintaining elegance */
-  --accent: oklch(0.32 0.020 252);
-  --accent-foreground: oklch(0.98 0.005 0);
-  
-  --destructive: oklch(0.60 0.20 15.8);
+
+  /* Accent: subdued steel/cadet blue */
+  --accent: oklch(0.28 0.012 220);              
+  --accent-foreground: oklch(0.95 0.005 260);
+
+  --destructive: oklch(0.60 0.20 15.8);         /* keep red destructive */
   --border: oklch(1 0 0 / 15%);
   --input: oklch(1 0 0 / 20%);
-  --ring: oklch(0.60 0.15 280);
+  --ring: oklch(0.45 0.06 230);
 
   /* Dark charts - Enhanced depth and vibrancy */
   --chart-1: oklch(0.60 0.15 275);
@@ -232,14 +232,14 @@ html {
   --chart-4: oklch(0.60 0.16 320);
   --chart-5: oklch(0.60 0.16 75);
 
-  --sidebar: oklch(0.20 0.015 260);
-  --sidebar-foreground: oklch(0.98 0.005 0);
-  --sidebar-primary: oklch(0.60 0.15 280);
-  --sidebar-primary-foreground: oklch(0.98 0.005 0);
-  --sidebar-accent: oklch(0.32 0.020 252);
-  --sidebar-accent-foreground: oklch(0.98 0.005 0);
+  --sidebar: oklch(0.17 0.010 240);
+  --sidebar-foreground: oklch(0.95 0.005 260);
+  --sidebar-primary: oklch(0.45 0.06 230);
+  --sidebar-primary-foreground: oklch(0.98 0.005 260);
+  --sidebar-accent: oklch(0.28 0.012 220);
+  --sidebar-accent-foreground: oklch(0.95 0.005 260);
   --sidebar-border: oklch(1 0 0 / 15%);
-  --sidebar-ring: oklch(0.60 0.15 280);
+  --sidebar-ring: oklch(0.45 0.06 230);
 }
 
 @layer base {
@@ -411,3 +411,56 @@ html {
     padding: 0.25em 0.3em;
   }
 }
+
+/* globals.css (or wherever you keep global tailwind-aware css) */
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --neon-anim: none;
+    --neon-slow-anim: none;
+  }
+}
+
+/* Neon rotate + slow drift */
+@keyframes neon-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Subtle breathe/pulse */
+@keyframes neon-pulse {
+  0% { opacity: .45; filter: blur(6px); transform: scale(1); }
+  50% { opacity: .9; filter: blur(10px); transform: scale(1.04); }
+  100% { opacity: .45; filter: blur(6px); transform: scale(1); }
+}
+
+/* Quick flicker for interactive feel */
+@keyframes neon-flicker {
+  0%, 100% { opacity: .95; }
+  50% { opacity: .6; }
+  60% { opacity: .9; }
+}
+
+/* CSS vars to centralize timing (easy to tweak) */
+:root {
+  --neon-anim: neon-rotate 10s linear infinite;
+  --neon-slow-anim: neon-pulse 3.5s ease-in-out infinite;
+  --neon-flicker: neon-flicker 1.2s linear infinite;
+}
+
+/* Helper classes (if not using Tailwind plugin for custom animations) */
+.neon-rotator {
+  animation: var(--neon-anim);
+  will-change: transform;
+}
+
+.neon-pulse {
+  animation: var(--neon-slow-anim);
+  will-change: opacity, transform, filter;
+}
+
+.neon-flicker {
+  animation: var(--neon-flicker);
+}
+

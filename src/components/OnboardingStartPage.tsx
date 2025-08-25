@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,17 +12,15 @@ import { CreateWorkflow } from "@/actions/workflows/createWorkflow";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import SetIcon from "@/components/SetIcon";
-import SetStartText from "@/components/SetStartText";
 
 const workspaceSchema = z.object({
-  name: z.string().min(1, "Workspace name is required").max(100, "Workspace name must be less than 100 characters"),
+  name: z.string().min(1, "Project name is required").max(100, "Project name must be less than 100 characters"),
 });
 
 type WorkspaceSchemaType = z.infer<typeof workspaceSchema>;
 
 export function OnboardingStartPage() {
   const router = useRouter();
-  const [isCreating, setIsCreating] = useState(false);
 
   const form = useForm<WorkspaceSchemaType>({
     resolver: zodResolver(workspaceSchema),
@@ -35,24 +32,22 @@ export function OnboardingStartPage() {
   const createWorkflowMutation = useMutation({
     mutationFn: CreateWorkflow,
     onSuccess: (data) => {
-      toast.success("Workspace created successfully!");
-      // Redirect to the new workspace
+      toast.success("Project created successfully!");
+      // Redirect to the new project
       router.push(`/project/${data.id}`);
     },
     onError: (error: unknown) => {
-      console.error("Failed to create workspace:", error);
+      console.error("Failed to create project:", error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       if (errorMessage.includes("already exists")) {
-        toast.error("A workspace with this name already exists.");
+        toast.error("A project with this name already exists.");
       } else {
-        toast.error("Failed to create workspace. Please try again.");
+        toast.error("Failed to create project. Please try again.");
       }
-      setIsCreating(false);
     },
   });
 
   const onSubmit = (values: WorkspaceSchemaType) => {
-    setIsCreating(true);
     createWorkflowMutation.mutate(values);
   };
 
@@ -105,13 +100,13 @@ export function OnboardingStartPage() {
           <div className="space-y-3">
             <div className="flex items-center gap-3 mb-6">
               <SetIcon className="h-14 text-foreground" />
-              <SetStartText className="h-6 text-foreground" />
+              {/* <SetStartText className="h-6 text-foreground" /> */}
             </div>
             <h1 className="text-3xl font-medium tracking-tight text-foreground">
-              Let&apos;s create your first workspace
+              Let&apos;s create your first business project
             </h1>
             <p className="text-base text-muted-foreground leading-relaxed max-w-lg">
-              Give your workspace a name to get started with your first project.
+              Give your business project a name to get started.
             </p>
           </div>
 
@@ -125,13 +120,13 @@ export function OnboardingStartPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-base font-medium">
-                        Workspace Name
+                        Project Name
                       </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="My First Project"
                           {...field}
-                          disabled={isCreating}
+                          disabled={createWorkflowMutation.isPending}
                           className="text-base"
                           autoFocus
                         />
@@ -143,17 +138,17 @@ export function OnboardingStartPage() {
 
                 <Button
                   type="submit"
-                  disabled={isCreating}
+                  disabled={createWorkflowMutation.isPending}
                   className="w-full"
                   size="lg"
                 >
-                  {isCreating ? (
+                  {createWorkflowMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating Workspace...
+                      Creating project...
                     </>
                   ) : (
-                    "Create Workspace"
+                    "Create Project"
                   )}
                 </Button>
               </form>
@@ -163,7 +158,7 @@ export function OnboardingStartPage() {
           {/* Subtle tip */}
           <div className="pt-2">
             <p className="text-xs text-muted-foreground/70 leading-relaxed">
-              You can always create more workspaces later from the projects page.
+              You can always create more projects later from the projects page.
             </p>
           </div>
         </div>

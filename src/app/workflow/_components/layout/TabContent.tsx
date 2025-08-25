@@ -5,6 +5,7 @@ import RolesSection from "../sections/RolesSection";
 import ObjectivesSection from "../sections/ObjectivesSection";
 import { ProductSection } from "../sections/ProductSection";
 import { ReferencesSection } from "../sections/ReferencesSection";
+import MasterbriefSection from "../sections/MasterbriefSection";
 
 import type { Stage, WorkflowData } from "@/types/workflow";
 import { COMPANY_STAGES } from "@/types/companyStages";
@@ -52,6 +53,9 @@ export const TabContent = ({ data, stageObj }: WorkspaceTabContentProps) => (
     </TabsContent>
     <TabsContent value="competitors">
       <CompetitorsSection workflowId={data.id} competitors={data.competitors} />
+    </TabsContent>
+    <TabsContent value="masterbrief">
+      <MasterbriefSection workflowId={data.id} />
     </TabsContent>
     <TabsContent value="reference-hub">
       <ReferencesSection workflowId={data.id} />

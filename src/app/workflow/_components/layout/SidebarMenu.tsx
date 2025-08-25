@@ -274,8 +274,8 @@ function Sidebar({
 
                   <DropdownMenuSeparator />
 
-                  <DropdownMenuItem asChild>
-                    <SignOutButton>
+                  <DropdownMenuItem asChild className="w-full flex justify-start">
+                    <SignOutButton >
                       <Button
                         variant="ghost"
                         className="w-full justify-start p-0 text-left"

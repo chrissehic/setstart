@@ -248,7 +248,7 @@ export function ReferencesSection({ workflowId }: ReferencesSectionProps) {
               relevant content, trends, and insights that relate to your
               business.
             </p>
-            <Button onClick={() => setShowAddModal(true)}>
+            <Button variant="outline" onClick={() => setShowAddModal(true)}>
               <Plus className="h-4 w-4" />
               Add your first reference
             </Button>

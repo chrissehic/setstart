@@ -35,10 +35,10 @@ export default function EditableField({
 
   const { mutate: updateWorkflow, isPending } = useMutation({
     mutationFn: UpdateWorkflow,
-    onSuccess: (updatedWorkflow) => {
+    onSuccess: () => {
       toast.success(`${label || field} updated`);
-      // Update the React Query cache with the new data
-      queryClient.setQueryData(["workflow", workflowId], updatedWorkflow);
+      // Invalidate the workflow query to ensure all components re-render
+      queryClient.invalidateQueries({ queryKey: ["workflow", workflowId] });
     },
     onError: (err) => {
       console.error(err);
@@ -77,16 +77,24 @@ export default function EditableField({
     }
   }, [isEditing]);
 
+  // Sync local state with prop value changes
+  useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue]);
+
   // Sync local state with workflow data from React Query
   useEffect(() => {
-    const workflowData = queryClient.getQueryData(["workflow", workflowId]);
-    if (workflowData && typeof workflowData === "object" && "id" in workflowData) {
-      const newValue = (workflowData as Record<string, unknown>)[field];
-      if (newValue !== undefined && newValue !== value) {
-        setValue(String(newValue || ""));
+    // Only sync when not actively editing to prevent overriding local changes
+    if (!isEditing) {
+      const workflowData = queryClient.getQueryData(["workflow", workflowId]);
+      if (workflowData && typeof workflowData === "object" && "id" in workflowData) {
+        const newValue = (workflowData as Record<string, unknown>)[field];
+        if (newValue !== undefined && newValue !== value) {
+          setValue(String(newValue || ""));
+        }
       }
     }
-  }, [queryClient, workflowId, field, value]);
+  }, [queryClient, workflowId, field, isEditing]); // Removed 'value' dependency, added 'isEditing'
 
   const Content = isEditing ? (
     <textarea

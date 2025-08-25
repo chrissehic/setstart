@@ -38,13 +38,12 @@ import TaskCard from "../ui/TaskCard";
 import { TaskModal } from "../modals/TaskModal";
 import { TaskSelectorDialog } from "../modals/TaskSelectorDialog";
 import { ChevronDown } from "lucide-react";
-import { deleteObjective } from "@/actions/objectives/deleteObjective";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TasksSection from "./TasksSection";
 import TaskDetailPane from "../tasks/TaskDetailPane";
 import { Badge } from "@/components/ui/badge";
 import { UpdateTask } from "@/actions/tasks/updateTask";
-
+import { useDeleteObjective } from "@/hooks/useObjectives";
 
 
 type ObjectivesSectionProps = {
@@ -239,6 +238,9 @@ const ObjectivesSection = ({
   );
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
+  // Use the delete objective hook for optimistic updates
+  const deleteObjectiveMutation = useDeleteObjective();
+
   // Handle back to objectives list
   const handleBackToObjectives = () => {
     setSelectedObjective(null);
@@ -253,13 +255,8 @@ const ObjectivesSection = ({
       try {
         console.log("Deleting objective:", id);
 
-        const res = await deleteObjective({ id, workflowId });
-
-        if (res.success) {
-          toast.success("Objective deleted successfully");
-        } else {
-          toast.error(res.error || "Failed to delete objective");
-        }
+        await deleteObjectiveMutation.mutateAsync({ id, workflowId });
+        toast.success("Objective deleted successfully");
       } catch (error) {
         console.error("Error deleting objective:", error);
         toast.error("Failed to delete objective");
@@ -543,7 +540,7 @@ const ObjectivesSection = ({
                 </p>
               </div>
               <ObjectiveModal workflowId={workflowId}>
-                <Button className="gap-2">
+                <Button variant="outline" className="gap-2">
                   <Plus className="h-4 w-4" />
                   Create First Objective
                 </Button>

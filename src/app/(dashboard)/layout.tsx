@@ -13,9 +13,26 @@ import {
   SignInButton,
   SignUpButton,
   UserButton,
+  useClerk,
 } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
+  const { signOut } = useClerk();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut({ redirectUrl: "/sign-in" });
+      // Force redirect to sign-in page
+      router.push("/sign-in");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      // Fallback redirect
+      router.push("/sign-in");
+    }
+  };
+
   return (
     <>
       <AppSidebar variant="inset" />
@@ -28,7 +45,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center flex-row gap-2.5">
             <ModeToggle />
             <SignedIn>
-              <UserButton />
+              <UserButton afterSignOutUrl="/sign-in" />
             </SignedIn>
             <SignedOut>
               <SignInButton>

@@ -119,16 +119,7 @@ function CompetitorsSection({
           </Button>
         </div>
 
-        {/* Search */}
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search competitors..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-          />
-        </div>
+     
 
         {/* Competitors Table */}
         <div className="flex flex-col gap-4">
@@ -158,6 +149,17 @@ function CompetitorsSection({
               
               {/* Show DataTable when adding or when there are competitors */}
               {(isAddingNew || filteredCompetitors.length > 0) && (
+                <>
+                {/* Search */}
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search competitors..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+          />
+        </div>
                 <DataTable 
                   columns={createCompetitorColumns(handleSaveNew, handleCancelNew)} 
                   data={[
@@ -193,6 +195,7 @@ function CompetitorsSection({
                     }))
                   ]} 
                 />
+                </>
               )}
             </>
           )}

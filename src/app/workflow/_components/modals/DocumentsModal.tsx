@@ -117,9 +117,15 @@ export const DocumentsModal: React.FC<DocumentsModalProps> = ({ workflowId, chil
 
   const handleInputChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(
     (e) => {
-      if (e.target.files) addFiles(e.target.files);
-      // reset input so the same file can be selected again if needed
-      if (inputRef.current) inputRef.current.value = "";
+      if (e.target.files) {
+        addFiles(e.target.files);
+        // Reset input value after a small delay to prevent file explorer from reopening
+        setTimeout(() => {
+          if (inputRef.current) {
+            inputRef.current.value = "";
+          }
+        }, 100);
+      }
     },
     [addFiles]
   );

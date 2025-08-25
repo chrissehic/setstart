@@ -195,7 +195,7 @@ export default function ObjectiveDetailPage() {
                   Create your first task to start working on this objective
                 </p>
               </div>
-              <Button className="gap-2">
+              <Button variant="outline" className="gap-2">
                 <Plus className="h-4 w-4" />
                 Create First Task
               </Button>

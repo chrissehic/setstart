@@ -74,7 +74,7 @@ export function ProductSection({ workflowId }: ProductSectionProps) {
               customers.
             </p>
             <ProductModal workflowId={workflowId}>
-              <Button>
+              <Button variant="outline">
                 <Plus className="h-4 w-4" />
                 Add your first product
               </Button>

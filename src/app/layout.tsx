@@ -11,7 +11,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider afterSignOutUrl={"/sign-up"}>
+    <ClerkProvider afterSignOutUrl={"/sign-in"}>
       <html lang="en" suppressHydrationWarning>
         <body
           className={`${geist.variable} ${tobias.variable} ${favorit.variable} antialiased`}

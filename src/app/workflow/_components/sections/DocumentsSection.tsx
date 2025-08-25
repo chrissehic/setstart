@@ -46,11 +46,11 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
   const getFileIcon = (type: string) => {
     switch (type) {
       case "pdf":
-        return <FileText className="size-6 mt-1" />;
+        return <FileText className="size-6 mt-1 stroke-muted-foreground stroke-1" />;
       case "image":
-        return <ImageIcon className="size-6 mt-1" />;
+        return <ImageIcon className="size-6 mt-1 stroke-muted-foreground stroke-1" />;
       default:
-        return <FileText className="size-6 mt-1" />;
+        return <FileText className="size-6 mt-1 stroke-muted-foreground stroke-1" />;
     }
   };
 
@@ -160,7 +160,7 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
               that are relevant to your business.
             </p>
             <DocumentsModal workflowId={workflowId}>
-              <Button>
+              <Button variant="outline">
                 <Upload className="h-4 w-4" />
                 Upload your first document
               </Button>

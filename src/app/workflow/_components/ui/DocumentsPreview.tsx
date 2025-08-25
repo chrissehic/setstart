@@ -18,11 +18,11 @@ export function DocumentsPreview({ workflowId }: DocumentsPreviewProps) {
   const getFileIcon = (type: string) => {
     switch (type) {
       case "pdf":
-        return <FileText className="size-5" />;
+        return <FileText className="size-5 stroke-muted-foreground stroke-1" />;
       case "image":
-        return <ImageIcon className="size-5" />;
+        return <ImageIcon className="size-5 stroke-muted-foreground stroke-1" />;
       default:
-        return <FileText className="size-5" />;
+        return <FileText className="size-5 stroke-muted-foreground stroke-1" />;
     }
   };
 
@@ -67,18 +67,18 @@ export function DocumentsPreview({ workflowId }: DocumentsPreviewProps) {
       </div>
 
       {/* Document List */}
-      <div className="space-y-2 flex flex-wrap gap-2 items-center">
-        {documents.slice(0, 3).map((document) => (
-          <Card key={document.id} className="w-fit p-0">
+      <div className="space-y-2 grid grid-cols-4 gap-1 items-center">
+        {documents.slice(0, 4).map((document) => (
+          <Card key={document.id} className="w-full p-0">
             <CardContent className="p-2 flex flex-row items-center gap-2 h-full">
-              <div className="flex items-center gap-2 flex-1">
+              <div className="flex items-center gap-2 w-full">
                 {getFileIcon(document.fileType)}
                 <div className="flex min-w-0 flex-row items-center gap-1">
-                  <div className="flex flex-col items-start justify-center">
-                    <p className="text-sm font-medium truncate max-w-[120px]">
+                  <div className="flex flex-col items-start justify-center w-full">
+                    <p className="text-sm font-medium overflow-hidden text-ellipsis whitespace-nowrap line-clamp-1 w-full">
                       {document.name}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate max-w-[120px]">
+                    <p className="text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap line-clamp-1 w-full">
                       {document.fileType.toUpperCase()}
                     </p>
                   </div>
@@ -89,7 +89,7 @@ export function DocumentsPreview({ workflowId }: DocumentsPreviewProps) {
         ))}
 
         {documents.length > 3 && (
-          <div className="text-center">
+          <div className="text-center absolute bottom-2 right-0 left-0">
             <Badge variant="outline" className="text-xs">
               +{documents.length - 3} more
             </Badge>
