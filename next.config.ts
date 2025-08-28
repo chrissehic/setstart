@@ -25,10 +25,14 @@ const nextConfig: NextConfig = {
     dangerouslyAllowSVG: true,
     contentDispositionType: "attachment",
   },
+  // Add environment variables to disable verbose logging
+  env: {
+    PRISMA_QUERY_LOG: 'false',
+    DEBUG: '',
+  },
   // Add network timeout and compression settings
   experimental: {
-    // Optimize CSS and package imports for better performance
-    optimizeCss: true,
+    // Optimize package imports for better performance
     optimizePackageImports: ["@radix-ui/react-icons", "lucide-react"],
     // Add server action timeout configurations
     serverActions: {

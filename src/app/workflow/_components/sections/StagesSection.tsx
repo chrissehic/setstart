@@ -1,6 +1,6 @@
 import React from "react";
 import StagesCarousel from "../stages/StagesCarousel";
-import { CompanyStage, Stage } from "@/types";
+import { CompanyStage } from "@/types";
 import { Button } from "@/components/ui/button";
 import { View } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -13,8 +13,26 @@ const classWrapper = "flex flex-col justify-start gap-2 w-full";
 
 type StagesSectionProps = {
   workflowId: string;
-  stages: Stage[];
-  currentStage: Stage;
+  stages: Array<{
+    stageNumber: number;
+    key: string;
+    title: string;
+    description: string;
+    challenges: string[];
+    goals: string[];
+    nextSteps: string[];
+    checklist: Array<{ id: string; title: string; description: string }>;
+  }>;
+  currentStage: {
+    stageNumber: number;
+    key: string;
+    title: string;
+    description: string;
+    challenges: string[];
+    goals: string[];
+    nextSteps: string[];
+    checklist: Array<{ id: string; title: string; description: string }>;
+  };
 };
 
 function StagesSection({

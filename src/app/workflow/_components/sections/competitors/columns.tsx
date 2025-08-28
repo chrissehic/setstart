@@ -1,291 +1,156 @@
-// columns.tsx
-"use client";
+"use client"
 
-import { ColumnDef } from "@tanstack/react-table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { MoreHorizontal, Check, X } from "lucide-react";
-import { useState } from "react";
+import type { ColumnDef } from "@tanstack/react-table"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { MoreHorizontal, Loader2 } from "lucide-react"
+import { useState, useCallback, useEffect } from "react"
 
 export type CompetitorColumn = {
-  id: string;
-  name: string;
-  description?: string | null;
-  website?: string | null;
-  logoImage?: string | null;
-  strengths?: string[] | null;
-  weaknesses?: string[] | null;
-  marketShare?: string | null;
-  pricing?: string | null;
-  features?: string[] | null;
-  notes?: string | null;
-  isNew?: boolean;
-};
+  id: string
+  name: string
+  description?: string | null
+  website?: string | null
+  logoImage?: string | null
+  attributes: Record<string, string | number | boolean>
+  isNew?: boolean
+  workflowId?: string
+}
 
-// Reusable inline input cell with blur-based saving
-function InlineInputCell({
-  initial,
-  placeholder,
+// Cell component that manages its own draft state and auto-saves on blur
+function EditableCell({
+  initialValue,
+  competitorId,
+  field,
   onSave,
-  className,
-  autoFocus,
+  placeholder,
 }: {
-  initial?: string | null;
-  placeholder?: string;
-  onSave?: (next: string) => void;
-  className?: string;
-  autoFocus?: boolean;
+  initialValue: string
+  competitorId: string
+  field: string
+  onSave: (competitorId: string, field: string, value: string) => void
+  placeholder?: string
 }) {
-  const [value, setValue] = useState(initial ?? "");
-  const [hasChanged, setHasChanged] = useState(false);
+  const [draftValue, setDraftValue] = useState(initialValue)
+  const [isEditing, setIsEditing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
 
-  const handleBlur = () => {
-    if (hasChanged && onSave) {
-      onSave(value);
-      setHasChanged(false);
+  // Update draft when initialValue changes (external updates)
+  useEffect(() => {
+    setDraftValue(initialValue)
+  }, [initialValue])
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setDraftValue(e.target.value)
+    setIsEditing(true)
+  }, [])
+
+  const handleBlur = useCallback(async () => {
+    if (isEditing && draftValue !== initialValue) {
+      setIsSaving(true)
+      try {
+        await onSave(competitorId, field, draftValue)
+      } finally {
+        setIsSaving(false)
+      }
     }
-  };
+    setIsEditing(false)
+  }, [isEditing, draftValue, initialValue, onSave, competitorId, field])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setValue(newValue);
-    setHasChanged(newValue !== (initial ?? ""));
-  };
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.currentTarget.blur() // Trigger save on blur
+    } else if (e.key === 'Escape') {
+      setDraftValue(initialValue)
+      setIsEditing(false)
+      e.currentTarget.blur()
+    }
+  }, [initialValue])
 
   return (
-    <Input
-      variant="underline"
-      value={value}
-      onChange={handleChange}
-      onBlur={handleBlur}
-      placeholder={placeholder}
-      // className={className ?? "h-7 w-40 text-sm"}
-      autoFocus={autoFocus}
-    />
-  );
+    <div className="flex items-center gap-2">
+      <Input
+        variant="underline"
+        value={draftValue}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        className="w-full"
+        disabled={isSaving}
+      />
+      {isSaving && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+    </div>
+  )
 }
 
 export const createCompetitorColumns = (
-  onSaveNew: () => void,
-  onCancelNew: () => void
+  onSaveEdit: (competitorId: string, field: string, value: string) => void,
 ): ColumnDef<CompetitorColumn>[] => [
-  // FIRST (sticky) column is usually the title/name
+  // Name
   {
     accessorKey: "name",
     header: "Name",
     cell: ({ row }) => {
-      const competitor = row.original;
-
-      if (competitor.isNew) {
-        // New row: always in edit with ghost check/X
-        const [val, setVal] = useState(competitor.name || "");
-        return (
-          <div className="flex items-center gap-1">
-            <Input
-              variant="underline"
-              value={val}
-              onChange={(e) => setVal(e.target.value)}
-              placeholder="Competitor name"
-              // className="h-7 w-44 text-sm"
-              autoFocus
-            />
-          </div>
-        );
-      }
-
+      const c = row.original
       return (
-        <InlineInputCell
-          initial={competitor.name}
+        <EditableCell
+          initialValue={c.name}
+          competitorId={c.id}
+          field="name"
+          onSave={onSaveEdit}
           placeholder="Competitor name"
-          onSave={(next) => {
-            // TODO wire real save
-            console.log("Save name:", competitor.id, next);
-          }}
-          // className="h-7 w-44 text-sm"
         />
-      );
+      )
     },
   },
 
-  // MIDDLE (scrollable) columns
+  // Description
   {
     accessorKey: "description",
     header: "Description",
     cell: ({ row }) => {
-      const c = row.original;
+      const c = row.original
       return (
-        <InlineInputCell
-          initial={c.description}
+        <EditableCell
+          initialValue={c.description || ""}
+          competitorId={c.id}
+          field="description"
+          onSave={onSaveEdit}
           placeholder="Description"
-          onSave={(next) => console.log("Save description:", c.id, next)}
-          // className="h-7 w-56 text-sm"
         />
-      );
+      )
     },
   },
+
+  // Website
   {
     accessorKey: "website",
     header: "Website",
     cell: ({ row }) => {
-      const c = row.original;
+      const c = row.original
       return (
-        <InlineInputCell
-          initial={c.website}
-          placeholder="https://…"
-          onSave={(next) => console.log("Save website:", c.id, next)}
-          // className="h-7 w-52 text-sm"
+        <EditableCell
+          initialValue={c.website || ""}
+          competitorId={c.id}
+          field="website"
+          onSave={onSaveEdit}
+          placeholder="Website URL"
         />
-      );
-    },
-  },
-  {
-    accessorKey: "strengths",
-    header: "Strengths",
-    cell: ({ row }) => {
-      const c = row.original;
-      return (
-        <InlineInputCell
-          initial={c.strengths?.join(", ") || ""}
-          placeholder="Strengths (comma separated)"
-          onSave={(next) => {
-            const strengths = next ? next.split(",").map(s => s.trim()).filter(Boolean) : [];
-            console.log("Save strengths:", c.id, strengths);
-          }}
-          // className="h-7 w-56 text-sm"
-        />
-      );
-    },
-  },
-  {
-    accessorKey: "weaknesses",
-    header: "Weaknesses",
-    cell: ({ row }) => {
-      const c = row.original;
-      return (
-        <InlineInputCell
-          initial={c.weaknesses?.join(", ") || ""}
-          placeholder="Weaknesses (comma separated)"
-          onSave={(next) => {
-            const weaknesses = next ? next.split(",").map(s => s.trim()).filter(Boolean) : [];
-            console.log("Save weaknesses:", c.id, weaknesses);
-          }}
-          // className="h-7 w-56 text-sm"
-        />
-      );
-    },
-  },
-  {
-    accessorKey: "marketShare",
-    header: "Market Share",
-    cell: ({ row }) => {
-      const c = row.original;
-      return (
-        <InlineInputCell
-          initial={c.marketShare}
-          placeholder="e.g. 12%"
-          onSave={(next) => console.log("Save marketShare:", c.id, next)}
-          // className="h-7 w-28 text-sm"
-        />
-      );
-    },
-  },
-  {
-    accessorKey: "pricing",
-    header: "Pricing",
-    cell: ({ row }) => {
-      const c = row.original;
-      return (
-        <InlineInputCell
-          initial={c.pricing}
-          placeholder="Pricing"
-          onSave={(next) => console.log("Save pricing:", c.id, next)}
-          // className="h-7 w-32 text-sm"
-        />
-      );
-    },
-  },
-  {
-    accessorKey: "features",
-    header: "Features",
-    cell: ({ row }) => {
-      const c = row.original;
-      return (
-        <InlineInputCell
-          initial={c.features?.join(", ") || ""}
-          placeholder="Features (comma separated)"
-          onSave={(next) => {
-            const features = next ? next.split(",").map(s => s.trim()).filter(Boolean) : [];
-            console.log("Save features:", c.id, features);
-          }}
-          // className="h-7 w-56 text-sm"
-        />
-      );
-    },
-  },
-  {
-    accessorKey: "notes",
-    header: "Notes",
-    cell: ({ row }) => {
-      const c = row.original;
-      return (
-        <InlineInputCell
-          initial={c.notes}
-          placeholder="Notes"
-          onSave={(next) => console.log("Save notes:", c.id, next)}
-          // className="h-7 w-56 text-sm"
-        />
-      );
+      )
     },
   },
 
-  // LAST (sticky) column — ellipsis button with conditional enabling
+  // Actions
   {
     id: "actions",
     header: "Actions",
-    cell: ({ row }) => {
-      const c = row.original;
-
-      if (c.isNew) {
-        return (
-          <div className="flex items-center gap-1 bg-muted border-l-2 border-l-accent">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={onSaveNew}
-              className="size-10 p-0"
-              aria-label="Save"
-            >
-              <Check className="h-4 w-4" />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={onCancelNew}
-              className="size-10 p-0"
-              aria-label="Cancel"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        );
-      }
-
-      // Check if competitor has a title/name to enable actions
-      const hasTitle = c.name && c.name.trim().length > 0;
-
+    cell: () => {
       return (
-        <Button
-          size="sm"
-          variant="ghost"
-          disabled={!hasTitle}
-          onClick={() => console.log("Actions for competitor:", c.id)}
-          className="h-7 w-7 p-0"
-          aria-label="More actions"
-          title="More actions"
-        >
+        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground w-full ">
           <MoreHorizontal className="h-4 w-4" />
         </Button>
-      );
+      )
     },
   },
-];
+]

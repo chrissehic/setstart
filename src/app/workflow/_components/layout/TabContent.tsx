@@ -7,14 +7,23 @@ import { ProductSection } from "../sections/ProductSection";
 import { ReferencesSection } from "../sections/ReferencesSection";
 import MasterbriefSection from "../sections/MasterbriefSection";
 
-import type { Stage, WorkflowData } from "@/types/workflow";
+import type { WorkflowData } from "@/types/workflow";
 import { COMPANY_STAGES } from "@/types/companyStages";
 import { DocumentsSection } from "../sections/DocumentsSection";
 import CompetitorsSection from "../sections/CompetitorsSection";
 
 interface WorkspaceTabContentProps {
   data: WorkflowData;
-  stageObj: Stage;
+  stageObj: {
+    stageNumber: number;
+    key: string;
+    title: string;
+    description: string;
+    challenges: string[];
+    goals: string[];
+    nextSteps: string[];
+    checklist: Array<{ id: string; title: string; description: string }>;
+  };
 }
 
 export const TabContent = ({ data, stageObj }: WorkspaceTabContentProps) => (
@@ -52,7 +61,7 @@ export const TabContent = ({ data, stageObj }: WorkspaceTabContentProps) => (
       <DocumentsSection workflowId={data.id} />
     </TabsContent>
     <TabsContent value="competitors">
-      <CompetitorsSection workflowId={data.id} competitors={data.competitors} />
+      <CompetitorsSection workflowId={data.id} />
     </TabsContent>
     <TabsContent value="masterbrief">
       <MasterbriefSection workflowId={data.id} />

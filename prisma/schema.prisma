@@ -34,6 +34,7 @@ model Workflow {
   references        Reference[]
   documents         Document[]
   competitors       Competitor[]
+  competitorTableColumns CompetitorTableColumn[]
 
   @@unique([userId, name])
 }
@@ -235,20 +236,37 @@ enum DocumentStatus {
 model Competitor {
   id          String   @id @default(cuid())
   workflowId  String
-  name        String
-  description String?
-  website     String?
-  logoImage   String?
-  strengths   String?  // JSON array of strengths
-  weaknesses  String?  // JSON array of weaknesses
-  marketShare String?
-  pricing     String?
-  features    String?  // JSON array of features
-  notes       String?
+  name        String   // Required
+  description String?  // Optional
+  website     String?  // Optional
+  logoImage   String?  // Optional logo image URL
+  
+  // Dynamic attributes stored as JSON - users can add custom columns
+  attributes  String   // JSON string for SQLite compatibility - stores key-value pairs
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
   workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
   
+  @@index([workflowId])
+}
+
+// New model for managing competitor table columns/attributes
+model CompetitorTableColumn {
+  id          String   @id @default(cuid())
+  workflowId  String
+  name        String   // Column name (e.g., "Market Share", "Pricing", "Focus")
+  type        String   // Column type: "text", "number", "select", "boolean", "date"
+  required    Boolean  @default(false)
+  options     String?  // JSON string for select options (if type is "select")
+  order       Int      // Display order
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  
+  @@unique([workflowId, name])
   @@index([workflowId])
 }

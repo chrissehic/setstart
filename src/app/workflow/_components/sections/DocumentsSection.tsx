@@ -288,7 +288,7 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
-                        onClick={(e) => {
+                        onClick={(e: React.MouseEvent<HTMLDivElement>) => {
                           e.stopPropagation();
                           window.open(document.fileUrl, "_blank");
                         }}
@@ -297,7 +297,7 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
                         Open Document
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={(e) => {
+                        onClick={(e: React.MouseEvent<HTMLDivElement>) => {
                           e.stopPropagation();
                           handleDeleteDocument(document.id);
                         }}

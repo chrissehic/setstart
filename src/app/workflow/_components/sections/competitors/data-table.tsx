@@ -2,24 +2,17 @@
 "use client"
 
 import {
-  ColumnDef,
+  type ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
   getSortedRowModel,
-  SortingState,
+  type SortingState,
   getFilteredRowModel,
-  ColumnFiltersState,
+  type ColumnFiltersState,
 } from "@tanstack/react-table"
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 
@@ -28,10 +21,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[]
 }
 
-export function DataTable<TData, TValue>({
-  columns,
-  data,
-}: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
@@ -65,16 +55,14 @@ export function DataTable<TData, TValue>({
                         className={cn(
                           "px-2 py-1 whitespace-nowrap bg-background",
                           isFirst && "sticky left-0 z-30 shadow-[inset_-1px_0_0_hsl(var(--border))]",
-                          isLast && "sticky right-0 z-30 shadow-[inset_1px_0_0_hsl(var(--border))]"
+                          isLast && "sticky right-0 z-30 shadow-[inset_1px_0_0_hsl(var(--border))]",
                         )}
                         style={{
                           ...(isFirst ? { left: 0 } : {}),
                           ...(isLast ? { right: 0 } : {}),
                         }}
                       >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(header.column.columnDef.header, header.getContext())}
+                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                       </TableHead>
                     )
                   })}
@@ -86,11 +74,7 @@ export function DataTable<TData, TValue>({
             <TableBody>
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    className="group"
-                  >
+                  <TableRow key={row.id} data-state={row.getIsSelected() && "selected"} className="group">
                     {row.getVisibleCells().map((cell, index) => {
                       const isFirst = index === 0
                       const isLast = index === row.getVisibleCells().length - 1
@@ -100,7 +84,7 @@ export function DataTable<TData, TValue>({
                           className={cn(
                             "p-0 align-middle",
                             isFirst && "sticky left-0 z-10 bg-background shadow-[inset_-1px_0_0_hsl(var(--border))]",
-                            isLast && "sticky right-0 z-10 bg-background shadow-[inset_1px_0_0_hsl(var(--border))]"
+                            isLast && "sticky right-0 z-10 bg-background shadow-[inset_1px_0_0_hsl(var(--border))]",
                           )}
                           style={{
                             ...(isFirst ? { left: 0 } : {}),

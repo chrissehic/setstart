@@ -37,6 +37,7 @@ export default async function ProjectPage({
         },
       },
       socialLinks: true,
+      competitors: true,
     },
     orderBy: {
       createdAt: "desc",

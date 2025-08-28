@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Tabs } from "@/components/ui/tabs";
 import {
@@ -37,8 +37,11 @@ const Workspace = ({
   const { tabActive, handleTabChange } = useWorkspaceNavigation();
   const { shouldShowOverlay } = useOnboarding(data);
 
-  const stageObj =
-    COMPANY_STAGES?.find((s) => s?.key === data.stage) ?? COMPANY_STAGES[0];
+  // Memoize stageObj calculation to prevent unnecessary recalculations
+  const stageObj = useMemo(() => 
+    COMPANY_STAGES?.find((s) => s?.key === data.stage) ?? COMPANY_STAGES[0],
+    [data.stage]
+  );
 
   useEffect(() => {
     setMounted(true);

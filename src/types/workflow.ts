@@ -26,15 +26,7 @@ export type WorkflowWithTasks = Prisma.WorkflowGetPayload<{
         person: true;
       };
     };
-    tasks: {
-      include: {
-        assignedPeople: {
-          include: {
-            person: true;
-          };
-        };
-      };
-    };
+    tasks: true;
   };
 }>;
 
@@ -73,11 +65,9 @@ export interface WorkflowData {
   tasks?: Task[];
   products?: Product[];
   objectives?: Objective[];
-  socialLinks?: SocialLink[];
+  socialLinks?: SocialLink[]
   competitors?: Competitor[];
-
-  createdAt: Date;
-  updatedAt: Date;
+  competitorTableColumns?: CompetitorTableColumn[];
 }
 
 export interface Person {
@@ -118,7 +108,7 @@ export interface Task {
   objectiveId?: string | null;
 
   title: string;
-  category: string; // e.g., "Photography", "Web Development", etc.
+  category: string;
   description?: string | null;
 
   status: TaskStatus;
@@ -135,19 +125,6 @@ export interface Task {
   updatedAt: Date;
 }
 
-export interface ProductVariant {
-  id: string;
-  productId: string;
-  name: string;
-  description?: string | null;
-  attributes?: Record<string, string> | null;
-  price?: number | null;
-  image?: string | null;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 export interface Product {
   id: string;
   workflowId: string;
@@ -156,6 +133,19 @@ export interface Product {
   type?: string | null;
   image?: string | null;
   variants?: ProductVariant[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ProductVariant {
+  id: string;
+  productId: string;
+  name: string;
+  description?: string | null;
+  attributes: string;
+  price?: number | null;
+  image?: string | null;
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -178,73 +168,81 @@ export interface Reference {
   updatedAt: Date;
 }
 
-export interface ImportedFile {
-  id: string;
-  name: string;
-  type: 'pdf' | 'image';
-  url: string;
-}
-
+// New dynamic competitor types
 export interface Competitor {
   id: string;
   workflowId: string;
-  name: string;
-  description?: string | null;
-  website?: string | null;
-  logoImage?: string | null;
-  strengths?: string[] | null;  // Parsed from JSON string
-  weaknesses?: string[] | null; // Parsed from JSON string
-  marketShare?: string | null;
-  pricing?: string | null;
-  features?: string[] | null;   // Parsed from JSON string
-  notes?: string | null;
+  name: string; // Required
+  description?: string | null; // Optional
+  website?: string | null; // Optional
+  logoImage?: string | null; // Optional
+  attributes: Record<string, any>; // Dynamic attributes (key-value pairs)
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface CompetitorTableColumn {
+  id: string;
+  workflowId: string;
+  name: string; // Column name (e.g., "Market Share", "Pricing", "Focus")
+  type: 'text' | 'number' | 'select' | 'boolean' | 'date'; // Column type
+  required: boolean; // Whether this column is required
+  options?: string[]; // Options for select type columns
+  order: number; // Display order
+  isActive: boolean; // Whether this column is active
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CompetitorFormData {
+  name: string;
+  description?: string;
+  website?: string;
+  logoImage?: string;
+  attributes: Record<string, any>;
+}
+
+export interface CompetitorTableColumnFormData {
+  name: string;
+  type: 'text' | 'number' | 'select' | 'boolean' | 'date';
+  required: boolean;
+  options?: string[];
+  order: number;
+}
+
+// Enums
+export enum CompanyStage {
+  EXISTENCE = "existence",
+  SURVIVAL = "survival",
+  SUCCESS = "success",
+  TAKEOFF = "takeoff",
+  RESOURCE_MATURITY = "resource_maturity",
+}
+
+export enum WorkflowStatus {
+  BLUEPRINT = "BLUEPRINT",
+  ACTIVE = "ACTIVE",
+  COMPLETED = "COMPLETED",
+  ARCHIVED = "ARCHIVED",
 }
 
 export enum TaskStatus {
   NOT_STARTED = "NOT_STARTED",
   IN_PROGRESS = "IN_PROGRESS",
-  COMPLETE = "COMPLETE",
-}
-
-export enum Responsibility {
-  IN_HOUSE = "IN_HOUSE",
-  OUTSOURCED = "OUTSOURCED",
+  COMPLETED = "COMPLETED",
+  ON_HOLD = "ON_HOLD",
+  CANCELLED = "CANCELLED",
 }
 
 export enum TaskPriority {
   LOW = "LOW",
   MEDIUM = "MEDIUM",
   HIGH = "HIGH",
+  URGENT = "URGENT",
 }
 
-
-/**
- * Workflow status states
- */
-export enum WorkflowStatus {
-  BLUEPRINT = "BLUEPRINT",
-  OPERATIONAL = "OPERATIONAL"
+export enum Responsibility {
+  IN_HOUSE = "IN_HOUSE",
+  OUTSOURCED = "OUTSOURCED",
 }
-
-/**
- * HBR Company Growth Stages
- */
-export type Stage = {
-  stageNumber: number;
-  key: string; // unique slug for internal use
-  title: string;
-  description: string;
-  challenges: string[];
-  goals: string[];
-  nextSteps: string[];
-  checklist?: {
-    id: string;
-    title: string;
-    description: string;
-  }[];
-};
-
-export type CompanyStage = (typeof COMPANY_STAGES)[number]["key"];
 

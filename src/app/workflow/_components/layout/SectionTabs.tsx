@@ -3,7 +3,7 @@
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { WORKSPACE_ITEMS, SECTION_CLASS } from "@/lib/constants";
-import type { Stage, WorkflowData } from "@/types/workflow";
+import type { WorkflowData } from "@/types/workflow";
 import { OverviewTab } from "../tabs/OverviewTab";
 import { RolesTab } from "../tabs/RolesTab";
 import { ProductTab } from "../tabs/ProductTab";
@@ -16,13 +16,11 @@ import { MasterbriefTab } from "../tabs/MasterbriefTab";
 
 interface WorkspaceTabTriggersProps {
   data: WorkflowData;
-  stageObj: Stage;
   onTabChange: (value: string) => void;
 }
 
 export const SectionTabs = ({
   data,
-  stageObj,
 }: Omit<WorkspaceTabTriggersProps, "onTabChange">) => (
   <TabsList className="flex flex-col flex-3 p-2 gap-2 z-20">
     {WORKSPACE_ITEMS.map((item) => (
@@ -90,7 +88,7 @@ export const SectionTabs = ({
             <GrowthStageTab
               title={item.title}
               value={item.title}
-              stageObj={stageObj}
+              stageObj={data.stage}
             />
           )}
         </div>
