@@ -4,12 +4,18 @@ import type React from "react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Instagram, Globe, Hash, ArrowRight } from "lucide-react";
+import {
+  Instagram,
+  Globe,
+  ArrowRight,
+  AlertCircleIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRef, useEffect, useState } from "react";
 import { useReferences } from "@/hooks/useReferences";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface PlatformSummary {
   platform: string;
@@ -95,7 +101,8 @@ export const ReferencesPreview = ({ workflowId }: ReferencesPreviewProps) => {
     const isDirectReference = reference.tags.some(
       (tag) =>
         tag.toLowerCase().includes("your-product") ||
-        (reference.description && reference.description.toLowerCase().includes("your-product")) ||
+        (reference.description &&
+          reference.description.toLowerCase().includes("your-product")) ||
         reference.title.toLowerCase().includes("your-product")
     );
 
@@ -107,11 +114,14 @@ export const ReferencesPreview = ({ workflowId }: ReferencesPreviewProps) => {
   }, {} as Record<string, { total: number; direct: number }>);
 
   // Define platform configurations
-  const platformConfigs: Record<string, {
-    displayName: string;
-    icon: React.ComponentType<{ className?: string }>;
-    color: string;
-  }> = {
+  const platformConfigs: Record<
+    string,
+    {
+      displayName: string;
+      icon: React.ComponentType<{ className?: string }>;
+      color: string;
+    }
+  > = {
     youtube: {
       displayName: "YouTube",
       icon: () => (
@@ -124,7 +134,8 @@ export const ReferencesPreview = ({ workflowId }: ReferencesPreviewProps) => {
     instagram: {
       displayName: "Instagram",
       icon: Instagram,
-      color: "bg-gradient-to-br from-orange-400/60 via-pink-500/60 to-purple-600/60",
+      color:
+        "bg-gradient-to-br from-orange-400/60 via-pink-500/60 to-purple-600/60",
     },
     tiktok: {
       displayName: "TikTok",
@@ -241,7 +252,8 @@ export const ReferencesPreview = ({ workflowId }: ReferencesPreviewProps) => {
     ref.tags.some(
       (tag) =>
         tag.toLowerCase().includes("your-product") ||
-        (ref.description && ref.description.toLowerCase().includes("your-product")) ||
+        (ref.description &&
+          ref.description.toLowerCase().includes("your-product")) ||
         ref.title.toLowerCase().includes("your-product")
     )
   ).length;
@@ -291,15 +303,11 @@ export const ReferencesPreview = ({ workflowId }: ReferencesPreviewProps) => {
 
   if (error) {
     return (
-      <div className="text-center py-8 space-y-4">
-        <Hash className="size-12 stroke-1 mx-auto text-muted-foreground" />
-        <div>
-          <h3 className="text-lg font-medium">Error loading references</h3>
-          <p className="text-muted-foreground text-sm">
-            {error.message}
-          </p>
-        </div>
-      </div>
+      <Alert variant="destructive" className="">
+        <AlertCircleIcon />
+        <AlertTitle>Error loading references</AlertTitle>
+        <AlertDescription>{error.message}</AlertDescription>
+      </Alert>
     );
   }
 
@@ -324,13 +332,14 @@ export const ReferencesPreview = ({ workflowId }: ReferencesPreviewProps) => {
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          { totalDirectReferences > 0 && (
-          <Badge
-            variant="default"
-            className="text-xs bg-primary/20 text-primary-foreground border-primary/80"
-          >
-            {totalDirectReferences} direct reference{totalDirectReferences > 1 ? "s" : ""}
-          </Badge>
+          {totalDirectReferences > 0 && (
+            <Badge
+              variant="default"
+              className="text-xs bg-primary/20 text-primary-foreground border-primary/80"
+            >
+              {totalDirectReferences} direct reference
+              {totalDirectReferences > 1 ? "s" : ""}
+            </Badge>
           )}
           <Badge
             variant="secondary"

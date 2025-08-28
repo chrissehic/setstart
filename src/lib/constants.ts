@@ -1,4 +1,3 @@
-import SetIcon from "@/components/SetIcon";
 import {
   Presentation, ListTodo, Layers, UsersRound, Eclipse,
   BookOpen, FileText, SquareDashedBottomCode, Smartphone,
@@ -7,6 +6,8 @@ import {
   Tv,
   Watch,
   Amphora,
+  FileKey2,
+  Trophy,
 } from "lucide-react"
 
 
@@ -21,7 +22,7 @@ export const WORKSPACE_ITEMS = [
     title: "Masterbrief",
     url: "#masterbrief",
     value: "masterbrief",
-    icon: SetIcon,
+    icon: FileKey2,
   },
   {
     title: "Taskboard",
@@ -30,9 +31,9 @@ export const WORKSPACE_ITEMS = [
     icon: ListTodo,
   },
   {
-    title: "Product",
-    url: "#product",
-    value: "product",
+    title: "Offering",
+    url: "#offering",
+    value: "offering",
     icon: Layers,
   }, {
     title: "Documents",
@@ -44,9 +45,8 @@ export const WORKSPACE_ITEMS = [
     title: "Competitors",
     url: "#competitors",
     value: "competitors",
-    icon: Users,
+    icon: Trophy,
   },
-
   {
     title: "Social Insights",
     url: "#reference-hub",

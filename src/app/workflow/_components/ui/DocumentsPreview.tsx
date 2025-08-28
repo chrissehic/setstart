@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileText, ImageIcon } from "lucide-react";
+import { FileText, FileImage } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useDocuments } from "@/hooks/useDocuments";
@@ -18,11 +18,11 @@ export function DocumentsPreview({ workflowId }: DocumentsPreviewProps) {
   const getFileIcon = (type: string) => {
     switch (type) {
       case "pdf":
-        return <FileText className="size-5 stroke-muted-foreground stroke-1" />;
+        return <FileText className="size-4 text-muted-foreground" />;
       case "image":
-        return <ImageIcon className="size-5 stroke-muted-foreground stroke-1" />;
+        return <FileImage className="size-4 text-muted-foreground" />;
       default:
-        return <FileText className="size-5 stroke-muted-foreground stroke-1" />;
+        return <FileText className="size-4 text-muted-foreground" />;
     }
   };
 

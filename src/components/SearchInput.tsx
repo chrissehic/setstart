@@ -326,13 +326,14 @@ export default function AIInputForm({ workflowId, onSuccess }: AIInputFormProps)
                   onSubmit={form.handleSubmit(onSubmit)}
                   showButton={field.value.trim().length > 0}
                   showStatusMessage={isProcessing}
+                  containerClassName="border-input border"
                   statusMessage={
                     <>
                       <Sparkles className="size-4 inline mr-1 animate-pulse" />
                       Processing your request with AI...
                     </>
                   }
-                  useAbsolutePosition={true} // This enables the absolute positioning
+                  useAbsolutePosition={false} // This enables the absolute positioning
                 />
               </FormControl>
             </FormItem>

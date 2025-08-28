@@ -1,9 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { SECTION_CLASS } from "@/lib/constants";
-import SetIcon from "@/components/SetIcon";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { FileKey2, RefreshCw, RotateCcw } from "lucide-react";
+import { useWorkflow } from "@/hooks/useWorkflow";
+import { generateMasterBrief, type MasterBriefData } from "@/lib/utils/masterBriefGenerator";
+import { TaskPriority } from "@/types/workflow";
 
 interface MasterbriefSectionProps {
   workflowId: string;
@@ -12,50 +16,146 @@ interface MasterbriefSectionProps {
 export default function MasterbriefSection({
   workflowId,
 }: MasterbriefSectionProps) {
-  // const { data: masterbrief = [], isLoading } = useMasterbrief(workflowId);
+  const { data: workflow, isLoading, error, refetch } = useWorkflow(workflowId);
+  const [generatedHtml, setGeneratedHtml] = useState<string>("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // if (isLoading) {
-  //   return (
-  //     <div className={cn(SECTION_CLASS)}>
-  //       <div className="flex flex-col items-center justify-center py-12 text-center w-full">
-  //         <div className="aspect-[1/1.414] w-full bg-muted rounded-lg">
-  //           <Skeleton className="w-full h-full" />
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  const refreshWorkflowData = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetch();
+    } catch (error) {
+      console.error("Error refreshing workflow data:", error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const generateMasterBriefDocument = async () => {
+    if (!workflow) return;
+    
+    setIsGenerating(true);
+    try {
+      // First refresh the workflow data to ensure we have the latest
+      await refreshWorkflowData();
+      
+      // Transform the data to match the MasterBriefData interface
+      const masterBriefData: MasterBriefData = {
+        workflow: {
+          ...workflow,
+          people: workflow.people || [],
+          tags: workflow.tags || [],
+        },
+        objectives: (workflow.objectives || []).map(obj => ({
+          id: obj.id,
+          workflowId: obj.workflowId,
+          title: obj.title,
+          description: obj.description,
+          priority: obj.priority as TaskPriority | null,
+          createdAt: obj.createdAt,
+          updatedAt: obj.updatedAt,
+        })),
+        products: workflow.products || [],
+        socialLinks: workflow.socialLinks || [],
+      };
+
+      // Generate the HTML document
+      const html = generateMasterBrief(masterBriefData);
+      setGeneratedHtml(html);
+    } catch (error) {
+      console.error("Error generating Master Brief:", error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className={cn(SECTION_CLASS)}>
+        <div className="flex flex-col items-center justify-center py-12 text-center w-full">
+          <div className="aspect-[1/1.414] w-full bg-muted rounded-lg">
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="text-muted-foreground">Loading...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={cn(SECTION_CLASS)}>
+        <div className="flex flex-col items-center justify-center py-12 text-center w-full">
+          <div className="aspect-[1/1.414] w-full bg-muted rounded-lg">
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="text-muted-foreground">Error loading workflow</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={cn(SECTION_CLASS)}>
       {/* Header */}
-      <div className="flex items-center justify-between w-full">
+      <div className="flex items-center justify-between w-full mb-6">
         <div className="flex flex-col items-start gap-1">
           <h2 className="text-2xl font-semibold tracking-tight">Masterbrief</h2>
           <p className="text-sm text-muted-foreground">
-            The central strategic document that defines your entire workspace
-            direction
+            Generate an investor-ready strategic document from your workflow data
           </p>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline"
+            size="sm"
+            onClick={refreshWorkflowData}
+            disabled={isRefreshing}
+            title="Refresh workflow data"
+          >
+            {isRefreshing ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <RotateCcw className="h-4 w-4" />
+            )}
+            {isRefreshing ? "Refreshing..." : "Refresh"}
+          </Button>
+          
+          <Button 
+            onClick={generateMasterBriefDocument}
+            disabled={isGenerating || !workflow}
+          >
+            {isGenerating ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <FileKey2 className="h-4 w-4" />
+            )}
+            {isGenerating ? "Generating..." : "Generate Master Brief"}
+          </Button>
         </div>
       </div>
 
-      {/* Empty State */}
-      {/* <div className="flex flex-col items-center justify-center py-12 text-center w-full">
-        <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
-          <SetIcon className="h-8 w-8 " />
-        </div>
-        <h3 className="text-lg font-medium mb-2">No masterbrief document yet</h3>
-        <p className="text-sm text-muted-foreground max-w-md mb-6">
-          Create your masterbrief document to establish the strategic foundation 
-          and core direction for your entire workspace. This document will guide 
-          all your decisions and planning.
-        </p>
-
-      </div> */}
-
-      <div className="flex flex-col items-center justify-center py-12 text-center w-full">
-        <div className="aspect-[1/1.414] w-full bg-muted rounded-lg">
-
+      {/* A4 Document Display */}
+      <div className="flex flex-col items-center justify-center py-6 text-center w-full">
+        <div className="aspect-[1/1.414] w-2/3 bg-muted rounded-lg overflow-hidden">
+          {!generatedHtml ? (
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="text-muted-foreground text-center">
+                <FileKey2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-sm">Click &quot;Generate Master Brief&quot; to create your document</p>
+              </div>
+            </div>
+          ) : (
+            <iframe
+              srcDoc={generatedHtml}
+              className="w-full h-full border-0"
+              title="Master Brief Document"
+            />
+          )}
         </div>
       </div>
     </div>

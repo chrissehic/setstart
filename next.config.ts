@@ -24,12 +24,68 @@ const nextConfig: NextConfig = {
     // Add cache control headers
     dangerouslyAllowSVG: true,
     contentDispositionType: "attachment",
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  // Add experimental features for better caching
+  // Add network timeout and compression settings
   experimental: {
+    // Optimize CSS and package imports for better performance
     optimizeCss: true,
     optimizePackageImports: ["@radix-ui/react-icons", "lucide-react"],
+    // Add server action timeout configurations
+    serverActions: {
+      allowedOrigins: ['localhost:3000', 'localhost:3001'],
+      bodySizeLimit: '2mb',
+    },
+  },
+  // Add compression and timeout headers
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Request-Timeout',
+            value: '30000',
+          },
+          {
+            key: 'Keep-Alive',
+            value: 'timeout=30, max=1000',
+          },
+        ],
+      },
+    ];
+  },
+  // Configure webpack for better network handling and cache optimization
+  webpack: (config, { isServer, dev }) => {
+    if (isServer) {
+      config.externals = config.externals || [];
+      config.externals.push('@prisma/client');
+    }
+    
+    // Optimize webpack cache to address the big strings warning
+    if (!dev) {
+      config.cache = {
+        type: 'filesystem',
+        compression: 'gzip',
+        maxMemoryGenerations: 1,
+        store: 'pack',
+        buildDependencies: {
+          config: [__filename],
+        },
+      };
+    }
+    
+    return config;
+  },
+  // Move serverExternalPackages to the correct location
+  serverExternalPackages: ['@prisma/client'],
+  // Add server timeout configurations
+  serverRuntimeConfig: {
+    // Will only be available on the server side
+    serverActionTimeout: 30000,
+  },
+  publicRuntimeConfig: {
+    // Will be available on both server and client
+    clientTimeout: 30000,
   },
 };
 

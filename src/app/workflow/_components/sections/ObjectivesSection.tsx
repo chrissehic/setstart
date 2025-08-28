@@ -304,14 +304,12 @@ const ObjectivesSection = ({
   if (selectedTask) {
     return (
       <div className={cn(SECTION_CLASS, "flex flex-col h-full w-full gap-5")}>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setSelectedTask(null)}
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <TaskDetailPane task={selectedTask} onTaskUpdate={UpdateTask} />
+        <TaskDetailPane 
+          task={selectedTask} 
+          onTaskUpdate={UpdateTask} 
+          onBack={() => setSelectedTask(null)}
+          people={people}
+        />
       </div>
     );
   }
@@ -357,7 +355,7 @@ const ObjectivesSection = ({
 
         {/* Objective details */}
         <div className="w-full flex flex-col items-start gap-3">
-          <h2 className="text-2xl font-bold">{selectedObjective.title}</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{selectedObjective.title}</h2>
           {selectedObjective.description && (
             <p className="text-muted-foreground">
               {selectedObjective.description}

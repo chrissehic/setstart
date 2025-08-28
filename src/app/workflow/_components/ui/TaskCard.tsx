@@ -16,11 +16,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Task, Person, TaskStatus } from "@/types";
 import { Badge } from "@/components/ui/badge";
-import { cn, getCategoryConfig, getStatusConfig } from "@/lib/utils";
+import { cn, getCategoryConfig } from "@/lib/utils";
 import { useDeleteTask, useUpdateTask } from "@/hooks/useTasks";
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import { TaskModal } from "../modals/TaskModal";
 import AssignedPeopleBadge from "../sections/AssignedPeopleBadge";
+import StatusDropdown from "../sections/StatusDropdown";
 
 interface TaskCardProps {
   task: Task;
@@ -31,7 +32,6 @@ interface TaskCardProps {
 
 function TaskCard({ task, workflowId, people, onEditTask }: TaskCardProps) {
   const categoryConfig = getCategoryConfig(task.category);
-  const statusConfig = getStatusConfig(task.status);
 
   const deleteTaskMutation = useDeleteTask(workflowId);
 
@@ -59,7 +59,6 @@ function TaskCard({ task, workflowId, people, onEditTask }: TaskCardProps) {
 
   const assignedPeople = task.assignedPeople?.map((ap) => ap.person) || [];
 
-
   return (
     <Card className="relative space-y-2 hover:bg-accent/20 transition-colors duration-100 ease-in-out">
       <CardHeader>
@@ -71,39 +70,10 @@ function TaskCard({ task, workflowId, people, onEditTask }: TaskCardProps) {
               </Badge>
             </div>
             <div className="flex items-center gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Badge
-                    className={cn("text-xs cursor-pointer", statusConfig.color)}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {statusConfig.label}
-                  </Badge>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                  {[
-                    TaskStatus.NOT_STARTED,
-                    TaskStatus.IN_PROGRESS,
-                    TaskStatus.COMPLETE,
-                  ].map((status) => {
-                    const config = getStatusConfig(status);
-                    return (
-                      <DropdownMenuItem
-                        key={status}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleStatusChange(status);
-                        }}
-                      >
-                        <span className="text-muted-foreground text-xs">Set as</span> 
-                        <Badge className={cn("text-xs", config.color)}>
-                          {config.label}
-                        </Badge>
-                      </DropdownMenuItem>
-                    );
-                  })}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <StatusDropdown
+                status={task.status}
+                onStatusChange={handleStatusChange}
+              />
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -116,7 +86,10 @@ function TaskCard({ task, workflowId, people, onEditTask }: TaskCardProps) {
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                <DropdownMenuContent
+                  align="end"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <TaskModal
                     workflowId={workflowId}
                     task={task}

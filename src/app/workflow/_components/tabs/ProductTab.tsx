@@ -32,10 +32,10 @@ export const ProductTab = ({
         {products.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center">
             <h2 className="text-base font-medium tracking-tight">
-              Define your Products
+              Define your Offering
             </h2>
             <p className="text-sm text-muted-foreground max-w-lg text-wrap">
-              Showcase your current services, products, or offerings. This helps
+              Showcase your current offering (product, service, etc.). This helps
               your team understand what you&apos;re building and delivering to
               customers.
             </p>

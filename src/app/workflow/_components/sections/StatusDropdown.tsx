@@ -3,6 +3,7 @@ import { TaskStatus } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn, getStatusConfig } from "@/lib/utils";
+import { ChevronDown } from "lucide-react";
 
 interface StatusDropdownProps {
   status: TaskStatus;
@@ -22,6 +23,7 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
           className={cn("text-xs cursor-pointer", statusConfig.color)}
         >
           {statusConfig.label}
+          <ChevronDown className="h-4 w-4" />
         </Badge>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

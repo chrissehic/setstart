@@ -1,10 +1,14 @@
 import React from "react";
 import { Task, TaskStatus } from "@/types";
+import { Person } from "@/types/workflow";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn, getCategoryConfig } from "@/lib/utils";
 import { UpdateTaskInput } from "@/actions/tasks/updateTask";
-import { useUpdateTask } from "@/hooks/useTasks";
+import { useUpdateTask, useDeleteTask } from "@/hooks/useTasks";
 import { useTaskEditing } from "@/hooks/useTaskEditing";
+import { ArrowLeft, Edit, Trash2 } from "lucide-react";
+import { TaskModal } from "../modals/TaskModal";
 import EditableTitle from "../sections/EditableTitle";
 import StatusDropdown from "../sections/StatusDropdown";
 import AssignedPeopleBadge from "../sections/AssignedPeopleBadge";
@@ -14,6 +18,8 @@ import  TiptapEditor  from "../sections/TiptapEditor";
 interface TaskDetailPaneProps {
   task: Task;
   onTaskUpdate: (data: UpdateTaskInput) => void;
+  onBack?: () => void;
+  people: Person[];
 }
 
 
@@ -21,6 +27,8 @@ interface TaskDetailPaneProps {
 const TaskDetailPane: React.FC<TaskDetailPaneProps> = ({
   task,
   onTaskUpdate,
+  onBack,
+  people,
 }) => {
   const {
     state,
@@ -32,6 +40,7 @@ const TaskDetailPane: React.FC<TaskDetailPaneProps> = ({
   } = useTaskEditing(task.title, task.description || "");
 
   const updateTaskMutation = useUpdateTask(task.workflowId, false);
+  const deleteTaskMutation = useDeleteTask(task.workflowId);
 
   const handleStatusChange = (newStatus: TaskStatus) => {
     updateTaskMutation.mutate({
@@ -39,6 +48,19 @@ const TaskDetailPane: React.FC<TaskDetailPaneProps> = ({
       status: newStatus,
       workflowId: task.workflowId,
     });
+  };
+
+  const handleDeleteTask = () => {
+    if (confirm(`Are you sure you want to delete "${task.title}"?`)) {
+      deleteTaskMutation.mutate({
+        id: task.id,
+        workflowId: task.workflowId,
+      });
+      // Navigate back after deletion
+      if (onBack) {
+        onBack();
+      }
+    }
   };
 
   // Save/cancel handlers for title
@@ -73,6 +95,31 @@ const TaskDetailPane: React.FC<TaskDetailPaneProps> = ({
         "transition-all duration-150"
       )}
     >
+      {/* Header with back button and edit/delete buttons */}
+      <div className="flex items-center justify-between w-full">
+        <Button variant="outline" size="sm" onClick={onBack}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <div className="flex gap-2">
+          <TaskModal
+            workflowId={task.workflowId}
+            task={task}
+            people={people}
+          >
+            <Button variant="outline" size="sm">
+              <Edit className="h-4 w-4" /> Edit
+            </Button>
+          </TaskModal>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDeleteTask}
+          >
+            <Trash2 className="h-4 w-4" /> Delete
+          </Button>
+        </div>
+      </div>
+
       {/* Title and status */}
       <div className="flex flex-col gap-2">
         <div className="flex flex-row items-center justify-between gap-4">

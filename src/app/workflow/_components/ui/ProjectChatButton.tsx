@@ -3,15 +3,16 @@
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
-import AIInput from "@/components/AIInput";
 import SetIcon from "@/components/SetIcon";
 import { Button } from "@/components/ui/button";
+import AuroraEffect from "@/components/AuroraEffect";
 
 interface ProjectChatButtonProps {
   onSubmit?: (message: string) => void;
   placeholder?: string;
   className?: string;
   label?: string;
+  onboardingState?: { shouldShowOverlay: boolean };
 }
 
 export default function ProjectChatButton({
@@ -19,6 +20,7 @@ export default function ProjectChatButton({
   placeholder = "Ask about your project...",
   className,
   label = "Interact with your project",
+  onboardingState,
 }: ProjectChatButtonProps) {
   const [state, setState] = useState<"closed" | "hover" | "open" | "closing">(
     "closed"
@@ -27,27 +29,22 @@ export default function ProjectChatButton({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  // Handle button click to open input
   const handleOpen = () => {
     setState("open");
-    // Focus input after state change
     setTimeout(() => {
       inputRef.current?.focus();
     }, 300);
   };
 
-  // Handle close
   const handleClose = () => {
     setState("closing");
     setMessage("");
-
     setTimeout(() => {
       setState("closed");
       buttonRef.current?.focus();
     }, 500);
   };
 
-  // Handle submit
   const handleSubmit = () => {
     if (message.trim() && onSubmit) {
       onSubmit(message.trim());
@@ -56,7 +53,13 @@ export default function ProjectChatButton({
     }
   };
 
-  // Handle keyboard events
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && state === "open") {
@@ -64,22 +67,26 @@ export default function ProjectChatButton({
         handleClose();
       }
     };
-
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [state]);
 
+  // Hide the button if onboarding is active
+  if (onboardingState?.shouldShowOverlay) {
+    return null;
+  }
+
   return (
     <div
       className={cn(
-        "fixed w-full max-w-2xl flex justify-center items-center bottom-6 left-1/2 transform -translate-x-1/2 z-50",
+        "fixed w-full max-w-2xl flex justify-center items-center bottom-0 pb-7 left-1/2 transform -translate-x-1/2 z-50",
         className
       )}
       data-state={state}
     >
       <div
         className={cn(
-          "absolute inset-0  transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] flex items-center justify-center",
+          "absolute inset-0 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] flex items-center justify-center",
           state === "open"
             ? "-translate-y-4 opacity-100"
             : state === "closing"
@@ -87,37 +94,55 @@ export default function ProjectChatButton({
             : "translate-y-8 opacity-0 pointer-events-none"
         )}
       >
-        <div className="relative flex flex-row w-2xl bg-primary/30 items-center backdrop-blur-xl text-foreground rounded-full shadow-lg border-[1.5px] border-primary/80 overflow-hidden">
-          <div className="px-4">
-            <SetIcon
-              className="size-12 text-primary fill-primary dark:brightness-200 transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
-              animated={true}
-            />
+        <div 
+          className={cn(
+            "relative flex flex-row w-2xl py-4 items-center text-foreground rounded-full shadow-lg border-[1.5px] border-primary/80 overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
+            // Apply backdrop-blur to the input container so it takes the rounded shape
+            "bg-transparent backdrop-blur-xl",
+            state === "open" && "bg-primary/20"
+          )}
+        >
+          
+          {/* Content with relative positioning */}
+          <div className="relative z-10 flex flex-row w-full items-center">
+            <div className="px-4">
+              <SetIcon
+                className="size-12 text-primary fill-primary dark:brightness-200 transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                animated={true}
+              />
+            </div>
+
+            <div className="px-4 py-3 flex flex-row items-center flex-1">
+              <textarea
+                ref={inputRef}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={placeholder}
+                autoFocus={state === "open"}
+                rows={1}
+                maxLength={500}
+                className={cn(
+                  "w-full resize-none border-0 bg-transparent text-base text-foreground placeholder:text-muted-foreground",
+                  "focus:ring-0 focus:outline-none shadow-none",
+                  "transition-all duration-200"
+                )}
+                style={{
+                  minHeight: "24px",
+                  maxHeight: "120px"
+                }}
+              />
+            </div>
+
+            <Button
+              onClick={handleClose}
+              className="absolute right-5 top-1/2 bg-primary/40 -translate-y-1/2 size-10 rounded-full hover:bg-muted transition-all duration-200"
+              aria-label="Close chat"
+              variant="secondary"
+            >
+              <X className="size-5" />
+            </Button>
           </div>
-
-          <AIInput
-            autoFocus={state === "open" ? true : false}
-            value={message}
-            onChange={setMessage}
-            onSubmit={handleSubmit}
-            placeholder={placeholder}
-            showButton={false}
-            submitOnEnter={true}
-            rows={1}
-            maxLength={500}
-            className="text-base !border-0 !bg-transparent shadow-none px-0 !h-fit"
-            containerClassName="!border-0 !bg-transparent shadow-none before:border-0 !rounded-full"
-            outerContainerClassName="!border-0 !bg-transparent shadow-none !rounded-full"
-          />
-
-          <Button
-            onClick={handleClose}
-            className="absolute right-3 top-1/2 -translate-y-1/2 size-10 rounded-full hover:bg-muted transition-all duration-200"
-            aria-label="Close chat"
-            variant="secondary"
-          >
-            <X className="size-5" />
-          </Button>
         </div>
       </div>
 
@@ -177,6 +202,8 @@ export default function ProjectChatButton({
           </div>
         </Button>
       </div>
+      
+      <AuroraEffect isVisible={state === "open"} className="h-12"/>
     </div>
   );
 }

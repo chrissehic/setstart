@@ -169,7 +169,7 @@ html {
   --muted: oklch(0.93 0.008 100);
   --muted-foreground: oklch(0.45 0.015 260);
 
-  --accent: oklch(0.90 0.025 90);
+  --accent: oklch(0.9 0.025 90);
   --accent-foreground: oklch(0.18 0.015 260);
 
   --destructive: oklch(0.65 0.22 14.5);
@@ -180,10 +180,10 @@ html {
 
   /* Charts - Enhanced vibrancy while maintaining elegance */
   --chart-1: oklch(0.65 0.25 280);
-  --chart-2: oklch(0.70 0.20 200);
-  --chart-3: oklch(0.60 0.15 240);
-  --chart-4: oklch(0.75 0.20 120);
-  --chart-5: oklch(0.70 0.18 60);
+  --chart-2: oklch(0.7 0.2 200);
+  --chart-3: oklch(0.6 0.15 240);
+  --chart-4: oklch(0.75 0.2 120);
+  --chart-5: oklch(0.7 0.18 60);
 
   /* Sidebar - Enhanced character while staying minimal */
   --sidebar: oklch(0.985 0.006 100);
@@ -192,47 +192,62 @@ html {
   --sidebar-primary: oklch(0.75 0.08 95);
   --sidebar-primary-foreground: oklch(0.15 0.015 80);
 
-  --sidebar-accent: oklch(0.90 0.025 90);
+  --sidebar-accent: oklch(0.9 0.025 90);
   --sidebar-accent-foreground: oklch(0.18 0.015 260);
 
   --sidebar-border: oklch(0.85 0.008 260);
   --sidebar-ring: oklch(0.75 0.08 95);
+
+  /* Enhanced Aurora Effect Variables - Integrated with Design System */
+  --aurora-primary: 243 220 120; /* warm gold derived from primary */
+  --aurora-primary-2: 255 245 210; /* pale warm highlight */
+  --aurora-secondary: 120 200 220; /* cool teal contrast */
+  --aurora-accent: 240 190 80; /* deeper accent */
+  --aurora-tertiary: 200 160 240; /* new purple accent for complexity */
+  --aurora-quaternary: 160 240 200; /* new mint accent */
+  --aurora-glow: 255 250 240;
+
+  /* Aurora opacity and blend settings */
+  --aurora-overlay-alpha: 0.15;
+  --aurora-mid-alpha: 0.55;
+  --aurora-low-alpha: 0.22;
+  --aurora-high-alpha: 0.75; /* new high alpha for intense areas */
+  --aurora-shimmer-alpha: 0.35; /* for shimmer effects */
 }
 
+/*  */
+
 .dark {
-  --background: oklch(0.12 0.010 240);          /* deep, muted navy */
-  --foreground: oklch(0.95 0.005 260);          /* near-white */
-  --card: oklch(0.17 0.010 240);                /* muted card background */
+  --background: oklch(0.12 0.01 240); /* deep, muted navy */
+  --foreground: oklch(0.95 0.005 260); /* near-white */
+  --card: oklch(0.17 0.01 240); /* muted card background */
   --card-foreground: oklch(0.95 0.005 260);
-  --popover: oklch(0.17 0.010 240);
+  --popover: oklch(0.17 0.01 240);
   --popover-foreground: oklch(0.95 0.005 260);
-
-  /* Primary: military/navy blue */
-  --primary: oklch(0.45 0.06 230);              /* slightly grayish deep blue */
+  --primary: oklch(0.45 0.06 230); /* slightly grayish deep blue */
   --primary-foreground: oklch(0.98 0.005 260);
-
-  --secondary: oklch(0.20 0.008 230);           /* soft, muted secondary blue */
+  --secondary: oklch(0.2 0.008 230); /* soft, muted secondary blue */
   --secondary-foreground: oklch(0.95 0.005 260);
-  --muted: oklch(0.20 0.008 230);
-  --muted-foreground: oklch(0.65 0.010 260);
+  --muted: oklch(0.2 0.008 230);
+  --muted-foreground: oklch(0.65 0.01 260);
 
   /* Accent: subdued steel/cadet blue */
-  --accent: oklch(0.28 0.012 220);              
+  --accent: oklch(0.28 0.012 220);
   --accent-foreground: oklch(0.95 0.005 260);
 
-  --destructive: oklch(0.60 0.20 15.8);         /* keep red destructive */
+  --destructive: oklch(0.6 0.2 15.8); /* keep red destructive */
   --border: oklch(1 0 0 / 15%);
   --input: oklch(1 0 0 / 20%);
   --ring: oklch(0.45 0.06 230);
 
   /* Dark charts - Enhanced depth and vibrancy */
-  --chart-1: oklch(0.60 0.15 275);
-  --chart-2: oklch(0.60 0.12 210);
-  --chart-3: oklch(0.60 0.12 145);
-  --chart-4: oklch(0.60 0.16 320);
-  --chart-5: oklch(0.60 0.16 75);
+  --chart-1: oklch(0.6 0.15 275);
+  --chart-2: oklch(0.6 0.12 210);
+  --chart-3: oklch(0.6 0.12 145);
+  --chart-4: oklch(0.6 0.16 320);
+  --chart-5: oklch(0.6 0.16 75);
 
-  --sidebar: oklch(0.17 0.010 240);
+  --sidebar: oklch(0.17 0.01 240);
   --sidebar-foreground: oklch(0.95 0.005 260);
   --sidebar-primary: oklch(0.45 0.06 230);
   --sidebar-primary-foreground: oklch(0.98 0.005 260);
@@ -240,6 +255,27 @@ html {
   --sidebar-accent-foreground: oklch(0.95 0.005 260);
   --sidebar-border: oklch(1 0 0 / 15%);
   --sidebar-ring: oklch(0.45 0.06 230);
+
+--aurora-primary: 86 150 163;
+--aurora-primary-2: 142 183 198;
+--aurora-secondary: 61 128 141;
+--aurora-accent: 71 117 178;
+--aurora-tertiary: 111 71 196;
+--aurora-quaternary: 246 244 113;
+--aurora-glow: 166 236 245;
+
+  /* --aurora-primary: rgba(86, 150, 163, 0.418);
+--aurora-primary-2: rgb(142, 183, 198);
+--aurora-secondary: rgb(61, 128, 141);
+--aurora-accent: rgb(71, 117, 178);
+--aurora-tertiary: rgb(111, 71, 196);
+--aurora-quaternary: rgb(246, 244, 113);
+--aurora-glow: rgb(166, 236, 245); */
+--aurora-overlay-alpha: 0.18;
+--aurora-mid-alpha: 0.65;
+--aurora-low-alpha: 0.28;
+--aurora-high-alpha: 0.85;
+--aurora-shimmer-alpha: 0.42;
 }
 
 @layer base {
@@ -424,22 +460,45 @@ html {
 
 /* Neon rotate + slow drift */
 @keyframes neon-rotate {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Subtle breathe/pulse */
 @keyframes neon-pulse {
-  0% { opacity: .45; filter: blur(6px); transform: scale(1); }
-  50% { opacity: .9; filter: blur(10px); transform: scale(1.04); }
-  100% { opacity: .45; filter: blur(6px); transform: scale(1); }
+  0% {
+    opacity: 0.45;
+    filter: blur(6px);
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    filter: blur(10px);
+    transform: scale(1.04);
+  }
+  100% {
+    opacity: 0.45;
+    filter: blur(6px);
+    transform: scale(1);
+  }
 }
 
 /* Quick flicker for interactive feel */
 @keyframes neon-flicker {
-  0%, 100% { opacity: .95; }
-  50% { opacity: .6; }
-  60% { opacity: .9; }
+  0%,
+  100% {
+    opacity: 0.95;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  60% {
+    opacity: 0.9;
+  }
 }
 
 /* CSS vars to centralize timing (easy to tweak) */
@@ -462,5 +521,124 @@ html {
 
 .neon-flicker {
   animation: var(--neon-flicker);
+}
+
+/* Aurora container */
+.aurora-container {
+  position: absolute;
+  bottom: -0.5rem;
+  left: 0;
+  width: 100%;
+  height: 2rem;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -10;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  opacity: 0.2;
+  transform-origin: bottom center;
+  transition: all 1s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Mask */
+.aurora-mask {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image: radial-gradient(50% 10% at 50% 100%, black 40%, transparent 80%), linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+  mask-image: radial-gradient(50% 10% at 50% 100%, black 40%, transparent 80%), linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+}
+
+/* Left and right side grow */
+.aurora-left {
+  position: absolute;
+  inset-y: 0;
+  left: 0;
+  width: 60%;
+  transform-origin: left;
+  pointer-events: none;
+  background: linear-gradient(95deg, rgba(255,255,255,0) 0%, rgb(var(--aurora-primary) / 0.05) 20%, rgb(var(--aurora-primary) / 0.3) 50%, rgb(var(--aurora-secondary) / 0.2) 60%, rgba(255,255,255,0) 100%);
+  mix-blend-mode: screen;
+  filter: blur(3px);
+  animation: side-grow-left 2s ease-out forwards;
+}
+
+.aurora-right {
+  position: absolute;
+  inset-y: 0;
+  right: 0;
+  width: 60%;
+  transform-origin: right;
+  pointer-events: none;
+  background: linear-gradient(265deg, rgba(255,255,255,0) 0%, rgb(var(--aurora-tertiary) / 0.04) 20%, rgb(var(--aurora-primary) / 0.3) 40%, rgb(var(--aurora-accent) / 0.25) 60%, rgba(255,255,255,0) 100%);
+  mix-blend-mode: screen;
+  filter: blur(3px);
+  animation: side-grow-right 2s ease-out forwards;
+}
+
+/* Radial waves */
+.aurora-wave-primary {
+  position: absolute;
+  inset: 0;
+  border-radius: 60% 60% 0 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 90% 100% at 50% 100%, rgb(var(--aurora-primary) / 0.7) 0%, rgb(var(--aurora-primary) / 0.45) 25%, rgb(var(--aurora-secondary) / 0.25) 50%, rgb(var(--aurora-secondary) / 0.12) 75%, transparent 90%);
+  filter: blur(3px);
+  transform-origin: 50% 100%;
+  animation: aurora-wave-primary 40s linear infinite;
+}
+
+.aurora-wave-secondary {
+  position: absolute;
+  inset: 0;
+  border-radius: 50% 50% 0 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 80% 90% at 40% 100%, rgb(var(--aurora-tertiary) / 0.45) 0%, rgb(var(--aurora-secondary) / 0.3) 30%, rgb(var(--aurora-quaternary) / 0.2) 65%, transparent 85%);
+  filter: blur(2px);
+  transform-origin: 50% 100%;
+  animation: aurora-wave-secondary 50s ease-in-out infinite;
+}
+
+/* Overlay gradient */
+.aurora-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to top, rgb(var(--aurora-primary) / 0.25) 0%, rgb(var(--aurora-secondary) / 0.05) 10%, transparent 25%);
+  mix-blend-mode: screen;
+}
+
+/* Animations */
+@keyframes aurora-rise {
+  0% { opacity: 0; transform: translateY(100%) scaleY(0.2); }
+  100% { opacity: 1; transform: translateY(0) scaleY(1); }
+}
+
+@keyframes aurora-fall {
+  0% { opacity: 1; transform: translateY(0) scaleY(1); }
+  100% { opacity: 0; transform: translateY(100%) scaleY(1); }
+}
+
+@keyframes aurora-wave-primary {
+  0% { transform: translateX(-1%) translateY(0); } 
+  50% { transform: translateX(1%) translateY(-1%); } 
+  100% { transform: translateX(-1%) translateY(0); }
+}
+
+@keyframes aurora-wave-secondary {
+  0% { transform: translateX(2%) translateY(0); } 
+  50% { transform: translateX(-2%) translateY(-2%); } 
+  100% { transform: translateX(2%) translateY(0); }
+}
+
+@keyframes side-grow-left {
+  0% { transform: scaleY(0.1); opacity: 0; } 
+  100% { transform: scaleY(1); opacity: 1; } 
+}
+
+@keyframes side-grow-right {
+  0% { transform: scaleY(0.1); opacity: 0; } 
+  100% { transform: scaleY(1.5); opacity: 1; } 
 }
 

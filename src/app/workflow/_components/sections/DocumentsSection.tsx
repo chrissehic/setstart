@@ -3,23 +3,16 @@
 import { useState, useMemo } from "react";
 import {
   FileText,
-  ImageIcon,
   Upload,
   Search,
   Trash2,
   Ellipsis,
   ExternalLink,
+  FileImage,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
@@ -27,10 +20,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
 import { useDocuments, useDeleteDocument } from "@/hooks/useDocuments";
 import { DocumentsModal } from "../modals/DocumentsModal";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface DocumentsSectionProps {
   workflowId: string;
@@ -48,11 +41,20 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
       case "pdf":
         return <FileText className="size-6 mt-1 stroke-muted-foreground stroke-1" />;
       case "image":
-        return <ImageIcon className="size-6 mt-1 stroke-muted-foreground stroke-1" />;
+        return <FileImage className="size-6 mt-1 stroke-muted-foreground stroke-1" />;
       default:
         return <FileText className="size-6 mt-1 stroke-muted-foreground stroke-1" />;
     }
   };
+
+  // Calculate document counts
+  const documentCounts = useMemo(() => {
+    const total = documents.length;
+    const pdfs = documents.filter((d) => d.fileType === "pdf").length;
+    const images = documents.filter((d) => d.fileType === "image").length;
+    
+    return { total, pdfs, images };
+  }, [documents]);
 
   // Filter documents based on search and type filter
   const filteredDocuments = useMemo(() => {
@@ -75,10 +77,14 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
   const handleDeleteDocument = async (documentId: string) => {
     try {
       await deleteDocumentMutation.mutateAsync({ documentId, workflowId });
-      toast.success("Document deleted successfully");
     } catch {
-      toast.error("Failed to delete document");
+      // Error handling is now done in the hook
     }
+  };
+
+  // Handle filter toggle
+  const handleFilterToggle = (filterType: string) => {
+    setTypeFilter(current => current === filterType ? "all" : filterType);
   };
 
   if (isLoading) {
@@ -103,7 +109,6 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
         {/* Filters skeleton */}
         <div className="flex flex-col sm:flex-row gap-4">
           <Skeleton className="h-10 flex-1" />
-          <Skeleton className="h-10 w-32" />
         </div>
 
         {/* Documents grid skeleton */}
@@ -152,7 +157,7 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
         <Card className="border-none">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
-              <FileText className="h-8 w-8 stroke-muted-foreground stroke-1" />
+              <FileText className="size-8 stroke-muted-foreground stroke-1" />
             </div>
             <h3 className="text-lg font-medium mb-2">No documents yet</h3>  
             <p className="text-sm text-muted-foreground max-w-md mb-6">
@@ -189,30 +194,53 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
         </DocumentsModal>
       </div>
 
-      {/* Stats */}
+      {/* Toggleable Filter Badges */}
       <div className="flex items-center gap-2">
-        {documents.length > 0 && (
+        <Badge
+          variant={typeFilter === "all" ? "default" : "secondary"}
+          className={cn(
+            "text-sm font-normal cursor-pointer transition-all duration-200",
+            typeFilter === "all" 
+              ? "bg-primary text-primary-foreground" 
+              : "bg-accent text-accent-foreground hover:bg-accent/80"
+          )}
+          onClick={() => handleFilterToggle("all")}
+        >
+          {documentCounts.total} total document{documentCounts.total !== 1 ? "s" : ""}
+        </Badge>
+        
+        {documentCounts.pdfs > 0 && (
           <Badge
-            variant="secondary"
-            className="text-xs bg-accent text-primary-foreground border-foreground/20"
+            variant={typeFilter === "pdf" ? "default" : "outline"}
+            className={cn(
+              "text-sm font-normal cursor-pointer transition-all duration-200",
+              typeFilter === "pdf" 
+                ? "bg-primary text-primary-foreground" 
+                : "hover:bg-accent hover:text-accent-foreground"
+            )}
+            onClick={() => handleFilterToggle("pdf")}
           >
-            {documents.length} total document
-            {documents.length !== 1 ? "s" : ""}
+            {documentCounts.pdfs} PDF{documentCounts.pdfs !== 1 ? "s" : ""}
           </Badge>
         )}
-        {documents.filter((d) => d.fileType === "pdf").length > 0 && (
-          <Badge variant="outline" className="text-xs">
-            {documents.filter((d) => d.fileType === "pdf").length} PDFs
-          </Badge>
-        )}
-        {documents.filter((d) => d.fileType === "image").length > 0 && (
-          <Badge variant="outline" className="text-xs">
-            {documents.filter((d) => d.fileType === "image").length} Images
+        
+        {documentCounts.images > 0 && (
+          <Badge
+            variant={typeFilter === "image" ? "default" : "outline"}
+            className={cn(
+              "text-sm font-normal cursor-pointer transition-all duration-200",
+              typeFilter === "image" 
+                ? "bg-primary text-primary-foreground" 
+                : "hover:bg-accent hover:text-accent-foreground"
+            )}
+            onClick={() => handleFilterToggle("image")}
+          >
+            {documentCounts.images} image{documentCounts.images !== 1 ? "s" : ""}
           </Badge>
         )}
       </div>
 
-      {/* Filters */}
+      {/* Search Filter */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -223,16 +251,6 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
             className="pl-10"
           />
         </div>
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="All types" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All types</SelectItem>
-            <SelectItem value="pdf">PDFs</SelectItem>
-            <SelectItem value="image">Images</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Documents Grid */}

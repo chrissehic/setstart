@@ -18,6 +18,7 @@ import { SectionTabs } from "./SectionTabs";
 import { useWorkspaceNavigation } from "@/hooks/useWorkspaceNavigation";
 import { TabContent } from "./TabContent";
 import ProjectChatButton from "../ui/ProjectChatButton";
+import { useOnboarding } from "@/hooks/useOnboarding";
 
 interface WorkspaceProps {
   id: string;
@@ -34,6 +35,7 @@ const Workspace = ({
 }: WorkspaceProps) => {
   const [mounted, setMounted] = useState(false);
   const { tabActive, handleTabChange } = useWorkspaceNavigation();
+  const { shouldShowOverlay } = useOnboarding(data);
 
   const stageObj =
     COMPANY_STAGES?.find((s) => s?.key === data.stage) ?? COMPANY_STAGES[0];
@@ -120,6 +122,7 @@ const Workspace = ({
           // TODO: Implement project chat functionality
         }}
         placeholder="Ask about your project..."
+        onboardingState={{ shouldShowOverlay }}
       />
     </main>
   );

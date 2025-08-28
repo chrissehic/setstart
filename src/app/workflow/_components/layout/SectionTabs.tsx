@@ -42,7 +42,7 @@ export const SectionTabs = ({
           {item.value === "roles" && (
             <RolesTab data={data} title={item.title} value={item.title} />
           )}
-          {item.value === "product" && (
+          {item.value === "offering" && (
             <ProductTab
               title={item.title}
               value={item.title}

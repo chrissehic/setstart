@@ -3,28 +3,21 @@
 import { useState, useMemo } from "react";
 import { type Competitor } from "@/types/workflow";
 import { cn } from "@/lib/utils";
-import {
-  AlertCircleIcon,
-  Loader2,
-  Plus,
-  Users,
-} from "lucide-react";
+import { AlertCircleIcon, Loader2, Plus, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { SECTION_CLASS } from "@/lib/constants";
 import { useCompetitors } from "@/hooks/useCompetitors";
-import { DataTable } from "./competitors/data-table"; 
-import { createCompetitorColumns } from "./competitors/columns"; 
+import { DataTable } from "./competitors/data-table";
+import { createCompetitorColumns } from "./competitors/columns";
 
 type CompetitorsSectionProps = {
   workflowId: string;
   competitors?: Competitor[];
 };
 
-function CompetitorsSection({
-  workflowId,
-}: CompetitorsSectionProps) {
+function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
   const [search, setSearch] = useState("");
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [newCompetitor, setNewCompetitor] = useState<Partial<Competitor>>({
@@ -39,8 +32,7 @@ function CompetitorsSection({
     notes: "",
   });
 
-  const { competitors, isLoading, error } =
-    useCompetitors(workflowId);
+  const { competitors, isLoading, error } = useCompetitors(workflowId);
 
   const filteredCompetitors = useMemo(() => {
     if (!search.trim()) return competitors;
@@ -81,8 +73,6 @@ function CompetitorsSection({
     setNewCompetitor({});
   };
 
-
-
   if (error) {
     return (
       <div
@@ -119,8 +109,6 @@ function CompetitorsSection({
           </Button>
         </div>
 
-     
-
         {/* Competitors Table */}
         <div className="flex flex-col gap-4">
           {isLoading ? (
@@ -133,9 +121,11 @@ function CompetitorsSection({
               {!isAddingNew && filteredCompetitors.length === 0 && (
                 <div className="flex flex-col items-center justify-center p-8 text-center">
                   <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
-                    <Users className="h-8 w-8 stroke-muted-foreground stroke-1" />
+                    <Trophy className="size-8 stroke-muted-foreground stroke-1" />
                   </div>
-                  <h4 className="text-lg font-medium mb-2">No competitors yet</h4>
+                  <h4 className="text-lg font-medium mb-2">
+                    No competitors yet
+                  </h4>
                   <p className="text-sm text-muted-foreground mb-4">
                     Start tracking your competitors to understand the market
                     landscape
@@ -146,55 +136,62 @@ function CompetitorsSection({
                   </Button>
                 </div>
               )}
-              
+
               {/* Show DataTable when adding or when there are competitors */}
               {(isAddingNew || filteredCompetitors.length > 0) && (
                 <>
-                {/* Search */}
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search competitors..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-          />
-        </div>
-                <DataTable 
-                  columns={createCompetitorColumns(handleSaveNew, handleCancelNew)} 
-                  data={[
-                    // Add new competitor row if adding
-                    ...(isAddingNew ? [{
-                      id: "new-competitor",
-                      name: "",
-                      description: "",
-                      website: "",
-                      logoImage: "",
-                      strengths: [],
-                      weaknesses: [],
-                      marketShare: "",
-                      pricing: "",
-                      features: [],
-                      notes: "",
-                      isNew: true,
-                    }] : []),
-                    // Existing competitors
-                    ...filteredCompetitors.map(competitor => ({
-                      id: competitor.id,
-                      name: competitor.name,
-                      description: competitor.description,
-                      website: competitor.website,
-                      logoImage: competitor.logoImage,
-                      strengths: competitor.strengths,
-                      weaknesses: competitor.weaknesses,
-                      marketShare: competitor.marketShare,
-                      pricing: competitor.pricing,
-                      features: competitor.features,
-                      notes: competitor.notes,
-                      isNew: false,
-                    }))
-                  ]} 
-                />
+                  {/* Search */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search competitors..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                    />
+                  </div>
+                  <DataTable
+                    columns={createCompetitorColumns(
+                      handleSaveNew,
+                      handleCancelNew
+                    )}
+                    data={[
+                      // Add new competitor row if adding
+                      ...(isAddingNew
+                        ? [
+                            {
+                              id: "new-competitor",
+                              name: "",
+                              description: "",
+                              website: "",
+                              logoImage: "",
+                              strengths: [],
+                              weaknesses: [],
+                              marketShare: "",
+                              pricing: "",
+                              features: [],
+                              notes: "",
+                              isNew: true,
+                            },
+                          ]
+                        : []),
+                      // Existing competitors
+                      ...filteredCompetitors.map((competitor) => ({
+                        id: competitor.id,
+                        name: competitor.name,
+                        description: competitor.description,
+                        website: competitor.website,
+                        logoImage: competitor.logoImage,
+                        strengths: competitor.strengths,
+                        weaknesses: competitor.weaknesses,
+                        marketShare: competitor.marketShare,
+                        pricing: competitor.pricing,
+                        features: competitor.features,
+                        notes: competitor.notes,
+                        isNew: false,
+                      })),
+                    ]}
+                  />
                 </>
               )}
             </>

@@ -59,7 +59,7 @@ function InlineInputCell({
       onChange={handleChange}
       onBlur={handleBlur}
       placeholder={placeholder}
-      className={className ?? "h-7 w-40 text-sm"}
+      // className={className ?? "h-7 w-40 text-sm"}
       autoFocus={autoFocus}
     />
   );
@@ -86,7 +86,7 @@ export const createCompetitorColumns = (
               value={val}
               onChange={(e) => setVal(e.target.value)}
               placeholder="Competitor name"
-              className="h-7 w-44 text-sm"
+              // className="h-7 w-44 text-sm"
               autoFocus
             />
           </div>
@@ -101,7 +101,7 @@ export const createCompetitorColumns = (
             // TODO wire real save
             console.log("Save name:", competitor.id, next);
           }}
-          className="h-7 w-44 text-sm"
+          // className="h-7 w-44 text-sm"
         />
       );
     },
@@ -118,7 +118,7 @@ export const createCompetitorColumns = (
           initial={c.description}
           placeholder="Description"
           onSave={(next) => console.log("Save description:", c.id, next)}
-          className="h-7 w-56 text-sm"
+          // className="h-7 w-56 text-sm"
         />
       );
     },
@@ -133,7 +133,7 @@ export const createCompetitorColumns = (
           initial={c.website}
           placeholder="https://…"
           onSave={(next) => console.log("Save website:", c.id, next)}
-          className="h-7 w-52 text-sm"
+          // className="h-7 w-52 text-sm"
         />
       );
     },
@@ -151,7 +151,7 @@ export const createCompetitorColumns = (
             const strengths = next ? next.split(",").map(s => s.trim()).filter(Boolean) : [];
             console.log("Save strengths:", c.id, strengths);
           }}
-          className="h-7 w-56 text-sm"
+          // className="h-7 w-56 text-sm"
         />
       );
     },
@@ -169,7 +169,7 @@ export const createCompetitorColumns = (
             const weaknesses = next ? next.split(",").map(s => s.trim()).filter(Boolean) : [];
             console.log("Save weaknesses:", c.id, weaknesses);
           }}
-          className="h-7 w-56 text-sm"
+          // className="h-7 w-56 text-sm"
         />
       );
     },
@@ -184,7 +184,7 @@ export const createCompetitorColumns = (
           initial={c.marketShare}
           placeholder="e.g. 12%"
           onSave={(next) => console.log("Save marketShare:", c.id, next)}
-          className="h-7 w-28 text-sm"
+          // className="h-7 w-28 text-sm"
         />
       );
     },
@@ -199,7 +199,7 @@ export const createCompetitorColumns = (
           initial={c.pricing}
           placeholder="Pricing"
           onSave={(next) => console.log("Save pricing:", c.id, next)}
-          className="h-7 w-32 text-sm"
+          // className="h-7 w-32 text-sm"
         />
       );
     },
@@ -217,7 +217,7 @@ export const createCompetitorColumns = (
             const features = next ? next.split(",").map(s => s.trim()).filter(Boolean) : [];
             console.log("Save features:", c.id, features);
           }}
-          className="h-7 w-56 text-sm"
+          // className="h-7 w-56 text-sm"
         />
       );
     },
@@ -232,7 +232,7 @@ export const createCompetitorColumns = (
           initial={c.notes}
           placeholder="Notes"
           onSave={(next) => console.log("Save notes:", c.id, next)}
-          className="h-7 w-56 text-sm"
+          // className="h-7 w-56 text-sm"
         />
       );
     },
@@ -247,12 +247,12 @@ export const createCompetitorColumns = (
 
       if (c.isNew) {
         return (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 bg-muted border-l-2 border-l-accent">
             <Button
               size="sm"
               variant="ghost"
               onClick={onSaveNew}
-              className="h-7 w-7 p-0"
+              className="size-10 p-0"
               aria-label="Save"
             >
               <Check className="h-4 w-4" />
@@ -261,7 +261,7 @@ export const createCompetitorColumns = (
               size="sm"
               variant="ghost"
               onClick={onCancelNew}
-              className="h-7 w-7 p-0"
+              className="size-10 p-0"
               aria-label="Cancel"
             >
               <X className="h-4 w-4" />

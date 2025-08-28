@@ -92,23 +92,23 @@ export default function MultiPurposeInput({
           "rounded-3xl",
 
           // // Quiet luxury soft background
-          // "bg-gradient-to-br from-muted/5 via-muted/5 to-background/10",
-          // "dark:bg-gradient-to-br dark:from-muted/5 dark:via-muted/10 dark:to-background/8",
+          "bg-gradient-to-br from-muted/5 via-muted/5 to-background/10",
+          "dark:bg-gradient-to-br dark:from-muted/5 dark:via-muted/10 dark:to-background/8",
 
-          // // Subtle linear-gradient border with primary mauve accent
-          // "border border-transparent bg-clip-padding",
-          // "before:content-[''] before:absolute before:inset-0 before:rounded-3xl before:border before:border-input before:pointer-events-none",
+          // Subtle linear-gradient border with primary mauve accent
+          "border border-transparent bg-clip-padding",
+          "before:content-[''] before:absolute before:inset-0 before:rounded-3xl before:border before:border-input before:pointer-events-none",
 
 
-          // // Focus: add glow & stronger mauve border
-          // focus && [
-          //   "border-primary/80",
-          //   "bg-gradient-to-br from-muted/15 via-muted/10 to-background/8",
-          //   "dark:bg-gradient-to-br dark:from-muted/20 dark:via-muted/15 dark:to-background/10",
-          //   "shadow-[0_2px_8px_rgba(0,0,0,0.04),0_16px_32px_rgba(0,0,0,0.08)]",
-          // ],
+          // Focus: add glow & stronger mauve border
+          focus && [
+            "border-primary/80",
+            "bg-gradient-to-br from-muted/15 via-muted/10 to-background/8",
+            "dark:bg-gradient-to-br dark:from-muted/20 dark:via-muted/15 dark:to-background/10",
+            "shadow-[0_2px_8px_rgba(0,0,0,0.04),0_16px_32px_rgba(0,0,0,0.08)]",
+          ],
 
-          // Hover
+          //Hover
           !focus &&
             "hover:border-muted/20 dark:hover:border-muted/30 hover:bg-gradient-to-br hover:from-muted/12 hover:via-muted/8 hover:to-background/5",
 

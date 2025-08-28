@@ -224,7 +224,7 @@ export const DocumentsModal: React.FC<DocumentsModalProps> = ({ workflowId, chil
   const importDisabled = items.length === 0 || isUploading;
 
   const description = useMemo(
-    () => "Import PDF or image files. No categories, statuses, or extra metadata—keeping it simple.",
+    () => "Import PDF or image files.",
     []
   );
 

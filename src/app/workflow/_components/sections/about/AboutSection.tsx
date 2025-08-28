@@ -55,7 +55,7 @@ function AboutSection({ workflowId }: { workflowId: string }) {
   if (isLoading) {
     return (
       <div className={cn(SECTION_CLASS)}>
-        <div className="flex items-center justify-center py-12">
+        <div className="flex items-center justify-center py-12 w-full h-full">
           <LoadingSpinner />
         </div>
       </div>

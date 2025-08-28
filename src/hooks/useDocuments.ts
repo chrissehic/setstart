@@ -3,12 +3,27 @@ import { getDocuments } from '../actions/documents/getDocuments';
 import { addDocument } from '../actions/documents/addDocument';
 import { updateDocumentSimple } from '../actions/documents/updateDocumentSimple';
 import { deleteDocumentSimple } from '../actions/documents/deleteDocumentSimple';
+import { toast } from 'sonner';
+
+// Query Keys
+export const documentKeys = {
+  all: ['documents'] as const,
+  byWorkflow: (workflowId: string) => [...documentKeys.all, 'workflow', workflowId] as const,
+};
 
 export function useDocuments(workflowId: string) {
   return useQuery({
-    queryKey: ['documents', workflowId],
+    queryKey: documentKeys.byWorkflow(workflowId),
     queryFn: () => getDocuments(workflowId),
     enabled: !!workflowId,
+    retry: (failureCount, error) => {
+      // Retry up to 3 times for network errors, but not for validation errors
+      if (failureCount < 3 && (error as any)?.message?.includes('fetch failed')) {
+        return true;
+      }
+      return false;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }
 
@@ -17,11 +32,19 @@ export function useCreateDocument() {
 
   return useMutation({
     mutationFn: addDocument,
+    retry: (failureCount, error) => {
+      // Retry up to 2 times for network errors
+      if (failureCount < 2 && (error as any)?.message?.includes('fetch failed')) {
+        return true;
+      }
+      return false;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
     onSuccess: (data, variables) => {
       if (data.success) {
         // Invalidate and refetch documents for the workflow
         queryClient.invalidateQueries({
-          queryKey: ['documents', variables.workflowId]
+          queryKey: documentKeys.byWorkflow(variables.workflowId)
         });
       }
     }
@@ -33,11 +56,19 @@ export function useUpdateDocument() {
 
   return useMutation({
     mutationFn: updateDocumentSimple,
+    retry: (failureCount, error) => {
+      // Retry up to 2 times for network errors
+      if (failureCount < 2 && (error as any)?.message?.includes('fetch failed')) {
+        return true;
+      }
+      return false;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
     onSuccess: (data, variables) => {
       if (data.success) {
         // Invalidate and refetch documents for the workflow
         queryClient.invalidateQueries({
-          queryKey: ['documents', variables.workflowId]
+          queryKey: documentKeys.byWorkflow(variables.workflowId)
         });
       }
     }
@@ -46,17 +77,63 @@ export function useUpdateDocument() {
 
 export function useDeleteDocument() {
   const queryClient = useQueryClient();
-
+  
   return useMutation({
     mutationFn: deleteDocumentSimple,
-    onSuccess: (data, variables) => {
-      if (data.success) {
-        // Invalidate and refetch documents for the workflow
-        queryClient.invalidateQueries({
-          queryKey: ['documents', variables.workflowId]
-        });
+    retry: (failureCount, error) => {
+      // Retry up to 2 times for network errors
+      if (failureCount < 2 && (error as any)?.message?.includes('fetch failed')) {
+        return true;
       }
-    }
+      return false;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+    onMutate: async (deletedDocument) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ 
+        queryKey: documentKeys.byWorkflow(deletedDocument.workflowId) 
+      });
+      
+      // Snapshot the previous value
+      const previousDocuments = queryClient.getQueryData(
+        documentKeys.byWorkflow(deletedDocument.workflowId)
+      );
+      
+      // Optimistically remove the document
+      queryClient.setQueryData(
+        documentKeys.byWorkflow(deletedDocument.workflowId),
+        (old: any[] | undefined) => {
+          if (!old) return old;
+          return old.filter((doc) => doc.id !== deletedDocument.documentId);
+        }
+      );
+      
+      // Return a context object with the snapshotted value
+      return { previousDocuments };
+    },
+    onError: (err, deletedDocument, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      queryClient.setQueryData(
+        documentKeys.byWorkflow(deletedDocument.workflowId),
+        context?.previousDocuments
+      );
+      
+      // Check if it's a timeout error
+      if ((err as any)?.message?.includes('fetch failed') || (err as any)?.message?.includes('Headers Timeout')) {
+        toast.error("Request timed out. Please try again.");
+      } else {
+        toast.error("Failed to delete document");
+      }
+    },
+    onSuccess: () => {
+      toast.success("Document deleted successfully");
+    },
+    onSettled: (_, __, variables) => {
+      // Always refetch after error or success to ensure consistency
+      queryClient.invalidateQueries({ 
+        queryKey: documentKeys.byWorkflow(variables.workflowId) 
+      });
+    },
   });
 }
 

@@ -1,9 +1,43 @@
 import { TaskStatus } from "@/types";
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
+}
+
+// Utility function for fetch with timeout
+export async function fetchWithTimeout(
+  url: string, 
+  options: RequestInit = {}, 
+  timeout = 30000
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`Request timeout after ${timeout}ms`);
+    }
+    throw error;
+  }
+}
+
+// Utility function to check if error is a timeout
+export function isTimeoutError(error: unknown): boolean {
+  return error instanceof Error && (
+    error.message.includes('timeout') ||
+    error.message.includes('Headers Timeout') ||
+    error.message.includes('UND_ERR_HEADERS_TIMEOUT')
+  );
 }
 
 const categoryConfigs = {

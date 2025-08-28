@@ -88,7 +88,7 @@ export default function TasksPreviewSection({
   // Case 3: No tasks and no objectives - show empty state
   return (
     <div className="flex flex-col items-center justify-center text-center ">
-      <h2 className="text-base font-medium tracking-tight">Manage your tasks</h2>
+      <h2 className="text-base font-medium tracking-tight">Manage your objectives and tasks</h2>
       <p className="text-sm text-muted-foreground">
         Start setting up your objectives and tasks to keep track of your next
         steps

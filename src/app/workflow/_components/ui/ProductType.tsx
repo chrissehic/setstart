@@ -35,7 +35,7 @@ export default function ProductType({
           <Command>
             <CommandInput placeholder="Search type..." className="h-9" />
             <CommandList>
-              <CommandEmpty>No product type found.</CommandEmpty>
+              <CommandEmpty>No offering type found.</CommandEmpty>
               <CommandGroup>
                 {PRODUCT_TYPES.map((type) => (
                   <CommandItem

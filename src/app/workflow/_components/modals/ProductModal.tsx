@@ -58,6 +58,7 @@ interface ProductModalProps {
   product?: Product; // If provided, we're editing
   children?: React.ReactNode;
   onSuccess?: () => void;
+  onProductCreated?: (product: Product) => void; // New callback for newly created products
   // Controlled state props
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -70,6 +71,7 @@ export function ProductModal({
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
   onSuccess,
+  onProductCreated,
 }: ProductModalProps) {
   const [internalOpen, setInternalOpen] = useState(false);
 
@@ -199,9 +201,10 @@ export function ProductModal({
           ...productData,
         },
         {
-          onSuccess: () => {
+          onSuccess: (newProduct) => {
             setOpen(false);
             onSuccess?.();
+            onProductCreated?.(newProduct);
             router.refresh();
           },
         }
@@ -315,10 +318,10 @@ export function ProductModal({
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Product Name *</FormLabel>
+                        <FormLabel>Offering name*</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Give your product a title..."
+                            placeholder="Give your offering a title..."
                             {...field}
                             disabled={isLoading}
                           />
@@ -333,7 +336,7 @@ export function ProductModal({
                     name="type"
                     render={({ field }) => (
                       <FormItem className="w-full col-span-1">
-                        <FormLabel>Product Type</FormLabel>
+                        <FormLabel>Offering type</FormLabel>
                         <ProductType
                           value={field.value ?? ""}
                           onChange={field.onChange}
@@ -353,7 +356,7 @@ export function ProductModal({
                       <FormControl>
                         <Textarea
                           className="h-full"
-                          placeholder="Describe your product, service, or offering..."
+                          placeholder="Describe your offering (product, service, etc.)..."
                           rows={4}
                           {...field}
                           disabled={isLoading}
@@ -432,7 +435,7 @@ export function ProductModal({
                   ) : isEditing ? (
                     "Save Changes"
                   ) : (
-                    "Add Product"
+                    "Add offering"
                   )}
                 </Button>
               </div>
