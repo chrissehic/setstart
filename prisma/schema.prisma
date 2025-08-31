@@ -256,7 +256,7 @@ model Competitor {
 model CompetitorTableColumn {
   id          String   @id @default(cuid())
   workflowId  String
-  name        String   // Column name (e.g., "Market Share", "Pricing", "Focus")
+  name        String   // Column name (e.g., "Customer Segment", "Technology Stack")
   type        String   // Column type: "text", "number", "select", "boolean", "date"
   required    Boolean  @default(false)
   options     String?  // JSON string for select options (if type is "select")

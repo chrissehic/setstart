@@ -13,30 +13,39 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { Badge } from "@/components/ui/badge";
+import { PRODUCT_TYPE_ICONS } from "@/lib/constants";
 
 interface ProductImageCarouselProps {
   product: Product;
   className?: string;
 }
 
-export function ProductImageCarousel({ product, className }: ProductImageCarouselProps) {
+export function ProductImageCarousel({
+  product,
+  className,
+}: ProductImageCarouselProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [api, setApi] = useState<CarouselApi>();
 
   // Collect all images: main product image + variant images
   const allImages = () => {
-    const images: Array<{ src: string; alt: string; type: 'main' | 'variant'; name?: string }> = [];
-    
+    const images: Array<{
+      src: string;
+      alt: string;
+      type: "main" | "variant";
+      name?: string;
+    }> = [];
+
     // Add main product image if it exists
     if (product.image) {
       images.push({
         src: product.image,
         alt: product.name,
-        type: 'main',
-        name: product.name
+        type: "main",
+        name: product.name,
       });
     }
-    
+
     // Add variant images if they exist
     if (product.variants && product.variants.length > 0) {
       product.variants.forEach((variant: ProductVariant) => {
@@ -44,13 +53,13 @@ export function ProductImageCarousel({ product, className }: ProductImageCarouse
           images.push({
             src: variant.image,
             alt: `${variant.name} variant`,
-            type: 'variant',
-            name: variant.name
+            type: "variant",
+            name: variant.name,
           });
         }
       });
     }
-    
+
     return images;
   };
 
@@ -59,30 +68,36 @@ export function ProductImageCarousel({ product, className }: ProductImageCarouse
   // Listen for carousel selection changes
   useEffect(() => {
     if (!api) return;
-    
+
     const onSelect = () => {
       setSelectedIndex(api.selectedScrollSnap());
     };
-    
+
     api.on("select", onSelect);
     return () => {
       api.off("select", onSelect);
     };
   }, [api]);
 
+  const getProductIcon = (productType: string) => {
+    const IconComponent = PRODUCT_TYPE_ICONS[productType] || Layers;
+    return <IconComponent className="size-20 stroke-1 text-muted-foreground" />;
+  };
+
   // If no images, show placeholder
   if (images.length === 0) {
     return (
-      <div className={`aspect-video relative rounded-lg overflow-hidden border bg-accent flex items-center justify-center ${className}`}>
-        <div className="flex flex-col items-center justify-center gap-2 text-center p-4">
-          <Layers className="size-20 stroke-1 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">No images available</p>
+      <div className="flex flex-col items-center justify-center">
+        <div
+          className={`aspect-video max-w-2xl w-full relative rounded-lg overflow-hidden border bg-accent flex items-center justify-center ${className}`}
+        >
+          <div className="flex flex-col items-center justify-center gap-2 text-center p-4">
+            {getProductIcon(product.type || "Other")}
+          </div>
         </div>
       </div>
     );
   }
-
-
 
   return (
     <div className={`relative ${className} flex flex-col items-center `}>
@@ -106,14 +121,17 @@ export function ProductImageCarousel({ product, className }: ProductImageCarouse
                 />
                 {/* Image overlay with type indicator */}
                 <div className="absolute top-3 left-3">
-                  <Badge className={`
+                  <Badge
+                    className={`
                     text-xs font-medium text-foreground
-                    ${image.type === 'main' 
-                      ? 'bg-primary/90' 
-                      : 'bg-secondary/60'
+                    ${
+                      image.type === "main"
+                        ? "bg-primary/90"
+                        : "bg-secondary/60"
                     }
-                  `}>
-                    {image.type === 'main' ? 'Main' : 'Variant'}
+                  `}
+                  >
+                    {image.type === "main" ? "Main" : "Variant"}
                   </Badge>
                 </div>
                 {/* Image name overlay */}
@@ -132,8 +150,14 @@ export function ProductImageCarousel({ product, className }: ProductImageCarouse
         {/* Navigation Buttons */}
         {images.length > 1 && (
           <div className="opacity-0 group-hover/carousel:opacity-100 transition-all duration-300">
-            <CarouselPrevious className="bg-accent/60 hover:bg-accent/80 absolute left-3 top-1/2 -translate-y-1/2" variant="ghost"/>
-            <CarouselNext className="bg-accent/60 hover:bg-accent/80 absolute right-3 top-1/2 -translate-y-1/2" variant="ghost"/>
+            <CarouselPrevious
+              className="bg-accent/60 hover:bg-accent/80 absolute left-3 top-1/2 -translate-y-1/2"
+              variant="ghost"
+            />
+            <CarouselNext
+              className="bg-accent/60 hover:bg-accent/80 absolute right-3 top-1/2 -translate-y-1/2"
+              variant="ghost"
+            />
           </div>
         )}
 
@@ -145,8 +169,8 @@ export function ProductImageCarousel({ product, className }: ProductImageCarouse
                 key={index}
                 className={`w-1.5 h-1.5 cursor-pointer rounded-full transition-all ${
                   index === selectedIndex
-                    ? 'bg-foreground scale-110'
-                    : 'bg-foreground/50 hover:bg-foreground/75'
+                    ? "bg-foreground scale-110"
+                    : "bg-foreground/50 hover:bg-foreground/75"
                 }`}
                 onClick={() => {
                   if (api) {
@@ -157,8 +181,6 @@ export function ProductImageCarousel({ product, className }: ProductImageCarouse
             ))}
           </Badge>
         )}
-
- 
       </Carousel>
     </div>
   );

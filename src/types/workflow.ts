@@ -184,7 +184,7 @@ export interface Competitor {
 export interface CompetitorTableColumn {
   id: string;
   workflowId: string;
-  name: string; // Column name (e.g., "Market Share", "Pricing", "Focus")
+  name: string; // Column name (e.g., "Customer Segment", "Technology Stack")
   type: 'text' | 'number' | 'select' | 'boolean' | 'date'; // Column type
   required: boolean; // Whether this column is required
   options?: string[]; // Options for select type columns

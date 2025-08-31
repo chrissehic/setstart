@@ -15,6 +15,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
+import { Plus } from "lucide-react"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -104,8 +105,25 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
                   </TableCell>
                 </TableRow>
               )}
-            </TableBody>
+              
+                          </TableBody>
           </Table>
+        </div>
+        
+        {/* Add Row Button - Outside scrollable area */}
+        <div className="border-t border-dashed border-muted-foreground/30">
+          <div 
+            className="h-auto py-2 flex items-center justify-center cursor-pointer group/add hover:bg-primary/30 transition-colors"
+            onClick={() => {
+              // This will be handled by the parent component
+              const event = new CustomEvent('addCompetitorRow', { detail: { source: 'tableCue' } });
+              window.dispatchEvent(event);
+            }}
+          >
+            <div className="flex items-center justify-center gap-2 text-muted-foreground group-hover/add:text-foreground transition-colors">
+              <Plus className="size-5 group-hover/add:text-foreground transition-colors" />
+            </div>
+          </div>
         </div>
       </div>
     </div>

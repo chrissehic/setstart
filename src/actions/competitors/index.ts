@@ -5,4 +5,5 @@ export { deleteCompetitor } from './deleteCompetitor';
 export { getCompetitors } from './getCompetitors';
 export { addCompetitorTableColumn } from './addCompetitorTableColumn';
 export { getCompetitorTableColumns } from './getCompetitorTableColumns';
-export { addDefaultTableColumns } from './addDefaultTableColumns';
+export { cleanupHardcodedColumns } from './cleanupHardcodedColumns';
+

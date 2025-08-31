@@ -21,6 +21,7 @@ interface ProductSectionProps {
 export function ProductSection({ workflowId }: ProductSectionProps) {
   const { data: products = [], isLoading, error } = useProducts(workflowId);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // Helper function to get the appropriate icon for a product type
   const getProductIcon = (productType: string) => {
@@ -38,20 +39,38 @@ export function ProductSection({ workflowId }: ProductSectionProps) {
     setSelectedProduct(null);
   };
 
-  // Handle edit mode
+  // Handle edit mode - open the modal
   const handleEditProduct = () => {
-    // This will be handled by the ProductDetails component
+    setIsEditModalOpen(true);
+  };
+
+  // Handle successful edit
+  const handleEditSuccess = () => {
+    setIsEditModalOpen(false);
+    // The useUpdateProduct hook will automatically invalidate the query cache
+    // and refresh the data, so we don't need to manually refresh here
   };
 
   // If a product is selected, show the details view
   if (selectedProduct) {
     return (
-      <ProductDetails
-        product={selectedProduct}
-        workflowId={workflowId}
-        onBack={handleBackToList}
-        onEdit={handleEditProduct}
-      />
+      <>
+        <ProductDetails
+          product={selectedProduct}
+          workflowId={workflowId}
+          onBack={handleBackToList}
+          onEdit={handleEditProduct}
+        />
+        
+        {/* Edit Modal */}
+        <ProductModal
+          workflowId={workflowId}
+          product={selectedProduct}
+          open={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          onSuccess={handleEditSuccess}
+        />
+      </>
     );
   }
 

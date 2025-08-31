@@ -1,10 +1,18 @@
-import { Stage } from "@/types";
 import { Separator } from "@radix-ui/react-separator";
 import { Circle } from "lucide-react";
 import React from "react";
 
 type StagePreviewProps = {
-  stage: Stage;
+  stage: {
+    stageNumber: number;
+    key: string;
+    title: string;
+    description: string;
+    challenges: string[];
+    goals: string[];
+    nextSteps: string[];
+    checklist: Array<{ id: string; title: string; description: string }>;
+  };
   isLast: boolean;
 };
 
@@ -19,7 +27,7 @@ export function StagePreview({ stage, isLast }: StagePreviewProps) {
         )}
       </div>
       <div className="col-span-1 flex flex-col justify-center items-center gap-2">
-                <span className="uppercase text-foreground text-sm h-7">
+        <span className="uppercase text-foreground text-sm h-7">
           Stage {stage.stageNumber}
         </span>
         <div className="flex flex-col justify-center items-center">

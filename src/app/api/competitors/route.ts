@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { workflowId, name, description, website, logoImage, strengths, weaknesses, marketShare, pricing, features, notes } = body;
+    const { workflowId, name, description, website, logoImage, attributes } = body;
 
     if (!workflowId || !name) {
       return NextResponse.json(
@@ -85,12 +85,7 @@ export async function POST(request: NextRequest) {
         description,
         website,
         logoImage,
-        strengths: strengths ? JSON.stringify(strengths) : null,
-        weaknesses: weaknesses ? JSON.stringify(weaknesses) : null,
-        marketShare,
-        pricing,
-        features: features ? JSON.stringify(features) : null,
-        notes,
+        attributes: attributes ? JSON.stringify(attributes) : "{}",
       },
     });
 

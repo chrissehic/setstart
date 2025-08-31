@@ -48,7 +48,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, description, website, logoImage, strengths, weaknesses, marketShare, pricing, features, notes } = body;
+    const { name, description, website, logoImage, attributes } = body;
 
     if (!name) {
       return NextResponse.json(
@@ -80,12 +80,7 @@ export async function PUT(
         description,
         website,
         logoImage,
-        strengths: strengths ? JSON.stringify(strengths) : null,
-        weaknesses: weaknesses ? JSON.stringify(weaknesses) : null,
-        marketShare,
-        pricing,
-        features: features ? JSON.stringify(features) : null,
-        notes,
+        attributes: attributes ? JSON.stringify(attributes) : "{}",
       },
     });
 

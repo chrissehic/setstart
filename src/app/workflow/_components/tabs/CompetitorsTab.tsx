@@ -43,7 +43,7 @@ function CompetitorPreview({
                 src={competitor.logoImage || undefined} 
                 alt={competitor.name}
               />
-              <AvatarFallback className="text-xs font-medium">
+              <AvatarFallback className="text-xs font-medium bg-accent">
                 {competitor.name
                   .split(' ')
                   .map(word => word.charAt(0))

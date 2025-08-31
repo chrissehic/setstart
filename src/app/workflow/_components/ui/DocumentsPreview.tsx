@@ -61,9 +61,16 @@ export function DocumentsPreview({ workflowId }: DocumentsPreviewProps) {
         <Badge variant="secondary" className="text-xs">
           {documents.length} total
         </Badge>
+        { documents.filter((d) => d.fileType === "pdf").length > 0 && (
         <Badge variant="outline" className="text-xs">
           {documents.filter((d) => d.fileType === "pdf").length} PDFs
         </Badge>
+        )}
+        { documents.filter((d) => d.fileType === "image").length > 0 && (
+        <Badge variant="outline" className="text-xs">
+          {documents.filter((d) => d.fileType === "image").length} Images
+        </Badge>
+        )}
       </div>
 
       {/* Document List */}
