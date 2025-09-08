@@ -87,7 +87,7 @@ export function AddTaskModal({ workflowId, people, objectiveId, children }: AddT
                 <SelectContent>
                   <SelectItem value="NOT_STARTED">Not Started</SelectItem>
                   <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                  <SelectItem value="COMPLETE">Completed</SelectItem>
+                  <SelectItem value="COMPLETED">Completed</SelectItem>
                 </SelectContent>
               </Select>
             </div>

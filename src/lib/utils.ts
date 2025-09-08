@@ -117,7 +117,7 @@ export const getStatusConfig = (status: TaskStatus) => {
         dot: "bg-amber-400",
         label: "In Progress",
       }
-    case TaskStatus.COMPLETE:
+    case TaskStatus.COMPLETED:
       return {
         color: "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/25",
         dot: "bg-emerald-400",
@@ -134,4 +134,24 @@ export const getStatusConfig = (status: TaskStatus) => {
 
 export const formatDate = (date: Date) =>
   new Date(date).toISOString().split('T')[0];
+
+// Helper function to get the first available image from a product
+export const getProductDisplayImage = (product: { image?: string | null; variants?: Array<{ image?: string | null }> }) => {
+  // First try to get the main product image
+  if (product.image) {
+    return product.image;
+  }
+  
+  // If no main image, try to get the first variant image
+  if (product.variants && product.variants.length > 0) {
+    for (const variant of product.variants) {
+      if (variant.image) {
+        return variant.image;
+      }
+    }
+  }
+  
+  // No images available
+  return null;
+}
 

@@ -279,7 +279,7 @@ export function TaskModal({
                   <SelectItem value={TaskStatus.IN_PROGRESS}>
                     In Progress
                   </SelectItem>
-                  <SelectItem value={TaskStatus.COMPLETE}>Completed</SelectItem>
+                  <SelectItem value={TaskStatus.COMPLETED}>Completed</SelectItem>
                 </SelectContent>
               </Select>
             </div>

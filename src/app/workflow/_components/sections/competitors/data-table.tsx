@@ -54,7 +54,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
                       <TableHead
                         key={header.id}
                         className={cn(
-                          "px-2 py-1 whitespace-nowrap bg-background",
+                          "px-2 py-1 whitespace-nowrap bg-background border-r border-border last:border-r-0",
                           isFirst && "sticky left-0 z-30 shadow-[inset_-1px_0_0_hsl(var(--border))]",
                           isLast && "sticky right-0 z-30 shadow-[inset_1px_0_0_hsl(var(--border))]",
                         )}
@@ -82,11 +82,11 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
                       return (
                         <TableCell
                           key={cell.id}
-                          className={cn(
-                            "p-0 align-middle",
-                            isFirst && "sticky left-0 z-10 bg-background shadow-[inset_-1px_0_0_hsl(var(--border))]",
-                            isLast && "sticky right-0 z-10 bg-background shadow-[inset_1px_0_0_hsl(var(--border))]",
-                          )}
+                                                  className={cn(
+                          "p-0 align-middle border-r-[1.5px] border-border last:border-r-0",
+                          isFirst && "sticky left-0 z-10 bg-background shadow-[inset_-1px_0_0_hsl(var(--border))]",
+                          isLast && "sticky right-0 z-10 bg-background shadow-[inset_1px_0_0_hsl(var(--border))]",
+                        )}
                           style={{
                             ...(isFirst ? { left: 0 } : {}),
                             ...(isLast ? { right: 0 } : {}),
@@ -122,6 +122,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
           >
             <div className="flex items-center justify-center gap-2 text-muted-foreground group-hover/add:text-foreground transition-colors">
               <Plus className="size-5 group-hover/add:text-foreground transition-colors" />
+              <span className="text-sm">Add a new row</span>
             </div>
           </div>
         </div>

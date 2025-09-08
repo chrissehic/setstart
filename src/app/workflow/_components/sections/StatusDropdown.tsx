@@ -16,6 +16,11 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
 }) => {
   const statusConfig = getStatusConfig(status);
 
+  // Safety check - if no config found, use a default
+  if (!statusConfig) {
+    return null;
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -30,9 +35,10 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
         {[
           TaskStatus.NOT_STARTED,
           TaskStatus.IN_PROGRESS,
-          TaskStatus.COMPLETE,
+          TaskStatus.COMPLETED,
         ].map((statusOption) => {
           const config = getStatusConfig(statusOption);
+          if (!config) return null; // Safety check
           return (
             <DropdownMenuItem
               key={statusOption}

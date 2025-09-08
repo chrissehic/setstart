@@ -269,7 +269,7 @@ const ObjectivesSection = ({
     const tasks = objective.tasks || [];
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter(
-      (task) => task.status === "COMPLETE"
+      (task) => task.status === "COMPLETED"
     ).length;
     const inProgressTasks = tasks.filter(
       (task) => task.status === "IN_PROGRESS"

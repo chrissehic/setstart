@@ -194,11 +194,13 @@ function AboutSection({ workflowId }: { workflowId: string }) {
                 setstart®
               </span>
             </EditableImage>
-            <span className="text-sm text-muted-foreground">Main logo</span>
+            <span className="text-sm text-muted-foreground">Main logo{" "}
+              <span className="text-xs text-muted-foreground">(SVG Recommended)</span>
+            </span>
           </div>
 
           {/* Logo Icon */}
-          <div className="flex flex-col items-start gap-1">
+          <div className="flex flex-col items-start gap-1 w-40">
             <EditableImage
               alt="Logo icon"
               workflowId={workflow.id}
@@ -213,7 +215,9 @@ function AboutSection({ workflowId }: { workflowId: string }) {
                 group-hover/image:opacity-5 transition-opacity duration-150 ease-in-out select-none"
               />
             </EditableImage>
-            <span className="text-sm text-muted-foreground">Logo icon</span>
+            <span className="text-sm text-muted-foreground w-fit">Logo icon{" "}
+              <span className="text-xs text-muted-foreground">(SVG Recommended)</span>
+            </span>
           </div>
 
           {/* Existing Assets */}

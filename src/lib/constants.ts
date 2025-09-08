@@ -2,7 +2,7 @@ import {
   Presentation, ListTodo, Layers, UsersRound, Eclipse,
   BookOpen, FileText, SquareDashedBottomCode, Smartphone,
   Puzzle, Brain, Cpu, Utensils, Store, Calendar,
-  Users, UserCheck,
+  Users,
   Tv,
   Watch,
   Amphora,
@@ -75,7 +75,7 @@ export const SECTION_CLASS =
 export const CARD_CLASS = "flex h-full overflow-y-scroll! flex-col bg-accent w-full rounded-2xl group border bg-card"
 
 export const PRODUCT_TYPES = [
-  { value: "SaaS / Web Platform", label: "SaaS / Web Platform" },
+  { value: "SaaS", label: "SaaS" },
   { value: "Mobile App", label: "Mobile App" },
   { value: "AI / Data Tool", label: "AI / Data Tool" },
   { value: "Plugin / Extension", label: "Plugin / Extension" },
@@ -92,7 +92,7 @@ export const PRODUCT_TYPES = [
 
 
 export const PRODUCT_TYPE_ICONS: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
-  "SaaS / Web Platform": SquareDashedBottomCode,
+  "SaaS": SquareDashedBottomCode,
   "Mobile App": Smartphone,
   "AI / Data Tool": Brain,
   "Plugin / Extension": Puzzle,
@@ -104,6 +104,6 @@ export const PRODUCT_TYPE_ICONS: Record<string, React.ComponentType<React.SVGPro
   "Hospitality & Retail": Store,
   "Consulting & Freelance": Calendar,
   "On-Demand Services": Users,
-  "Other": UserCheck,
+  "Other": Layers,
 };
 

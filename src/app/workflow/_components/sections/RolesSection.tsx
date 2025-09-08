@@ -35,10 +35,9 @@ function RolesSection({ data }: { data: WorkflowData }) {
 
   const datasetColors = labels.map((_, i) => {
     const cssVarName = `--chart-${(i % 5) + 1}`;
-    const cssValue =
-      getComputedStyle(document.documentElement)
-        .getPropertyValue(cssVarName)
-        .trim();
+    const cssValue = getComputedStyle(document.documentElement)
+      .getPropertyValue(cssVarName)
+      .trim();
 
     // fallback if CSS var not set
     return cssValue || fallbackColors[i % fallbackColors.length];
@@ -46,6 +45,17 @@ function RolesSection({ data }: { data: WorkflowData }) {
 
   return (
     <div className={cn(SECTION_CLASS, "gap-6")}>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex flex-col items-start">
+          <h2 className="text-2xl font-semibold tracking-tight">Roles</h2>
+          <p className="text-sm text-muted-foreground">
+            Structure your team and define the key roles and responsibilities to
+            build a clear company overview and align your team.
+          </p>
+        </div>
+      </div>
+
       <div className={classWrapper}>
         <span className="uppercase text-xs font-semibold text-muted-foreground">
           Team cards
@@ -120,14 +130,14 @@ function RolesSection({ data }: { data: WorkflowData }) {
         ) : (
           <div className="size-60 p-2 self-center text-foreground opacity-80">
             <Pie
-            className="opacity-20"
+              className="opacity-20"
               data={{
                 labels: ["Placeholder"],
                 datasets: [
                   {
                     label: "No data",
                     data: [80, 20],
-                    backgroundColor: ["#e5e5e5", '#B5B5B5' ],
+                    backgroundColor: ["#e5e5e5", "#B5B5B5"],
                     hoverOffset: 0,
                     borderWidth: 0,
                   },

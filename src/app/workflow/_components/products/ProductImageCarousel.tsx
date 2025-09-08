@@ -89,7 +89,7 @@ export function ProductImageCarousel({
     return (
       <div className="flex flex-col items-center justify-center">
         <div
-          className={`aspect-video max-w-2xl w-full relative rounded-lg overflow-hidden border bg-accent flex items-center justify-center ${className}`}
+          className={`aspect-video max-w-sm w-full relative rounded-lg overflow-hidden border bg-accent flex items-center justify-center ${className}`}
         >
           <div className="flex flex-col items-center justify-center gap-2 text-center p-4">
             {getProductIcon(product.type || "Other")}

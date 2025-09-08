@@ -11,14 +11,14 @@ import { EditableImage } from "../ui/EditableImage";
 import Sidebar from "../layout/SidebarMenu";
 import type { WorkflowData, WorkflowWithDetails } from "@/types/workflow";
 import { COMPANY_STAGES } from "@/types/companyStages";
-import { WorkspaceHeader } from "../ui/WorkspaceHeader";
+import { SectionHeader } from "../ui/SectionHeader";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { CARD_CLASS, SECTION_CLASS, WORKSPACE_ITEMS } from "@/lib/constants";
 import { SectionTabs } from "./SectionTabs";
 import { useWorkspaceNavigation } from "@/hooks/useWorkspaceNavigation";
 import { TabContent } from "./TabContent";
-import ProjectChatButton from "../ui/ProjectChatButton";
-import { useOnboarding } from "@/hooks/useOnboarding";
+// import ProjectChatButton from "../ui/ProjectChatButton";
+// import { useOnboarding } from "@/hooks/useOnboarding";
 
 interface WorkspaceProps {
   id: string;
@@ -35,8 +35,8 @@ const Workspace = ({
 }: WorkspaceProps) => {
   const [mounted, setMounted] = useState(false);
   const { tabActive, handleTabChange } = useWorkspaceNavigation();
-  const { shouldShowOverlay } = useOnboarding(data);
-
+  // const { shouldShowOverlay } = useOnboarding(data);
+  const [fullScreen, setFullScreen] = useState(false);
   // Memoize stageObj calculation to prevent unnecessary recalculations
   const stageObj = useMemo(() => 
     COMPANY_STAGES?.find((s) => s?.key === data.stage) ?? COMPANY_STAGES[0],
@@ -54,6 +54,7 @@ const Workspace = ({
   return (
     <main className={cn("grid gap-2 h-full w-full overflow-hidden p-2")}>
       <ResizablePanelGroup
+        key={fullScreen ? 'fullscreen' : 'normal'}
         direction="horizontal"
         className="h-full w-full gap-2"
       >
@@ -61,7 +62,7 @@ const Workspace = ({
         <ResizablePanel
           defaultSize={10}
           minSize={10}
-          maxSize={30}
+          maxSize={15}
           className={cn(CARD_CLASS, "overflow-auto!")}
         >
           <div className={SECTION_CLASS}>
@@ -84,25 +85,29 @@ const Workspace = ({
           className="w-full"
         >
           {/* Main Content Panel */}
-          <ResizablePanel
-            defaultSize={40}
-            minSize={20}
-            className={cn("relative pb-26", CARD_CLASS)}
-            data-testid={`workspace-${id}`}
-          >
-            <EditableImage
-              workflowId={data.id}
-              field="backgroundImage"
-              imageUrl={data.backgroundImage || undefined}
-              alt="Background"
-              className="relative flex-1 bg-accent/40 aspect-7/3 max-h-40 z-10 border-b border-accent"
-              imageClassName="object-cover object-center brightness-90"
-            />
+          {!fullScreen && (
+            <ResizablePanel
+              defaultSize={40}
+              minSize={30}
+              maxSize={40}
+              className={cn("relative pb-26", CARD_CLASS)}
+              data-testid={`workspace-${id}`}
+            >
+              <EditableImage
+                workflowId={data.id}
+                field="backgroundImage"
+                imageUrl={data.backgroundImage || undefined}
+                alt="Background"
+                className="relative flex-1 bg-accent/40 aspect-7/3 max-h-40 z-10 border-b border-accent"
+                imageClassName="object-cover object-center brightness-90"
+              />
 
-            <SectionTabs data={data} stageObj={stageObj} />
-          </ResizablePanel>
+              <SectionTabs data={data} />
+            </ResizablePanel>
+          )}
 
-          <ResizableHandle />
+          {/* Only show ResizableHandle when both panels are visible */}
+          {!fullScreen && <ResizableHandle />}
 
           {/* Detail Panel */}
           {tabActive !== "" && (
@@ -111,7 +116,7 @@ const Workspace = ({
               minSize={20}
               className={cn("relative", CARD_CLASS)}
             >
-              <WorkspaceHeader tabActive={tabActive} />
+              <SectionHeader tabActive={tabActive} fullScreen={fullScreen} handleFullScreen={() => setFullScreen(!fullScreen)} />
               <TabContent data={data} stageObj={stageObj} />
             </ResizablePanel>
           )}
@@ -119,14 +124,14 @@ const Workspace = ({
       </ResizablePanelGroup>
 
       {/* Project Chat Button */}
-      <ProjectChatButton
+      {/* <ProjectChatButton
         onSubmit={(message) => {
           console.log("Project chat message:", message);
           // TODO: Implement project chat functionality
         }}
         placeholder="Ask about your project..."
         onboardingState={{ shouldShowOverlay }}
-      />
+      /> */}
     </main>
   );
 };

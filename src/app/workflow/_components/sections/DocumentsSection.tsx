@@ -9,7 +9,10 @@ import {
   Ellipsis,
   ExternalLink,
   FileImage,
+  X,
+  ChevronDown,
 } from "lucide-react";
+import { GoogleDriveIcon } from "@/components/ui/GoogleDriveIcon";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -20,8 +23,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 import { useDocuments, useDeleteDocument } from "@/hooks/useDocuments";
 import { DocumentsModal } from "../modals/DocumentsModal";
+import { GoogleDrivePicker } from "../modals/GoogleDrivePicker";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +42,8 @@ interface DocumentsSectionProps {
 export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [showGoogleDriveCard, setShowGoogleDriveCard] = useState(true);
+  const [isGoogleDrivePickerOpen, setIsGoogleDrivePickerOpen] = useState(false);
 
   const { data: documents = [], isLoading } = useDocuments(workflowId);
   const deleteDocumentMutation = useDeleteDocument();
@@ -85,6 +97,22 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
   // Handle filter toggle
   const handleFilterToggle = (filterType: string) => {
     setTypeFilter(current => current === filterType ? "all" : filterType);
+  };
+
+  // Handle Google Drive file selection
+  const handleGoogleDriveFilesSelected = (files: Array<{
+    id: string;
+    name: string;
+    mimeType: string;
+    size?: string;
+    modifiedTime?: string;
+    webViewLink?: string;
+    thumbnailLink?: string;
+    isFolder: boolean;
+  }>) => {
+    // Files are automatically downloaded and saved via the API
+    // The documents will be refreshed automatically via React Query
+    console.log('Files imported from Google Drive:', files);
   };
 
   if (isLoading) {
@@ -145,39 +173,133 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
               Store and manage PDFs and images for your business
             </p>
           </div>
-          <DocumentsModal workflowId={workflowId}>
-            <Button>
-              <Upload className="h-4 w-4" />
-              Upload Document
-            </Button>
-          </DocumentsModal>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button>
+                <Upload className="h-4 w-4" />
+                Add Document
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DocumentsModal workflowId={workflowId}>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <Upload className="h-4 w-4" />
+                  Upload File
+                </DropdownMenuItem>
+              </DocumentsModal>
+              <DropdownMenuItem onClick={() => setIsGoogleDrivePickerOpen(true)}>
+                <GoogleDriveIcon className="h-4 w-4" />
+                Connect Google Drive
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
-        {/* Empty state */}
-        <Card className="border-none">
-          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
-              <FileText className="size-8 stroke-muted-foreground stroke-1" />
+        {/* Empty state with Google Drive card */}
+        <ContextMenu>
+          <ContextMenuTrigger asChild>
+            <div className="space-y-4">
+          {/* Google Drive Connection Card */}
+          {showGoogleDriveCard && (
+            <Card className="hover:shadow-md col-span-1 w-full justify-between cursor-pointer group/document hover:bg-muted transition-all duration-300 border-dashed border-2 border-primary/20 bg-primary/5">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3 w-full">
+                    <GoogleDriveIcon className="size-6 mt-1" />
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-base font-medium text-accent-foreground truncate overflow-hidden wrap-anywhere text-ellipsis line-clamp-2 group-hover/document:text-primary-foreground transition-colors">
+                        Connect Google Drive
+                      </CardTitle>
+                      <p className="text-xs text-muted-foreground line-clamp-2">
+                        Import documents from Google Drive
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowGoogleDriveCard(false);
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="flex items-baseline justify-between text-xs text-muted-foreground">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setIsGoogleDrivePickerOpen(true)}
+                  >
+                    Connect Google Drive
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
+          {/* Empty state */}
+          <Card className="border-none shadow-none">
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                <FileText className="size-8 stroke-muted-foreground stroke-1" />
+              </div>
+              <h3 className="text-lg font-medium mb-2">No documents yet</h3>  
+              <p className="text-sm text-muted-foreground max-w-md mb-6">
+                Start building your document library by uploading PDFs and images
+                that are relevant to your business.
+              </p>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    <Upload className="h-4 w-4" />
+                    Add Document
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center">
+                  <DocumentsModal workflowId={workflowId}>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      <Upload className="h-4 w-4" />
+                      Upload File
+                    </DropdownMenuItem>
+                  </DocumentsModal>
+                  <DropdownMenuItem onClick={() => setIsGoogleDrivePickerOpen(true)}>
+                    <GoogleDriveIcon className="h-4 w-4" />
+                    Connect Google Drive
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </CardContent>
+          </Card>
             </div>
-            <h3 className="text-lg font-medium mb-2">No documents yet</h3>  
-            <p className="text-sm text-muted-foreground max-w-md mb-6">
-              Start building your document library by uploading PDFs and images
-              that are relevant to your business.
-            </p>
+          </ContextMenuTrigger>
+          <ContextMenuContent>
             <DocumentsModal workflowId={workflowId}>
-              <Button variant="outline">
+              <ContextMenuItem onSelect={(e) => e.preventDefault()}>
                 <Upload className="h-4 w-4" />
-                Upload your first document
-              </Button>
+                Import File
+              </ContextMenuItem>
             </DocumentsModal>
-          </CardContent>
-        </Card>
+            <ContextMenuItem onClick={() => setIsGoogleDrivePickerOpen(true)}>
+              <GoogleDriveIcon className="h-4 w-4" />
+              Connect to Drive
+            </ContextMenuItem>
+          </ContextMenuContent>
+        </ContextMenu>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full h-screen">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex flex-col items-start gap-1">
@@ -186,12 +308,27 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
             Store and manage PDFs and images for your business
           </p>
         </div>
-        <DocumentsModal workflowId={workflowId}>
-          <Button>
-            <Upload className="h-4 w-4" />
-            Upload Document
-          </Button>
-        </DocumentsModal>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button>
+              <Upload className="h-4 w-4" />
+              Add Document
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DocumentsModal workflowId={workflowId}>
+              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                <Upload className="h-4 w-4" />
+                Upload File
+              </DropdownMenuItem>
+            </DocumentsModal>
+            <DropdownMenuItem>
+              <GoogleDriveIcon className="h-4 w-4" />
+              Connect Google Drive
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Toggleable Filter Badges */}
@@ -254,11 +391,54 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
       </div>
 
       {/* Documents Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full h-full">
+        {/* Google Drive Connection Card */}
+        {showGoogleDriveCard && (
+          <Card className="hover:shadow-md col-span-1 w-full h-fit justify-between cursor-pointer group/document hover:bg-muted transition-all duration-300 border-dashed border-2 border-primary/20 bg-primary/5">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3 w-full">
+                  <GoogleDriveIcon className="size-6 mt-1" />
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-base font-medium text-accent-foreground truncate overflow-hidden wrap-anywhere text-ellipsis line-clamp-2 group-hover/document:text-primary-foreground transition-colors">
+                      Connect Google Drive
+                    </CardTitle>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      Import documents from Google Drive
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowGoogleDriveCard(false);
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="flex items-baseline justify-between text-xs text-muted-foreground">
+                <Button variant="outline" size="sm">
+                  Connect Google Drive
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
         {filteredDocuments.map((document) => (
           <Card
             key={document.id}
-            className="hover:shadow-md col-span-1 w-full justify-between cursor-pointer group/document hover:bg-muted transition-all duration-300"
+            className="hover:shadow-md col-span-1 w-full h-fit justify-between cursor-pointer group/document hover:bg-muted transition-all duration-300"
             onClick={() => window.open(document.fileUrl, "_blank")}
           >
             <CardHeader className="pb-3">
@@ -293,7 +473,7 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
                           window.open(document.fileUrl, "_blank");
                         }}
                       >
-                        <ExternalLink className="h-4 w-4 mr-2" />
+                        <ExternalLink className="h-4 w-4" />
                         Open Document
                       </DropdownMenuItem>
                       <DropdownMenuItem
@@ -303,7 +483,7 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
                         }}
                         className="text-destructive"
                       >
-                        <Trash2 className="h-4 w-4 mr-2" />
+                        <Trash2 className="h-4 w-4" />
                         Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -321,7 +501,29 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
             </CardContent>
           </Card> 
         ))}
-      </div>
+          </div>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <DocumentsModal workflowId={workflowId}>
+            <ContextMenuItem onSelect={(e) => e.preventDefault()}>
+              <Upload className="h-4 w-4" />
+              Import File
+            </ContextMenuItem>
+          </DocumentsModal>
+          <ContextMenuItem onClick={() => setIsGoogleDrivePickerOpen(true)}>
+            <GoogleDriveIcon className="h-4 w-4" />
+            Connect to Drive
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+
+      {/* Google Drive Picker Modal */}
+      <GoogleDrivePicker
+        open={isGoogleDrivePickerOpen}
+        onOpenChange={setIsGoogleDrivePickerOpen}
+        onFilesSelected={handleGoogleDriveFilesSelected}
+        workflowId={workflowId}
+      />
     </div>
   );
 }

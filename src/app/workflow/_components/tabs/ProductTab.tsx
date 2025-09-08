@@ -2,6 +2,7 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SECTION_CLASS, PRODUCT_TYPE_ICONS } from "@/lib/constants";
+import { getProductDisplayImage } from "@/lib/utils";
 import { Product } from "@/types/workflow";
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
@@ -61,18 +62,24 @@ export const ProductTab = ({
                     <div className="flex h-full">
                       {/* Product Image or Icon Placeholder */}
                       <div className="relative flex-1 aspect-video bg-accent flex items-center justify-center">
-                        {product.image ? (
-                          <Image
-                            src={product.image}
-                            alt={product.name}
-                            fill
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="flex flex-col items-center justify-center gap-1 text-center p-2">
-                            {getProductIcon(product.type || "Other")}
-                          </div>
-                        )}
+                        {(() => {
+                          const displayImage = getProductDisplayImage(product);
+                          if (displayImage) {
+                            return (
+                              <Image
+                                src={displayImage}
+                                alt={product.name}
+                                fill
+                                className="object-cover"
+                              />
+                            );
+                          }
+                          return (
+                            <div className="flex flex-col items-center justify-center gap-1 text-center p-2">
+                              {getProductIcon(product.type || "Other")}
+                            </div>
+                          );
+                        })()}
                       </div>
 
                       {/* Product Information */}
@@ -80,12 +87,11 @@ export const ProductTab = ({
                         <div className="flex items-start justify-between">
                           <div className="flex-1 min-w-0 space-y-1">
                             {product.type && (
-                              <Badge
-                                variant="secondary"
+                              <span
                                 className="text-xs flex-shrink-0"
                               >
                                 {product.type}
-                              </Badge>
+                              </span>
                             )}
                             <h3 className="text-base font-semibold text-foreground truncate">
                               {product.name}

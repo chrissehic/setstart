@@ -65,7 +65,6 @@ export function EditableImage({
 
   // Update local state when imageUrl prop changes
   useEffect(() => {
-    console.log(`EditableImage [${field}] - imageUrl prop changed:`, imageUrl);
     // Convert empty strings to undefined for local state
     const normalizedImageUrl = imageUrl && imageUrl.trim() !== "" ? imageUrl : undefined;
     setLocalImageUrl(normalizedImageUrl);
@@ -76,7 +75,6 @@ export function EditableImage({
   useEffect(() => {
     const unsubscribe = imageEventEmitter.subscribe((event) => {
       if (event.workflowId === workflowId && event.field === field) {
-        console.log(`EditableImage [${field}] - received event:`, event);
         // Convert empty strings to undefined for local state
         const normalizedImageUrl = event.imageUrl && event.imageUrl.trim() !== "" ? event.imageUrl : undefined;
         setLocalImageUrl(normalizedImageUrl);
@@ -142,11 +140,6 @@ export function EditableImage({
       await new Promise(resolve => setTimeout(resolve, 10));
 
       if (currentImageUrl) {
-        console.log("=== DELETE DEBUG ===");
-        console.log("currentImageUrl:", currentImageUrl);
-        console.log("typeof currentImageUrl:", typeof currentImageUrl);
-        console.log("currentImageUrl length:", currentImageUrl.length);
-        
         // Ensure we have a clean URL path for deletion
         let urlToDelete = currentImageUrl;
         
@@ -156,17 +149,8 @@ export function EditableImage({
           const urlMatch = currentImageUrl.match(/url=([^&]+)/);
           if (urlMatch) {
             urlToDelete = decodeURIComponent(urlMatch[1]);
-            console.log("Extracted original URL:", urlToDelete);
           }
         }
-        
-        // Ensure it starts with /uploads/
-        if (!urlToDelete.startsWith('/uploads/')) {
-          console.warn("URL doesn't start with /uploads/, this might cause issues");
-        }
-        
-        console.log("Final URL to delete:", urlToDelete);
-        console.log("===================");
         
         // Call API to delete from storage
         const deleteResponse = await fetch("/api/delete", {
@@ -180,8 +164,6 @@ export function EditableImage({
           const errorMessage = errorData.error || `HTTP ${deleteResponse.status}`;
           throw new Error(`Failed to delete file from storage: ${errorMessage}`);
         }
-        
-        console.log("Image deleted successfully from storage");
       }
 
       if (onRemove) {
@@ -208,8 +190,6 @@ export function EditableImage({
     return `${url}${separator}v=${cacheBuster}`;
   };
 
-  // Debug logging
-  console.log(`EditableImage [${field}] - Rendering with localImageUrl:`, localImageUrl, 'type:', typeof localImageUrl, 'truthy:', !!localImageUrl);
 
   return (
     <div
@@ -273,3 +253,4 @@ export function EditableImage({
     </div>
   );
 }
+

@@ -42,7 +42,7 @@ export default function ObjectiveDetailPage() {
 
   const getTaskStats = () => {
     const total = objectiveTasks.length;
-    const completed = objectiveTasks.filter(task => task.status === TaskStatus.COMPLETE).length;
+    const completed = objectiveTasks.filter(task => task.status === TaskStatus.COMPLETED).length;
     const inProgress = objectiveTasks.filter(task => task.status === TaskStatus.IN_PROGRESS).length;
     const notStarted = objectiveTasks.filter(task => task.status === TaskStatus.NOT_STARTED).length;
     const progress = total > 0 ? Math.round((completed / total) * 100) : 0;

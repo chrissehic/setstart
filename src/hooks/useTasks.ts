@@ -68,6 +68,8 @@ export function useAddTask(workflowId: string) {
     onSettled: () => {
       // Always refetch after error or success
       queryClient.invalidateQueries({ queryKey: taskKeys.byWorkflow(workflowId) });
+      // Also invalidate objectives cache since adding a task affects objective task counts
+      queryClient.invalidateQueries({ queryKey: ["objectives", workflowId] });
     },
   });
 }
@@ -113,8 +115,14 @@ export function useUpdateTask(workflowId: string, showToast: boolean = true) {
         toast.success("Task updated successfully");
       }
     },
-    onSettled: () => {
+    onSettled: (_, __, updatedTask) => {
+      // Invalidate tasks cache
       queryClient.invalidateQueries({ queryKey: taskKeys.byWorkflow(workflowId) });
+      
+      // If task status changed, also invalidate objectives cache since objectives include task data
+      if (updatedTask.status !== undefined) {
+        queryClient.invalidateQueries({ queryKey: ["objectives", workflowId] });
+      }
     },
   });
 }
@@ -146,6 +154,8 @@ export function useDeleteTask(workflowId: string) {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: taskKeys.byWorkflow(workflowId) });
+      // Also invalidate objectives cache since deleting a task affects objective task counts
+      queryClient.invalidateQueries({ queryKey: ["objectives", workflowId] });
     },
   });
 }

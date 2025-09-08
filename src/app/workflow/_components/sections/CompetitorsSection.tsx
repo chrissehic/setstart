@@ -26,10 +26,13 @@ import {
   useUpdateCompetitor,
   useDeleteCompetitor,
   useCompetitorTableColumns,
+  useDeleteCompetitorTableColumn,
 } from "@/hooks/useCompetitors";
+import { useQueryClient } from "@tanstack/react-query";
 import { DataTable } from "./competitors/data-table";
 import { createCompetitorColumns } from "./competitors/columns";
 import { toast } from "sonner";
+import { CompetitorsModal } from "../modals/CompetitorsModal";
 
 type CompetitorsSectionProps = {
   workflowId: string;
@@ -44,9 +47,16 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
     website: "",
   });
   const [rowData, setRowData] = useState<
-    Record<string, { name: string; description: string; website: string }>
+    Record<string, { 
+      name: string; 
+      description: string; 
+      website: string;
+      attributes: Record<string, string | number | boolean>;
+    }>
   >({});
   const [dirtyRows, setDirtyRows] = useState<Set<string>>(new Set());
+  const [deletingColumns, setDeletingColumns] = useState<Set<string>>(new Set());
+  const queryClient = useQueryClient();
 
   const {
     data: competitors = [],
@@ -60,6 +70,7 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
   const addCompetitorMutation = useAddCompetitor(workflowId);
   const updateCompetitorMutation = useUpdateCompetitor(workflowId);
   const deleteCompetitorMutation = useDeleteCompetitor(workflowId);
+  const deleteColumnMutation = useDeleteCompetitorTableColumn(workflowId);
 
   // Initialize rowData only when competitors change
   useEffect(() => {
@@ -76,13 +87,14 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
       // Create new data
       const data: Record<
         string,
-        { name: string; description: string; website: string }
+        { name: string; description: string; website: string; attributes: Record<string, string | number | boolean> }
       > = {};
       competitors.forEach((competitor: Competitor) => {
         data[competitor.id] = {
           name: competitor.name,
           description: competitor.description || "",
           website: competitor.website || "",
+          attributes: competitor.attributes || {},
         };
       });
       return data;
@@ -195,14 +207,103 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
     };
   }, []);
 
-  const handleAddColumn = () => {
-    // TODO: Implement column creation modal/form
-    console.log("Add new column clicked");
-    // This would typically open a modal to:
-    // 1. Enter column name
-    // 2. Select column type (text, number, select, boolean, date)
-    // 3. Set required/optional
-    // 4. Add select options if type is "select"
+  const handleAddColumn = async (columnName: string) => {
+    if (!columnName.trim()) return;
+    
+    try {
+      // Create a new column with default settings
+      const newColumn = {
+        name: columnName.trim(),
+        type: 'text' as const, // Default to text type
+        required: false, // Default to not required
+        options: [], // No options for text type
+        order: (customColumns?.length || 0) + 1, // Add to end
+        workflowId: workflowId,
+      };
+
+      // Call the action to create the column
+      const { addCompetitorTableColumn } = await import('@/actions/competitors/addCompetitorTableColumn');
+      await addCompetitorTableColumn(newColumn);
+      
+      // Invalidate the table columns query to refresh the data
+      queryClient.invalidateQueries({ 
+        queryKey: ['competitors', 'tableColumns', workflowId] 
+      });
+      
+      toast.success(`Added new column: ${columnName}`);
+    } catch (error) {
+      console.error('Error adding column:', error);
+      toast.error('Failed to add new column');
+    }
+  };
+
+  const handleEditColumn = async (columnId: string, newName: string) => {
+    try {
+      // TODO: Implement column editing action
+      // For now, we'll need to create an action to update column names
+      console.log('Edit column:', columnId, 'to', newName);
+      toast.info('Column editing will be implemented soon');
+    } catch (error) {
+      console.error('Error editing column:', error);
+      toast.error('Failed to edit column');
+    }
+  };
+
+  const handleDeleteColumn = async (columnId: string) => {
+    // Prevent concurrent deletions
+    if (deletingColumns.has(columnId)) {
+      return;
+    }
+
+    try {
+      setDeletingColumns(prev => new Set(prev).add(columnId));
+      await deleteColumnMutation.mutateAsync(columnId);
+    } catch (error) {
+      console.error('Error deleting column:', error);
+      // Error handling is already done in the mutation hook
+    } finally {
+      setDeletingColumns(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(columnId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleMetadataExtracted = async (competitorId: string, metadata: { name: string; description: string; faviconUrl?: string }) => {
+    try {
+      // Get the current competitor data to preserve existing values
+      const currentCompetitor = competitors.find(c => c.id === competitorId);
+      const currentRowData = rowData[competitorId];
+      
+      // Update the competitor with extracted metadata, preserving the website URL
+      await updateCompetitorMutation.mutateAsync({
+        id: competitorId,
+        name: metadata.name,
+        description: metadata.description,
+        website: currentRowData?.website || currentCompetitor?.website || "",
+        logoImage: metadata.faviconUrl || currentCompetitor?.logoImage || "",
+        attributes: currentRowData?.attributes || currentCompetitor?.attributes || {},
+      });
+
+      // Update local state to reflect the changes
+      setRowData(prev => ({
+        ...prev,
+        [competitorId]: {
+          ...prev[competitorId],
+          name: metadata.name,
+          description: metadata.description,
+          // Preserve the website URL that was just saved
+          website: currentRowData?.website || currentCompetitor?.website || "",
+        }
+      }));
+
+      toast.success("Metadata extracted and updated successfully");
+      refetch();
+    } catch (error) {
+      console.error("Error updating competitor with metadata:", error);
+      toast.error("Failed to update competitor with extracted metadata");
+    }
   };
 
   const handleCancelEdit = useCallback(
@@ -216,6 +317,7 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
               name: competitor.name,
               description: competitor.description || "",
               website: competitor.website || "",
+              attributes: competitor.attributes || {},
             },
           }));
         }
@@ -234,13 +336,38 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
   const handleCellSave = useCallback(
     (competitorId: string, field: string, value: string) => {
       // Update the rowData immediately for the cell that was edited
-      setRowData((prev) => ({
-        ...prev,
-        [competitorId]: {
-          ...prev[competitorId],
-          [field]: value,
-        },
-      }));
+      setRowData((prev) => {
+        const currentRow = prev[competitorId] || {
+          name: "",
+          description: "",
+          website: "",
+          attributes: {},
+        };
+
+        // Handle nested attributes (e.g., "attributes.Customer Segment")
+        if (field.startsWith('attributes.')) {
+          const attributeName = field.replace('attributes.', '');
+          return {
+            ...prev,
+            [competitorId]: {
+              ...currentRow,
+              attributes: {
+                ...currentRow.attributes,
+                [attributeName]: value,
+              },
+            },
+          };
+        }
+
+        // Handle regular fields
+        return {
+          ...prev,
+          [competitorId]: {
+            ...currentRow,
+            [field]: value,
+          },
+        };
+      });
 
       // Mark as dirty so save/cancel buttons show
       setDirtyRows((prev) => new Set(prev).add(competitorId));
@@ -260,6 +387,7 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
           name: "",
           description: "",
           website: "",
+          attributes: {},
         };
 
         // Update with the new field value
@@ -274,6 +402,7 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
           name: updatedData.name,
           description: updatedData.description,
           website: updatedData.website,
+          attributes: updatedData.attributes,
         });
 
         // Clear dirty state for this row
@@ -319,12 +448,12 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
 
   return (
     <div
-      className={cn("flex flex-col justify-start gap-2 w-full", SECTION_CLASS)}
+      className={cn("flex flex-col justify-start gap-2 w-full")}
     >
       <div className="flex flex-col gap-4 w-full">
         <div className="flex items-center justify-between">
           <div className="flex flex-col gap-1">
-            <h3 className="text-lg font-semibold">Competitor Analysis</h3>
+          <h2 className="text-2xl font-semibold tracking-tight">Competitor Analysis</h2>
             <p className="text-sm text-muted-foreground">
               Track and analyze your competitors to stay ahead
             </p>
@@ -344,14 +473,14 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
                   Add a new row
                 </div>
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => console.log("Import CSV table - placeholder")}
-              >
-                <div className="flex items-center gap-2 w-full">
-                  <FileSpreadsheet className="size-5" />
-                  Import CSV Table
-                </div>
-              </DropdownMenuItem>
+              <CompetitorsModal workflowId={workflowId}>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <div className="flex items-center gap-2 w-full">
+                    <FileSpreadsheet className="size-5" />
+                    Import CSV Table
+                  </div>
+                </DropdownMenuItem>
+              </CompetitorsModal>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -371,6 +500,7 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
                 />
+             
               </div>
 
               {!newRowId && competitors.length === 0 && (
@@ -400,16 +530,14 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
                           Create a table
                         </div>
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          console.log("Import CSV table - placeholder")
-                        }
-                      >
-                        <div className="flex items-center gap-2 w-full">
-                          <FileSpreadsheet className="size-5" />
-                          Import CSV Table
-                        </div>
-                      </DropdownMenuItem>
+                      <CompetitorsModal workflowId={workflowId}>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          <div className="flex items-center gap-2 w-full">
+                            <FileSpreadsheet className="size-5" />
+                            Import CSV Table
+                          </div>
+                        </DropdownMenuItem>
+                      </CompetitorsModal>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -443,25 +571,14 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
                        handleSaveNew,
                        handleDeleteCompetitor,
                        customColumns,
-                       handleAddColumn
+                       handleAddColumn,
+                       handleEditColumn,
+                       handleDeleteColumn,
+                       deletingColumns,
+                       handleMetadataExtracted
                      )}
                     data={[
-                      // Add new row at the top if adding
-                      ...(newRowId
-                        ? [
-                            {
-                              id: newRowId,
-                              name: newRowData.name,
-                              description: newRowData.description,
-                              website: newRowData.website,
-                              logoImage: "",
-                              attributes: {},
-                              isNew: true,
-                              workflowId: workflowId,
-                            },
-                          ]
-                        : []),
-                      // Existing competitors
+                      // Existing competitors first
                       ...filteredCompetitors.map((competitor) => {
                         const currentData = rowData[competitor.id] || {
                           name: competitor.name,
@@ -479,6 +596,21 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
                           workflowId: competitor.workflowId,
                         };
                       }),
+                      // Add new row at the end if adding
+                      ...(newRowId
+                        ? [
+                            {
+                              id: newRowId,
+                              name: newRowData.name,
+                              description: newRowData.description,
+                              website: newRowData.website,
+                              logoImage: "",
+                              attributes: {},
+                              isNew: true,
+                              workflowId: workflowId,
+                            },
+                          ]
+                        : []),
                     ]}
                   />
                 </>

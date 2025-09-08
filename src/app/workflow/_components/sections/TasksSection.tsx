@@ -196,7 +196,7 @@ function TasksSection({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All</SelectItem>
-                  <SelectItem value={TaskStatus.COMPLETE}>Completed</SelectItem>
+                  <SelectItem value={TaskStatus.COMPLETED}>Completed</SelectItem>
                   <SelectItem value={TaskStatus.NOT_STARTED}>
                     Not Started
                   </SelectItem>

@@ -42,6 +42,7 @@ function CompetitorPreview({
               <AvatarImage 
                 src={competitor.logoImage || undefined} 
                 alt={competitor.name}
+                className="bg-foreground"
               />
               <AvatarFallback className="text-xs font-medium bg-accent">
                 {competitor.name

@@ -86,7 +86,7 @@ export default function ProjectChatButton({
     >
       <div
         className={cn(
-          "absolute inset-0 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] flex items-center justify-center",
+          "absolute inset-0 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] backdrop-blur-xl h-fit rounded-full overflow-hidden flex items-center justify-center",
           state === "open"
             ? "-translate-y-4 opacity-100"
             : state === "closing"
@@ -98,7 +98,7 @@ export default function ProjectChatButton({
           className={cn(
             "relative flex flex-row w-2xl py-4 items-center text-foreground rounded-full shadow-lg border-[1.5px] border-primary/80 overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]",
             // Apply backdrop-blur to the input container so it takes the rounded shape
-            "bg-transparent backdrop-blur-xl",
+            "bg-transparent",
             state === "open" && "bg-primary/20"
           )}
         >
@@ -203,7 +203,7 @@ export default function ProjectChatButton({
         </Button>
       </div>
       
-      <AuroraEffect isVisible={state === "open"} className="h-12"/>
+      <AuroraEffect isVisible={state === "open"} className="h-16"/>
     </div>
   );
 }

@@ -13,7 +13,7 @@ interface AddTaskInput {
   dueDate?: string; // ISO string
   priority?: "LOW" | "MEDIUM" | "HIGH";
   responsibility?: "IN_HOUSE" | "OUTSOURCED";
-  status?: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETE";
+  status?: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
   assignedPeople?: string[];
   objectiveId?: string;
 }

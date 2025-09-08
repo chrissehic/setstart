@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Edit, Trash2, Upload, Loader2 } from "lucide-react";
 import { Product } from "@/types/workflow";
@@ -312,9 +311,9 @@ export function ProductDetails({ product, workflowId, onBack, onEdit }: ProductD
         <div className="flex items-start justify-between">
           <div className="space-y-2">
             {product.type && (
-              <Badge variant="secondary" className="text-sm">
+              <span className="text-sm">
                 {product.type}
-              </Badge>
+              </span>
             )}
             <h1 className="text-3xl leading-tight tracking-tight font-bold">{product.name}</h1>
           </div>
@@ -328,20 +327,20 @@ export function ProductDetails({ product, workflowId, onBack, onEdit }: ProductD
       </div>
 
       {/* Product Variants */}
-      {product.variants && product.variants.length > 0 && (
+      {/* {product.variants && product.variants.length > 0 && ( */}
         <div className="space-y-4">
           {/* <Separator /> */}
         
           <ProductVariantsList
             productId={product.id}
             workflowId={workflowId}
-            variants={product.variants}
+            variants={product?.variants || []}
             onVariantChange={() => {
               // Refresh product data if needed
             }}
           />
         </div>
-      )}
+
 
       {/* Metadata */}
       <div className="space-y-4">

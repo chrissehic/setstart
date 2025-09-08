@@ -237,7 +237,7 @@ export function ReferencesSection({ workflowId }: ReferencesSectionProps) {
         </div>
 
         {/* Empty state */}
-        <Card className="border-none">
+        <Card className="border-none shadow-none">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
           <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
             <Hash className="h-8 w-8 stroke-muted-foreground stroke-1" />

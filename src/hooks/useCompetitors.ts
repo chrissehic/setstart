@@ -6,7 +6,8 @@ import {
   getCompetitors, 
   addCompetitor, 
   updateCompetitor, 
-  deleteCompetitor 
+  deleteCompetitor,
+  deleteCompetitorTableColumn
 } from "@/actions/competitors";
 import { 
   getCompetitorTableColumns 
@@ -122,6 +123,41 @@ export function useDeleteCompetitor(workflowId: string) {
     },
     onError: (error) => {
       toast.error(error.message || "Failed to delete competitor");
+    },
+  });
+}
+
+// Hook for deleting competitor table columns
+export function useDeleteCompetitorTableColumn(workflowId: string) {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (columnId: string) => {
+      const result = await deleteCompetitorTableColumn({ columnId, workflowId });
+      if (!result.success) {
+        throw new Error("Failed to delete column");
+      }
+      return result;
+    },
+    onSuccess: (data, columnId) => {
+      toast.success("Column deleted successfully");
+      
+      // Use a more targeted invalidation approach to prevent race conditions
+      queryClient.setQueryData(
+        competitorKeys.tableColumns(workflowId),
+        (oldData: any) => {
+          if (!oldData) return oldData;
+          return oldData.filter((column: any) => column.id !== columnId);
+        }
+      );
+      
+      // Invalidate competitors query to refresh the table
+      queryClient.invalidateQueries({ 
+        queryKey: competitorKeys.byWorkflow(workflowId) 
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete column");
     },
   });
 }

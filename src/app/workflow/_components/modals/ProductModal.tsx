@@ -168,8 +168,37 @@ export function ProductModal({
     }
   };
 
-  const removeImage = () => {
-    setImageUrl(null);
+  const removeImage = async () => {
+    if (!isEditing || !product) {
+      // If not editing, just clear local state
+      setImageUrl(null);
+      form.setValue("image", "");
+      return;
+    }
+
+    try {
+      // Update the product in the database to remove the image
+      await updateProduct.mutateAsync({
+        id: product.id,
+        name: product.name,
+        description: product.description || "",
+        type: product.type || "",
+        image: "", // Set image to empty string to remove it
+      });
+
+      // Clear local state
+      setImageUrl(null);
+      form.setValue("image", "");
+      
+      // Show success message
+      toast.success("Image removed successfully");
+      
+      // Refresh the page to show updated data
+      router.refresh();
+    } catch (error) {
+      console.error("Error removing image:", error);
+      toast.error("Failed to remove image");
+    }
   };
 
   const onSubmit = (values: AddProductSchemaType) => {

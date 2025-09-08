@@ -6,7 +6,10 @@ import { SECTION_CLASS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { FileKey2, RefreshCw, RotateCcw } from "lucide-react";
 import { useWorkflow } from "@/hooks/useWorkflow";
-import { generateMasterBrief, type MasterBriefData } from "@/lib/utils/masterBriefGenerator";
+import {
+  generateMasterBrief,
+  type MasterBriefData,
+} from "@/lib/utils/masterBriefGenerator";
 import { TaskPriority } from "@/types/workflow";
 
 interface MasterbriefSectionProps {
@@ -34,12 +37,12 @@ export default function MasterbriefSection({
 
   const generateMasterBriefDocument = async () => {
     if (!workflow) return;
-    
+
     setIsGenerating(true);
     try {
       // First refresh the workflow data to ensure we have the latest
       await refreshWorkflowData();
-      
+
       // Transform the data to match the MasterBriefData interface
       const masterBriefData: MasterBriefData = {
         workflow: {
@@ -47,7 +50,7 @@ export default function MasterbriefSection({
           people: workflow.people || [],
           tags: workflow.tags || [],
         },
-        objectives: (workflow.objectives || []).map(obj => ({
+        objectives: (workflow.objectives || []).map((obj) => ({
           id: obj.id,
           workflowId: obj.workflowId,
           title: obj.title,
@@ -90,7 +93,9 @@ export default function MasterbriefSection({
         <div className="flex flex-col items-center justify-center py-12 text-center w-full">
           <div className="aspect-[1/1.414] w-full bg-muted rounded-lg">
             <div className="w-full h-full flex items-center justify-center">
-              <div className="text-muted-foreground">Error loading workflow</div>
+              <div className="text-muted-foreground">
+                Error loading workflow
+              </div>
             </div>
           </div>
         </div>
@@ -105,12 +110,12 @@ export default function MasterbriefSection({
         <div className="flex flex-col items-start gap-1">
           <h2 className="text-2xl font-semibold tracking-tight">Masterbrief</h2>
           <p className="text-sm text-muted-foreground">
-            Generate an investor-ready strategic document from your workflow data
+            Generate an investor-ready strategic document from your project data
           </p>
         </div>
-        
+
         <div className="flex items-center gap-2">
-          <Button 
+          {/* <Button 
             variant="outline"
             size="sm"
             onClick={refreshWorkflowData}
@@ -123,31 +128,33 @@ export default function MasterbriefSection({
               <RotateCcw className="h-4 w-4" />
             )}
             {isRefreshing ? "Refreshing..." : "Refresh"}
-          </Button>
-          
-          <Button 
-            onClick={generateMasterBriefDocument}
-            disabled={isGenerating || !workflow}
-          >
-            {isGenerating ? (
-              <RefreshCw className="h-4 w-4 animate-spin" />
-            ) : (
-              <FileKey2 className="h-4 w-4" />
-            )}
-            {isGenerating ? "Generating..." : "Generate Master Brief"}
-          </Button>
+          </Button> */}
         </div>
       </div>
 
       {/* A4 Document Display */}
-      <div className="flex flex-col items-center justify-center py-6 text-center w-full">
-        <div className="aspect-[1/1.414] w-2/3 bg-muted rounded-lg overflow-hidden">
+      <div className="flex flex-col items-center justify-center py-6 text-center w-full h-full">
+        <div className="aspect-[1/1.414] h-full bg-muted rounded-lg overflow-hidden">
           {!generatedHtml ? (
-            <div className="w-full h-full flex items-center justify-center">
-              <div className="text-muted-foreground text-center">
-                <FileKey2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-sm">Click &quot;Generate Master Brief&quot; to create your document</p>
+            <div className="w-full h-full flex flex-col items-center justify-center gap-4">
+              <div className="text-muted-foreground text-center gap-4 flex flex-col items-center">
+                <FileKey2 className="h-12 w-12 mx-auto opacity-50" />
+                <p className="text-sm">
+                  Click &quot;Generate Master Brief&quot; to create your
+                  document
+                </p>
               </div>
+              <Button
+                onClick={generateMasterBriefDocument}
+                disabled={isGenerating || !workflow}
+              >
+                {isGenerating ? (
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                ) : (
+                  <FileKey2 className="h-4 w-4" />
+                )}
+                {isGenerating ? "Generating..." : "Generate Master Brief"}
+              </Button>
             </div>
           ) : (
             <iframe
