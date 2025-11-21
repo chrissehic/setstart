@@ -88,23 +88,23 @@ export default function MultiPurposeInput({
         onClick={(e) => e.stopPropagation()}
         className={cn(
           // Base styles
-          "pointer-events-auto flex flex-row items-end w-full p-3 max-w-4xl transition-all duration-300 ease-out",
-          "rounded-3xl",
+          "pointer-events-auto bg-muted flex flex-row items-end w-full p-2 max-w-4xl transition-all duration-300 ease-out",
+          "rounded-md",
 
-          // // Quiet luxury soft background
-          "bg-gradient-to-br from-muted/5 via-muted/5 to-background/10",
-          "dark:bg-gradient-to-br dark:from-muted/5 dark:via-muted/10 dark:to-background/8",
+          // // // Quiet luxury soft background
+          // "bg-gradient-to-br from-muted/5 via-muted/5 to-background/10",
+          // "dark:bg-gradient-to-br dark:from-muted/5 dark:via-muted/10 dark:to-background/8",
 
           // Subtle linear-gradient border with primary mauve accent
           "border border-transparent bg-clip-padding",
-          "before:content-[''] before:absolute before:inset-0 before:rounded-3xl before:border before:border-input before:pointer-events-none",
+          // "before:content-[''] before:absolute before:inset-0 before:rounded-3xl before:border before:border-input before:pointer-events-none",
 
 
           // Focus: add glow & stronger mauve border
           focus && [
             "border-primary/80",
-            "bg-gradient-to-br from-muted/15 via-muted/10 to-background/8",
-            "dark:bg-gradient-to-br dark:from-muted/20 dark:via-muted/15 dark:to-background/10",
+            //   "bg-gradient-to-br from-muted/15 via-muted/10 to-background/8",
+            // "dark:bg-gradient-to-br dark:from-muted/20 dark:via-muted/15 dark:to-background/10",
             "shadow-[0_2px_8px_rgba(0,0,0,0.04),0_16px_32px_rgba(0,0,0,0.08)]",
           ],
 
@@ -163,7 +163,7 @@ export default function MultiPurposeInput({
     return (
       <div
         className={cn(
-          "sticky w-full py-4 flex justify-center items-center pointer-events-none bottom-0 z-30",
+          "sticky w-full p-2 flex justify-center items-center pointer-events-none bottom-0 z-30",
           outerContainerClassName
         )}
       >

@@ -22,7 +22,7 @@ interface WorkspaceTabTriggersProps {
 export const SectionTabs = ({
   data,
 }: Omit<WorkspaceTabTriggersProps, "onTabChange">) => (
-  <TabsList className="flex flex-col flex-3 p-2 gap-2 z-20">
+  <TabsList className="flex flex-col flex-3 p-2 gap-2 z-20 pb-26">
     {WORKSPACE_ITEMS.map((item) => (
       <TabsTrigger
         asChild

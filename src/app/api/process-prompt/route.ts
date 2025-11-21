@@ -99,7 +99,7 @@ Respond only in *valid JSON*, matching this schema exactly:
 
     // Run validation
     const validationResult = await generateObject({
-      model: google("gemini-1.5-pro-latest"),
+      model: google("gemini-2.5-flash"),
       schema: validationSchema,
       prompt: validationPrompt,
     });
@@ -150,7 +150,7 @@ Make everything realistic, actionable, and tailored to the specific business typ
 
     // Proceed to generate comprehensive business project
     const { object } = await generateObject({
-      model: google("gemini-1.5-pro-latest"),
+      model: google("gemini-2.5-pro"),
       schema: workflowGenerationSchema,
       prompt: enhancedPrompt,
     });

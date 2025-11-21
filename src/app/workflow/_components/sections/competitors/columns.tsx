@@ -304,7 +304,7 @@ function WebsiteCell({
   isNewRow?: boolean;
   placeholder?: string;
   autoFocus?: boolean;
-  onMetadataExtracted?: (metadata: { name: string; description: string; faviconUrl?: string }) => void;
+  onMetadataExtracted?: (metadata: { name: string; description: string; faviconUrl?: string; website?: string }) => void;
 }) {
   const [draftValue, setDraftValue] = useState(initialValue);
   const [isEditing, setIsEditing] = useState(false);
@@ -428,24 +428,25 @@ function WebsiteCell({
   const handleExtractMetadata = async () => {
     if (!hasValidUrl) return;
     
-    // First, save the current URL value if it's different from the initial value
-    if (draftValue !== initialValue) {
-      setIsSaving(true);
-      try {
-        await onSave(competitorId, field, draftValue);
-        // Mark as no longer editing since we just saved
-        setIsEditing(false);
-      } finally {
-        setIsSaving(false);
-      }
+    const urlToSave = draftValue.trim();
+    
+    // Always save the URL first to ensure it's persisted, even if it matches initialValue
+    setIsSaving(true);
+    try {
+      await onSave(competitorId, field, urlToSave);
+      // Mark as no longer editing since we just saved
+      setIsEditing(false);
+    } finally {
+      setIsSaving(false);
     }
     
-    const metadata = await extractMetadata(draftValue.trim());
+    const metadata = await extractMetadata(urlToSave);
     if (metadata && onMetadataExtracted) {
       onMetadataExtracted({
         name: metadata.name,
         description: metadata.description,
-        faviconUrl: metadata.faviconUrl
+        faviconUrl: metadata.faviconUrl,
+        website: urlToSave, // Pass the URL so it can be preserved
       });
     }
   };

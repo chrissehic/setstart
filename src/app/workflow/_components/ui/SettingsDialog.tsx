@@ -46,6 +46,7 @@ type WorkflowWithTasks = WorkflowWithDetails & {
 
 interface SettingsDialogProps {
   currentWorkflow?: WorkflowWithTasks;
+  isCollapsed?: boolean;
 }
 
 const settingsNav = [
@@ -56,7 +57,7 @@ const settingsNav = [
   { name: "Delete Project", icon: Trash2, id: "delete", destructive: true },
 ]
 
-export function SettingsDialog({ currentWorkflow }: SettingsDialogProps) {
+export function SettingsDialog({ currentWorkflow, isCollapsed = false }: SettingsDialogProps) {
   const [open, setOpen] = React.useState(false)
   const [activeSection, setActiveSection] = React.useState("appearance")
   const [showDeleteModal, setShowDeleteModal] = React.useState(false)
@@ -168,9 +169,15 @@ export function SettingsDialog({ currentWorkflow }: SettingsDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <SidebarMenuButton size="default" className="cursor-pointer w-full text-sm">
-          <Settings className="size-4" />
-          <span>Settings</span>
+        <SidebarMenuButton 
+          size="default" 
+          className={`cursor-pointer w-full text-sm ${
+            isCollapsed ? "justify-center" : ""
+          }`}
+          tooltip={isCollapsed ? "Settings" : undefined}
+        >
+          <Settings className={isCollapsed ? "size-6" : "size-4"} />
+          {!isCollapsed && <span>Settings</span>}
         </SidebarMenuButton>
       </DialogTrigger>
       <DialogContent className="overflow-hidden p-0 md:max-h-[600px] md:max-w-[800px] lg:max-w-[900px]">

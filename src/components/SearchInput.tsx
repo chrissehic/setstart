@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form, FormControl, FormField, FormItem } from "./ui/form"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { useProcessAIPrompt } from "@/hooks/use-process-ai-prompt"
@@ -24,6 +24,7 @@ interface AIInputFormProps {
 
 export default function AIInputForm({ workflowId, onSuccess }: AIInputFormProps) {
   const [placeholder, setPlaceholder] = useState("")
+  const queryClient = useQueryClient()
   const form = useForm<PromptSchemaType>({
     resolver: zodResolver(promptSchema),
     defaultValues: { prompt: "" },
@@ -36,6 +37,12 @@ export default function AIInputForm({ workflowId, onSuccess }: AIInputFormProps)
   const { processPrompt, isProcessing } = useProcessAIPrompt()
   const mutation = useMutation({
     mutationFn: UpdateWorkflow,
+    onSuccess: (updatedWorkflow) => {
+      // Invalidate and refetch the workflow query to update AboutSection
+      queryClient.invalidateQueries({ queryKey: ["workflow", workflowId] })
+      // Also update the cache with the returned data
+      queryClient.setQueryData(["workflow", workflowId], updatedWorkflow)
+    },
   })
 
   const onSubmit = useCallback(
@@ -179,6 +186,10 @@ export default function AIInputForm({ workflowId, onSuccess }: AIInputFormProps)
         
         console.log("Final creation results:", creationResults);
         
+        // Invalidate workflow query to ensure AboutSection and other components get updated data
+        // This is important after creating objectives, tasks, and products
+        queryClient.invalidateQueries({ queryKey: ["workflow", workflowId] });
+        
         // Generate comprehensive success message
         const successMessage = generateSuccessMessage(creationResults);
         toast.success(successMessage, { id: "update-project" });
@@ -190,7 +201,7 @@ export default function AIInputForm({ workflowId, onSuccess }: AIInputFormProps)
         toast.error("Error updating project", { id: "update-project" });
       }
     },
-    [processPrompt, workflowId, mutation, onSuccess, form],
+    [processPrompt, workflowId, mutation, onSuccess, form, queryClient],
   )
 
   // Helper function to generate success message

@@ -138,14 +138,14 @@ export const formatDate = (date: Date) =>
 // Helper function to get the first available image from a product
 export const getProductDisplayImage = (product: { image?: string | null; variants?: Array<{ image?: string | null }> }) => {
   // First try to get the main product image
-  if (product.image) {
+  if (product.image && typeof product.image === "string" && product.image.trim() !== "") {
     return product.image;
   }
   
   // If no main image, try to get the first variant image
-  if (product.variants && product.variants.length > 0) {
+  if (product.variants && Array.isArray(product.variants) && product.variants.length > 0) {
     for (const variant of product.variants) {
-      if (variant.image) {
+      if (variant && variant.image && typeof variant.image === "string" && variant.image.trim() !== "") {
         return variant.image;
       }
     }

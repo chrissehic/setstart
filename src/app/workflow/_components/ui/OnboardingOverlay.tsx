@@ -30,7 +30,7 @@ export function OnboardingOverlay({
   };
 
   return (
-    <div className="fixed left-[calc(10%+1rem)] right-2 top-2 bottom-2 z-40 flex items-center justify-center">
+    <div className="fixed left-[calc(10%+6rem)] right-2 top-2 bottom-2 z-40 flex items-center justify-center">
       {/* Subtle background overlay with animated aura */}
       <div className="absolute inset-0 bg-background/95 backdrop-blur-md rounded-lg border border-border/50" />
 

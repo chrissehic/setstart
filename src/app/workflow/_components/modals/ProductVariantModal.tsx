@@ -80,6 +80,7 @@ export function ProductVariantModal({
 
   const form = useForm({
     resolver: zodResolver(variantSchema),
+    mode: "onChange", // Enable validation on change to update isValid
     defaultValues: {
       name: variant?.name ?? "",
       description: variant?.description ?? "",
@@ -469,7 +470,10 @@ export function ProductVariantModal({
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isLoading}>
+                <Button 
+                  type="submit" 
+                  disabled={isLoading || !form.formState.isValid}
+                >
                   {isLoading ? (
                     <Loader2 className="animate-spin" />
                   ) : isEditing ? (

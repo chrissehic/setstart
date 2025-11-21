@@ -270,18 +270,21 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
     }
   };
 
-  const handleMetadataExtracted = async (competitorId: string, metadata: { name: string; description: string; faviconUrl?: string }) => {
+  const handleMetadataExtracted = async (competitorId: string, metadata: { name: string; description: string; faviconUrl?: string; website?: string }) => {
     try {
       // Get the current competitor data to preserve existing values
       const currentCompetitor = competitors.find(c => c.id === competitorId);
       const currentRowData = rowData[competitorId];
+      
+      // Use the website from metadata if provided (from extraction), otherwise preserve existing
+      const websiteToSave = metadata.website || currentRowData?.website || currentCompetitor?.website || "";
       
       // Update the competitor with extracted metadata, preserving the website URL
       await updateCompetitorMutation.mutateAsync({
         id: competitorId,
         name: metadata.name,
         description: metadata.description,
-        website: currentRowData?.website || currentCompetitor?.website || "",
+        website: websiteToSave,
         logoImage: metadata.faviconUrl || currentCompetitor?.logoImage || "",
         attributes: currentRowData?.attributes || currentCompetitor?.attributes || {},
       });
@@ -294,7 +297,7 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
           name: metadata.name,
           description: metadata.description,
           // Preserve the website URL that was just saved
-          website: currentRowData?.website || currentCompetitor?.website || "",
+          website: websiteToSave,
         }
       }));
 
@@ -382,12 +385,16 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
       handleCellSave(competitorId, field, value);
 
       try {
-        // Get current data for this competitor
-        const currentData = rowData[competitorId] || {
-          name: "",
-          description: "",
-          website: "",
-          attributes: {},
+        // Get current data for this competitor - check both rowData and competitors
+        const currentCompetitor = competitors.find(c => c.id === competitorId);
+        const currentRowData = rowData[competitorId];
+        
+        // Build current data with fallback to competitor data to preserve website and other fields
+        const currentData = {
+          name: currentRowData?.name || currentCompetitor?.name || "",
+          description: currentRowData?.description || currentCompetitor?.description || "",
+          website: currentRowData?.website || currentCompetitor?.website || "",
+          attributes: currentRowData?.attributes || currentCompetitor?.attributes || {},
         };
 
         // Update with the new field value
@@ -401,7 +408,7 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
           id: competitorId,
           name: updatedData.name,
           description: updatedData.description,
-          website: updatedData.website,
+          website: updatedData.website, // Preserve website even when saving other fields
           attributes: updatedData.attributes,
         });
 
@@ -423,6 +430,7 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
     [
       handleCellSave,
       rowData,
+      competitors,
       updateCompetitorMutation,
       refetch,
       handleCancelEdit,

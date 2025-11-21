@@ -17,14 +17,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronsUpDown, LogOut, Plus } from "lucide-react";
+import { ChevronsUpDown, LayoutTemplate, LogOut, Plus } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useSidebarWidth } from "@/hooks/useSidebarWidth";
 import { WorkflowWithDetails } from "@/types";
 import { CreateWorkflowModal } from "@/app/(dashboard)/workflows/_components/CreateWorkflowModal";
 import { SettingsDialog } from "../ui/SettingsDialog";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useState } from "react";
+import { useState, useCallback, useMemo, memo } from "react";
 import {
   SignedIn,
   SignedOut,
@@ -36,6 +37,7 @@ import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ThemeModeToggle";
 import { useUser } from "@clerk/nextjs";
 import { Separator } from "@/components/ui/separator";
+import SetIcon from "@/components/SetIcon";
 // import SetIcon from "@/components/SetIcon";
 // import SetStartText from "@/components/SetStartText";
 
@@ -49,12 +51,14 @@ type WorkflowWithTasks = WorkflowWithDetails & {
   }>;
 };
 
-function Sidebar({
+const Sidebar = memo(function Sidebar({
   active,
   onTabChange,
   items,
   allWorkflows,
   currentWorkflow,
+  currentMode,
+  onModeChange,
 }: {
   active: string;
   onTabChange: (tab: string) => void;
@@ -66,23 +70,42 @@ function Sidebar({
   }[];
   allWorkflows?: WorkflowWithTasks[];
   currentWorkflow?: WorkflowWithTasks;
+  currentMode?: 'previewPanel' | 'assistant';
+  onModeChange?: (mode: 'previewPanel' | 'assistant') => void;
 }) {
   // Check if sections should be disabled (no description)
   const sectionsDisabled =
     !currentWorkflow?.description || currentWorkflow.description.trim() === "";
   const isMobile = useIsMobile();
+  const { isCollapsed, sidebarRef } = useSidebarWidth();
   const router = useRouter();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const { user } = useUser();
-  const handleProjectChange = (workflow: WorkflowWithTasks) => {
-    router.push(`/project/${workflow.id}`);
-  };
 
-  const handleCreateProject = () => {
+  // Use the currentMode from props, fallback to "previewPanel" if not provided
+  const switchMode = currentMode || "previewPanel";
+
+  const handleProjectChange = useCallback(
+    (workflow: WorkflowWithTasks) => {
+      router.push(`/project/${workflow.id}`);
+    },
+    [router]
+  );
+
+  const handleCreateProject = useCallback(() => {
     setShowCreateModal(true);
-  };
+  }, []);
+
+  const handleModeToggle = useCallback(() => {
+    const newMode = switchMode === "previewPanel" ? "assistant" : "previewPanel";
+    onModeChange?.(newMode);
+  }, [switchMode, onModeChange]);
+
+  const buttonText = useMemo(() => {
+    return switchMode === "previewPanel" ? "Ask assistant" : "Dashboard  ";
+  }, [switchMode]);
   return (
-    <>
+    <div ref={sidebarRef} className="h-full justify-between flex flex-col">
       {/* Project Selection Header */}
       {allWorkflows && currentWorkflow && (
         <SidebarHeader className="w-full px-1">
@@ -99,6 +122,7 @@ function Sidebar({
                   <SidebarMenuButton
                     size="lg"
                     className="cursor-pointer w-full data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                    tooltip={isCollapsed ? currentWorkflow.name : undefined}
                   >
                     <Avatar className="size-8">
                       <AvatarImage src={currentWorkflow.logoImage || ""} />
@@ -106,12 +130,14 @@ function Sidebar({
                         {currentWorkflow.name.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-medium">
-                        {currentWorkflow.name}
-                      </span>
-                    </div>
-                    <ChevronsUpDown className="size-3" />
+                    {!isCollapsed && (
+                      <div className="grid flex-1 text-left text-sm leading-tight">
+                        <span className="truncate font-medium">
+                          {currentWorkflow.name}
+                        </span>
+                      </div>
+                    )}
+                    {!isCollapsed && <ChevronsUpDown className="size-3" />}
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
@@ -165,8 +191,36 @@ function Sidebar({
       />
 
       <SidebarContent className="w-full">
+        <SidebarGroup>
+          <SidebarGroupContent className="flex flex-col gap-2">
+            <SidebarMenu>
+              <SidebarMenuItem className="flex items-center gap-2">
+                <SidebarMenuButton
+                  variant="outline"
+                  onClick={handleModeToggle}
+                  tooltip={isCollapsed ? buttonText : undefined}
+                  disabled={sectionsDisabled}
+                  className="text-center items-center !bg-primary/30 hover:!bg-primary/50 rounded-sm"
+                >
+                  {switchMode === "previewPanel" ? (
+                    <SetIcon
+                      className="!size-6 shrink-0 block brightness-250"
+                      fill="var(--primary)"
+                      animated={true}
+                    />
+                  ) : (
+                    <LayoutTemplate className="text-primary-foreground/60 !h-6 !w-5 stroke-[1.5px]"/>
+                  )}
+                  {!isCollapsed && (
+                    <span className="text-[15px] text-primary-foreground">{buttonText}</span>
+                  )}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
         <SidebarGroup className="px-1">
-          <SidebarGroupLabel className="mb-2">Sections</SidebarGroupLabel>
+          {!isCollapsed && <SidebarGroupLabel className="mb-2">Sections</SidebarGroupLabel>}
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
@@ -179,6 +233,7 @@ function Sidebar({
                       sectionsDisabled ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                     disabled={sectionsDisabled}
+                    tooltip={isCollapsed ? item.title : undefined}
                   >
                     <a
                       href={`#${item.value}`}
@@ -187,7 +242,7 @@ function Sidebar({
                       }`}
                     >
                       {item.icon && <item.icon className="size-4! text-xs" />}
-                      <span>{item.title}</span>
+                      {!isCollapsed && <span>{item.title}</span>}
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -202,15 +257,15 @@ function Sidebar({
           {currentWorkflow && (
             <>
               <SidebarMenuItem>
-                <SettingsDialog currentWorkflow={currentWorkflow} />
+                <SettingsDialog currentWorkflow={currentWorkflow} isCollapsed={isCollapsed} />
               </SidebarMenuItem>
-              <Separator />
+              {!isCollapsed && <Separator />}
             </>
           )}
 
           {/* Mode toggle */}
           <SidebarMenuItem>
-            <ModeToggle />
+            <ModeToggle isCollapsed={isCollapsed} />
           </SidebarMenuItem>
 
           {/* Authenticated user */}
@@ -222,6 +277,7 @@ function Sidebar({
                   <SidebarMenuButton
                     size="lg"
                     className="cursor-pointer data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                    tooltip={isCollapsed ? (user?.fullName || "User") : undefined}
                   >
                     <Avatar className="h-8 w-8 rounded-lg">
                       <AvatarImage
@@ -232,15 +288,17 @@ function Sidebar({
                         {user?.fullName?.[0] || "CN"}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="grid flex-1 text-left text-sm leading-tight">
-                      <span className="truncate font-medium">
-                        {user?.fullName}
-                      </span>
-                      <span className="truncate text-xs text-muted-foreground">
-                        {user?.emailAddresses[0].emailAddress}
-                      </span>
-                    </div>
-                    <ChevronsUpDown className="ml-auto size-4" />
+                    {!isCollapsed && (
+                      <div className="grid flex-1 text-left text-sm leading-tight">
+                        <span className="truncate font-medium">
+                          {user?.fullName}
+                        </span>
+                        <span className="truncate text-xs text-muted-foreground">
+                          {user?.emailAddresses?.[0]?.emailAddress || 'No email'}
+                        </span>
+                      </div>
+                    )}
+                    {!isCollapsed && <ChevronsUpDown className="ml-auto size-4" />}
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>
 
@@ -266,7 +324,7 @@ function Sidebar({
                           {user?.fullName}
                         </span>
                         <span className="truncate text-xs text-muted-foreground">
-                          {user?.emailAddresses[0].emailAddress}
+                          {user?.emailAddresses?.[0]?.emailAddress || 'No email'}
                         </span>
                       </div>
                     </div>
@@ -274,8 +332,11 @@ function Sidebar({
 
                   <DropdownMenuSeparator />
 
-                  <DropdownMenuItem asChild className="w-full flex justify-start">
-                    <SignOutButton >
+                  <DropdownMenuItem
+                    asChild
+                    className="w-full flex justify-start"
+                  >
+                    <SignOutButton>
                       <Button
                         variant="ghost"
                         className="w-full justify-start p-0 text-left"
@@ -307,8 +368,8 @@ function Sidebar({
           </SignedOut>
         </SidebarMenu>
       </SidebarFooter>
-    </>
+    </div>
   );
-}
+});
 
 export default Sidebar;

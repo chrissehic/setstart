@@ -28,7 +28,13 @@ export async function getWorkflow(workflowId: string) {
           person: true,
         },
       },
-      products: true,
+      products: {
+        include: {
+          variants: {
+            orderBy: { createdAt: "asc" },
+          },
+        },
+      },
       socialLinks: true,
     },
   })

@@ -1,9 +1,24 @@
-import { NextRequest, NextResponse } from 'next/server';
-import google from '@googleapis/drive';
+import { NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
+import { OAuth2Client } from 'google-auth-library';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const oauth2Client = new google.auth.OAuth2(
+    const { userId } = await auth();
+    
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // Debug: Check if environment variables are loaded
+    console.log('GOOGLE_CLIENT_ID exists:', !!process.env.GOOGLE_CLIENT_ID);
+    console.log('GOOGLE_CLIENT_SECRET exists:', !!process.env.GOOGLE_CLIENT_SECRET);
+    console.log('NEXT_PUBLIC_APP_URL:', process.env.NEXT_PUBLIC_APP_URL);
+
+    const oauth2Client = new OAuth2Client(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
       `${process.env.NEXT_PUBLIC_APP_URL}/api/google-drive/callback`
@@ -17,7 +32,8 @@ export async function GET(request: NextRequest) {
     const authUrl = oauth2Client.generateAuthUrl({
       access_type: 'offline',
       scope: scopes,
-      prompt: 'consent'
+      prompt: 'consent',
+      state: userId // Pass Clerk user ID as state
     });
 
     return NextResponse.json({ authUrl });

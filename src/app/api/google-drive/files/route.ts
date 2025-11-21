@@ -1,21 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server';
-import google from '@googleapis/drive';
+import { auth } from '@clerk/nextjs/server';
+import { prisma } from '@/lib/prisma';
+import { OAuth2Client } from 'google-auth-library';
+import { drive_v3 } from '@googleapis/drive';
 
 export async function POST(request: NextRequest) {
   try {
-    const { accessToken, folderId = 'root', pageToken } = await request.json();
-
-    if (!accessToken) {
+    const { userId } = await auth();
+    
+    if (!userId) {
       return NextResponse.json(
-        { error: 'Access token required' },
-        { status: 400 }
+        { error: 'Unauthorized' },
+        { status: 401 }
       );
     }
 
-    const oauth2Client = new google.auth.OAuth2();
-    oauth2Client.setCredentials({ access_token: accessToken });
+    const { folderId = 'root', pageToken } = await request.json();
 
-    const drive = google.drive({ version: 'v3', auth: oauth2Client });
+    // Get stored tokens
+    const tokenData = await prisma.googleDriveToken.findUnique({
+      where: { userId }
+    });
+
+    if (!tokenData) {
+      return NextResponse.json(
+        { error: 'Google Drive not connected. Please authenticate first.' },
+        { status: 401 }
+      );
+    }
+
+    // Check if token is expired and refresh if needed
+    const now = new Date();
+    if (tokenData.expiresAt <= now && tokenData.refreshToken) {
+      // Refresh token logic would go here
+      return NextResponse.json(
+        { error: 'Token expired. Please re-authenticate.' },
+        { status: 401 }
+      );
+    }
+
+    const oauth2Client = new OAuth2Client();
+    oauth2Client.setCredentials({
+      access_token: tokenData.accessToken,
+      refresh_token: tokenData.refreshToken,
+    });
+
+    const drive = new drive_v3.Drive({ auth: oauth2Client });
 
     const query = folderId === 'root' 
       ? "'root' in parents and trashed=false"

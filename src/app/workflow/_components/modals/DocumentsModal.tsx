@@ -60,10 +60,6 @@ export const DocumentsModal: React.FC<DocumentsModalProps> = ({ workflowId, chil
 
   const createDocumentMutation = useCreateDocument();
 
-  // Debug drag state changes
-  useEffect(() => {
-    console.log('Drag state changed:', isDragging);
-  }, [isDragging]);
 
   // Clean up blob URLs
   useEffect(() => {
@@ -83,32 +79,25 @@ export const DocumentsModal: React.FC<DocumentsModalProps> = ({ workflowId, chil
 
   const addFiles = useCallback(
     (files: FileList | File[]) => {
-      console.log('addFiles called with:', files);
       const newErrors: string[] = [];
       const next: ImportedFile[] = [];
 
       Array.from(files).forEach((file) => {
-        console.log('Processing file:', file.name, file.type, file.size);
         const type = toAcceptedType(file.type);
         if (!type) {
-          console.log('Unsupported file type:', file.type);
           newErrors.push(`Unsupported file type: ${file.name}`);
           return;
         }
         if (file.size > maxFileSizeBytes) {
-          console.log('File too large:', file.size, '>', maxFileSizeBytes);
           newErrors.push(`File too large (> ${(maxFileSizeBytes / (1024 * 1024)).toFixed(0)}MB): ${file.name}`);
           return;
         }
         const imp = fileToImported(file);
         if (imp) {
-          console.log('File imported successfully:', imp);
           next.push(imp);
         }
       });
 
-      console.log('Setting errors:', newErrors);
-      console.log('Setting items:', next);
       setErrors((prev) => [...prev, ...newErrors]);
       if (next.length) setItems((prev) => [...prev, ...next]);
     },
@@ -130,13 +119,40 @@ export const DocumentsModal: React.FC<DocumentsModalProps> = ({ workflowId, chil
     [addFiles]
   );
 
-  // Drag & drop
+  // Drag & drop with improved handling for nested elements and external files
   useEffect(() => {
     const el = dropRef.current;
-    console.log('Drop zone ref:', el);
     if (!el) return;
 
-    console.log('Setting up drag and drop events on element:', el);
+    let dragCounter = 0; // Counter to handle nested elements properly
+
+    // Helper to check if the drag event contains files
+    // For external files, types might not be available until drop, so we check multiple indicators
+    const hasFiles = (e: DragEvent): boolean => {
+      if (!e.dataTransfer) return false;
+      
+      // Check if files are already present (usually only on drop)
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) return true;
+      
+      // Check dataTransfer types for file indicators
+      const types = Array.from(e.dataTransfer.types || []);
+      
+      // Common file drag indicators
+      if (types.includes('Files')) return true;
+      if (types.includes('application/x-moz-file')) return true;
+      
+      // For external drags, if there are no text/html types, it's likely files
+      // (web content drags usually have text/html or text/plain)
+      if (types.length > 0 && !types.includes('text/html') && !types.includes('text/plain')) {
+        // Likely external files
+        return true;
+      }
+      
+      // If no types at all, assume it might be external files (some browsers don't expose types)
+      if (types.length === 0) return true;
+      
+      return false;
+    };
 
     const prevent = (e: DragEvent) => {
       e.preventDefault();
@@ -144,72 +160,116 @@ export const DocumentsModal: React.FC<DocumentsModalProps> = ({ workflowId, chil
     };
 
     const onDragEnter = (e: DragEvent) => {
-      console.log('=== DRAG ENTER EVENT ===');
-      console.log('Event:', e);
-      console.log('DataTransfer types:', e.dataTransfer?.types);
-      console.log('Files:', e.dataTransfer?.files);
+      // Be permissive - allow all drags over drop zone
+      // External files might not expose types until drop
+      const types = Array.from(e.dataTransfer?.types || []);
+      
+      // Skip if it's clearly web content (has text/html or text/uri-list but no Files)
+      if (types.includes('text/html') && !types.includes('Files')) {
+        return;
+      }
+      
       prevent(e);
+      dragCounter++;
+      if (e.dataTransfer) {
+        e.dataTransfer.dropEffect = 'copy';
+      }
       setIsDragging(true);
     };
 
     const onDragOver = (e: DragEvent) => {
-      console.log('=== DRAG OVER EVENT ===');
+      // Be permissive - allow all drags over drop zone
+      // External files might not expose types until drop
+      const types = Array.from(e.dataTransfer?.types || []);
+      
+      // Skip if it's clearly web content (has text/html but no Files)
+      if (types.includes('text/html') && !types.includes('Files')) {
+        return;
+      }
+      
       prevent(e);
-      // This is required to allow the drop event
-      e.dataTransfer!.dropEffect = 'copy';
+      if (e.dataTransfer) {
+        e.dataTransfer.dropEffect = 'copy';
+      }
     };
 
     const onDragLeave = (e: DragEvent) => {
-      console.log('=== DRAG LEAVE EVENT ===');
-      console.log('Related target:', e.relatedTarget);
       prevent(e);
-      // Only set dragging to false if we're leaving the drop zone entirely
-      if (!el.contains(e.relatedTarget as Node)) {
-        console.log('Leaving drop zone');
+      dragCounter--;
+      // Only set dragging to false when we've left the drop zone entirely
+      if (dragCounter === 0) {
         setIsDragging(false);
       }
     };
 
     const onDrop = (e: DragEvent) => {
-      console.log('=== DROP EVENT ===');
-      console.log('Event:', e);
-      console.log('DataTransfer files:', e.dataTransfer?.files);
       prevent(e);
+      dragCounter = 0;
       setIsDragging(false);
       
       if (e.dataTransfer?.files?.length) {
-        console.log('Files dropped:', e.dataTransfer.files);
         addFiles(e.dataTransfer.files);
-      } else {
-        console.log('No files in drop event');
       }
     };
 
     // Add event listeners
-    el.addEventListener("dragenter", onDragEnter);
-    el.addEventListener("dragover", onDragOver);
-    el.addEventListener("dragleave", onDragLeave);
-    el.addEventListener("drop", onDrop);
-    console.log('Drag and drop event listeners attached');
+    el.addEventListener("dragenter", onDragEnter, false);
+    el.addEventListener("dragover", onDragOver, false);
+    el.addEventListener("dragleave", onDragLeave, false);
+    el.addEventListener("drop", onDrop, false);
 
-    // Also handle drag events on the document to prevent default browser behavior
-    const handleDocumentDrag = (e: DragEvent) => {
-      console.log('=== DOCUMENT DRAG EVENT ===', e.type);
-      if (e.target === el) return; // Don't prevent if it's our drop zone
-      e.preventDefault();
+    // Handle document-level drag events to prevent default browser behavior
+    // This is important for external file drags
+    const handleDocumentDragEnter = (e: DragEvent) => {
+      // Don't prevent if it's over our drop zone
+      if (el && el.contains(e.target as Node)) return;
+      
+      const types = Array.from(e.dataTransfer?.types || []);
+      // Allow file drags but prevent web content drags
+      if (types.length === 0 || hasFiles(e) || !types.includes('text/html')) {
+        e.preventDefault();
+      }
     };
 
-    document.addEventListener("dragover", handleDocumentDrag);
-    document.addEventListener("drop", handleDocumentDrag);
-    console.log('Document drag event listeners attached');
+    const handleDocumentDragOver = (e: DragEvent) => {
+      // Don't prevent if it's over our drop zone
+      if (el && el.contains(e.target as Node)) return;
+      
+      const types = Array.from(e.dataTransfer?.types || []);
+      // Allow file drags but prevent web content drags
+      if (types.length === 0 || hasFiles(e) || !types.includes('text/html')) {
+        e.preventDefault();
+        if (e.dataTransfer) {
+          e.dataTransfer.dropEffect = 'none';
+        }
+      }
+    };
+
+    const handleDocumentDrop = (e: DragEvent) => {
+      // Don't prevent if it's over our drop zone
+      if (el && el.contains(e.target as Node)) return;
+      
+      // Always prevent default browser behavior for file drops outside drop zone
+      // This prevents browser from opening files
+      const types = Array.from(e.dataTransfer?.types || []);
+      if (types.length === 0 || hasFiles(e) || !types.includes('text/html')) {
+        e.preventDefault();
+      }
+    };
+
+    // Use capture phase for document events to catch them early
+    document.addEventListener("dragenter", handleDocumentDragEnter, true);
+    document.addEventListener("dragover", handleDocumentDragOver, true);
+    document.addEventListener("drop", handleDocumentDrop, true);
 
     return () => {
-      el.removeEventListener("dragenter", onDragEnter);
-      el.removeEventListener("dragover", onDragOver);
-      el.removeEventListener("dragleave", onDragLeave);
-      el.removeEventListener("drop", onDrop);
-      document.removeEventListener("dragover", handleDocumentDrag);
-      document.removeEventListener("drop", handleDocumentDrag);
+      el.removeEventListener("dragenter", onDragEnter, false);
+      el.removeEventListener("dragover", onDragOver, false);
+      el.removeEventListener("dragleave", onDragLeave, false);
+      el.removeEventListener("drop", onDrop, false);
+      document.removeEventListener("dragenter", handleDocumentDragEnter, true);
+      document.removeEventListener("dragover", handleDocumentDragOver, true);
+      document.removeEventListener("drop", handleDocumentDrop, true);
     };
   }, [addFiles]);
 
@@ -328,7 +388,6 @@ export const DocumentsModal: React.FC<DocumentsModalProps> = ({ workflowId, chil
                 : "border-accent hover:border-primary/60 hover:bg-accent/5"
             }`}
             onClick={() => inputRef.current?.click()}
-            onMouseEnter={() => console.log('Mouse entered drop zone')}
           >
             <div
               className={`transition-transform duration-200 ${
@@ -349,7 +408,10 @@ export const DocumentsModal: React.FC<DocumentsModalProps> = ({ workflowId, chil
               type="button"
               variant="secondary"
               className="rounded-2xl"
-              onClick={() => inputRef.current?.click()}
+              onClick={(e) => {
+                e.stopPropagation();
+                inputRef.current?.click();
+              }}
               disabled={isUploading}
             >
               Browse files

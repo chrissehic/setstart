@@ -270,3 +270,17 @@ model CompetitorTableColumn {
   @@unique([workflowId, name])
   @@index([workflowId])
 }
+
+model GoogleDriveToken {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  accessToken   String
+  refreshToken  String?
+  tokenType     String   @default("Bearer")
+  scope         String
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([userId])
+}

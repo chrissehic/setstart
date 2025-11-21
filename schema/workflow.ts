@@ -24,6 +24,19 @@ export const updateWorkflowSchema = z.object({
     logoIcon: z.string().optional(),
     additionalAssets: z.string().optional(), // JSON string of asset URLs
     stage: z.enum(companyStageKeys as [string, ...string[]]).optional(),
+    objectives: z.array(z.object({
+        title: z.string(),
+        description: z.string().optional(),
+        priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional()
+    })).optional(),
+    tasks: z.array(z.object({
+        title: z.string(),
+        description: z.string().optional(),
+        category: z.string(),
+        priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
+        responsibility: z.enum(["IN_HOUSE", "OUTSOURCED"]).optional(),
+        dueDate: z.string().optional()
+    })).optional(),
     product: z.object({
         name: z.string(),
         description: z.string().optional(),

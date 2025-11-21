@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,7 +20,6 @@ import {
   ArrowLeft,
   Download,
   Check,
-  X,
   Loader2,
 } from "lucide-react";
 import { GoogleDriveIcon } from "@/components/ui/GoogleDriveIcon";
@@ -51,7 +50,6 @@ export function GoogleDrivePicker({
   workflowId 
 }: GoogleDrivePickerProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [files, setFiles] = useState<GoogleDriveFile[]>([]);
   const [currentFolder, setCurrentFolder] = useState<string>('root');
   const [folderPath, setFolderPath] = useState<Array<{ id: string; name: string }>>([]);
@@ -60,19 +58,36 @@ export function GoogleDrivePicker({
   const [isLoading, setIsLoading] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  // Initialize authentication
-  useEffect(() => {
-    if (open && !isAuthenticated) {
-      handleAuth();
+  const loadFiles = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/google-drive/files', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folderId: currentFolder })
+      });
+      
+      if (response.status === 401) {
+        setIsAuthenticated(false);
+        return;
+      }
+      
+      const { files: fetchedFiles } = await response.json();
+      setFiles(fetchedFiles);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error('Error loading files:', error);
+    } finally {
+      setIsLoading(false);
     }
-  }, [open, isAuthenticated]);
+  }, [currentFolder]);
 
-  // Load files when folder changes
+  // Check authentication status on mount
   useEffect(() => {
-    if (isAuthenticated && accessToken) {
+    if (open) {
       loadFiles();
     }
-  }, [currentFolder, isAuthenticated, accessToken]);
+  }, [open, loadFiles]);
 
   const handleAuth = async () => {
     try {
@@ -86,47 +101,38 @@ export function GoogleDrivePicker({
         'width=500,height=600,scrollbars=yes,resizable=yes'
       );
 
-      // Listen for auth completion
+      // Listen for postMessage from popup
+      const handleMessage = (event: MessageEvent) => {
+        if (event.origin !== window.location.origin) return;
+        
+        if (event.data.type === 'GOOGLE_DRIVE_AUTH_SUCCESS') {
+          setIsAuthenticated(true);
+          loadFiles();
+          window.removeEventListener('message', handleMessage);
+        } else if (event.data.type === 'GOOGLE_DRIVE_AUTH_ERROR') {
+          console.error('Google Drive authentication failed');
+          window.removeEventListener('message', handleMessage);
+        }
+      };
+
+      window.addEventListener('message', handleMessage);
+
+      // Fallback: check if popup is closed without success
       const checkClosed = setInterval(() => {
-        if (popup?.closed) {
-          clearInterval(checkClosed);
-          // Check if we have tokens in localStorage
-          const tokens = localStorage.getItem('google-drive-tokens');
-          if (tokens) {
-            const { access_token } = JSON.parse(tokens);
-            setAccessToken(access_token);
-            setIsAuthenticated(true);
+        try {
+          if (popup?.closed) {
+            clearInterval(checkClosed);
+            window.removeEventListener('message', handleMessage);
           }
+        } catch (error) {
+          // Handle Cross-Origin-Opener-Policy errors gracefully
+          console.log('Popup monitoring blocked by browser policy, relying on postMessage only');
+          clearInterval(checkClosed);
         }
       }, 1000);
     } catch (error) {
       console.error('Auth error:', error);
     }
-  };
-
-  const loadFiles = async () => {
-    if (!accessToken) return;
-    
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/google-drive/files', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessToken, folderId: currentFolder })
-      });
-      
-      const { files: fetchedFiles } = await response.json();
-      setFiles(fetchedFiles);
-    } catch (error) {
-      console.error('Error loading files:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleFolderClick = (folder: GoogleDriveFile) => {
-    setFolderPath(prev => [...prev, { id: folder.id, name: folder.name }]);
-    setCurrentFolder(folder.id);
   };
 
   const handleBackClick = () => {
@@ -162,7 +168,6 @@ export function GoogleDrivePicker({
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              accessToken,
               fileId: file.id,
               fileName: file.name,
               workflowId
@@ -180,8 +185,8 @@ export function GoogleDrivePicker({
     }
   };
 
-  const filteredFiles = files.filter(file =>
-    file.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredFiles = (files || []).filter(file =>
+    file.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getFileIcon = (file: GoogleDriveFile) => {
@@ -224,7 +229,10 @@ export function GoogleDrivePicker({
             <p className="text-sm text-muted-foreground mb-6 text-center">
               You need to authenticate with Google Drive to access your files
             </p>
-            <Button onClick={handleAuth}>
+            <Button onClick={() => {
+              console.log('Button clicked! isAuthenticated:', isAuthenticated);
+              handleAuth();
+            }}>
               <GoogleDriveIcon className="h-4 w-4 mr-2" />
               Connect Google Drive
             </Button>
@@ -243,7 +251,7 @@ export function GoogleDrivePicker({
               </Button>
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <span>Drive</span>
-                {folderPath.map((folder, index) => (
+                {folderPath.map((folder) => (
                   <span key={folder.id}>
                     <span className="mx-1">/</span>
                     <span>{folder.name}</span>

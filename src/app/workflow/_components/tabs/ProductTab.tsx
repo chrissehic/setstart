@@ -20,7 +20,8 @@ export const ProductTab = ({
 }: ProductTabProps) => {
   // Helper function to get the appropriate icon for a product type
   const getProductIcon = (productType: string) => {
-    const IconComponent = PRODUCT_TYPE_ICONS[productType] || PRODUCT_TYPE_ICONS["Other"];
+    const IconComponent =
+      PRODUCT_TYPE_ICONS[productType] || PRODUCT_TYPE_ICONS["Other"];
     return <IconComponent className="size-10 stroke-1 text-muted-foreground" />;
   };
 
@@ -36,9 +37,9 @@ export const ProductTab = ({
               Define your Offering
             </h2>
             <p className="text-sm text-muted-foreground max-w-lg text-wrap">
-              Showcase your current offering (product, service, etc.). This helps
-              your team understand what you&apos;re building and delivering to
-              customers.
+              Showcase your current offering (product, service, etc.). This
+              helps your team understand what you&apos;re building and
+              delivering to customers.
             </p>
             <Button variant="link" className="no-underline font-normal">
               Set up your offering
@@ -87,9 +88,7 @@ export const ProductTab = ({
                         <div className="flex items-start justify-between">
                           <div className="flex-1 min-w-0 space-y-1">
                             {product.type && (
-                              <span
-                                className="text-xs flex-shrink-0"
-                              >
+                              <span className="text-xs flex-shrink-0">
                                 {product.type}
                               </span>
                             )}

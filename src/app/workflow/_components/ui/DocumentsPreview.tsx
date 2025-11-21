@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileText, FileImage } from "lucide-react";
+import { FileText, FileImage, FileSpreadsheet, FileChartPie } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useDocuments } from "@/hooks/useDocuments";
@@ -18,11 +18,19 @@ export function DocumentsPreview({ workflowId }: DocumentsPreviewProps) {
   const getFileIcon = (type: string) => {
     switch (type) {
       case "pdf":
-        return <FileText className="size-4 text-muted-foreground" />;
+        return <FileText className="size-6 stroke-1.5 text-muted-foreground" />;
       case "image":
-        return <FileImage className="size-4 text-muted-foreground" />;
+        return <FileImage className="size-6 stroke-1.5 text-muted-foreground" />;
+        case "csv":
+        return <FileSpreadsheet className="size-6 stroke-1.5 text-muted-foreground" />;
+      case "docx":
+        return <FileText className="size-6 stroke-1.5 text-muted-foreground" />;
+      case "xlsx":
+        return <FileSpreadsheet className="size-6 stroke-1.5 text-muted-foreground" />;
+      case "pptx":
+        return <FileChartPie className="size-6 stroke-1.5 text-muted-foreground" />;
       default:
-        return <FileText className="size-4 text-muted-foreground" />;
+        return <FileText className="size-6 stroke-1.5 text-muted-foreground" />;
     }
   };
 
@@ -76,7 +84,7 @@ export function DocumentsPreview({ workflowId }: DocumentsPreviewProps) {
       {/* Document List */}
       <div className="space-y-2 grid grid-cols-4 gap-1 items-center">
         {documents.slice(0, 4).map((document) => (
-          <Card key={document.id} className="w-full p-0">
+          <Card key={document.id} className="w-full p-0 rounded-md">
             <CardContent className="p-2 flex flex-row items-center gap-2 h-full">
               <div className="flex items-center gap-2 w-full">
                 {getFileIcon(document.fileType)}
@@ -85,8 +93,8 @@ export function DocumentsPreview({ workflowId }: DocumentsPreviewProps) {
                     <p className="text-sm font-medium overflow-hidden text-ellipsis whitespace-nowrap line-clamp-1 w-full">
                       {document.name}
                     </p>
-                    <p className="text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap line-clamp-1 w-full">
-                      {document.fileType.toUpperCase()}
+                    <p className="text-xs text-muted-foreground capitalize overflow-hidden text-ellipsis whitespace-nowrap line-clamp-1 w-full">
+                      {document.fileType}
                     </p>
                   </div>
                 </div>
