@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, memo, useCallback } from "react";
 import Image from "next/image";
 
 declare global {
@@ -44,7 +44,7 @@ interface DocumentsSectionProps {
 }
 
 export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
-  const [search, setSearch] = useState("");
+  const [search] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [showGoogleDriveCard, setShowGoogleDriveCard] = useState(true);
   // Remove modal state since we're using native picker
@@ -180,13 +180,15 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
       script.src = 'https://apis.google.com/js/api.js';
       script.onload = () => {
         window.gapi.load('picker', () => {
-          const picker = new window.google.picker.PickerBuilder()
-            .addView(window.google.picker.ViewId.DOCS)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const googlePicker = window.google as any;
+          const picker = new googlePicker.picker.PickerBuilder()
+            .addView(googlePicker.picker.ViewId.DOCS)
             .setOAuthToken(accessToken)
-            .enableFeature(window.google.picker.Feature.MULTISELECT_ENABLED)
-            .setCallback((data: any) => {
-              if (data.action === window.google.picker.Action.PICKED) {
-                const files = data.docs.map((doc: any) => ({
+            .enableFeature(googlePicker.picker.Feature.MULTISELECT_ENABLED)
+            .setCallback((data: { action: string; docs: Array<{ id: string; name: string; mimeType: string; sizeBytes?: string; url?: string; thumbnailUrl?: string }> }) => {
+              if (data.action === googlePicker.picker.Action.PICKED) {
+                const files = data.docs.map((doc) => ({
                   id: doc.id,
                   name: doc.name,
                   mimeType: doc.mimeType,
@@ -228,9 +230,10 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
     }
   };
 
-  const formatFileSize = (size?: string) => {
-    if (!size) return '';
-    const bytes = parseInt(size);
+  const formatFileSize = (size?: string | number) => {
+    if (size === undefined || size === null) return '';
+    const bytes = typeof size === 'number' ? size : parseInt(size);
+    if (isNaN(bytes)) return '';
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -278,19 +281,114 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
     return filtered;
   }, [search, typeFilter, documents]);
 
-  // Handle document deletion
-  const handleDeleteDocument = async (documentId: string) => {
+
+  // Handle filter toggle
+  const handleFilterToggle = useCallback((filterType: string) => {
+    setTypeFilter(current => current === filterType ? "all" : filterType);
+  }, []);
+
+  // Memoize document deletion handler
+  const handleDeleteDocument = useCallback(async (documentId: string) => {
     try {
       await deleteDocumentMutation.mutateAsync({ documentId, workflowId });
     } catch {
       // Error handling is now done in the hook
     }
-  };
+  }, [deleteDocumentMutation, workflowId]);
 
-  // Handle filter toggle
-  const handleFilterToggle = (filterType: string) => {
-    setTypeFilter(current => current === filterType ? "all" : filterType);
-  };
+  // Memoize document card component
+  const DocumentCard = memo(({ document }: { document: typeof documents[0] }) => (
+    <Card
+      key={document.id}
+      className="hover:shadow-md col-span-1 py-0 w-full h-fill cursor-pointer group/document hover:bg-muted transition-all duration-300 overflow-hidden"
+      onClick={() => window.open(document.fileUrl, "_blank")}
+    >
+      {/* Document Preview Header */}
+      <div className="relative h-32 w-full overflow-hidden">
+        {document.fileType === "image" ? (
+          <Image
+            src={document.fileUrl}
+            alt={document.name}
+            fill
+            className="object-cover group-hover/document:scale-105 transition-transform duration-300"
+            loading="lazy"
+            unoptimized={false}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 300px"
+            onError={(e) => {
+              // Fallback to placeholder if image fails to load
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              const placeholder = target.nextElementSibling as HTMLElement;
+              if (placeholder) placeholder.style.display = 'flex';
+            }}
+          />
+        ) : null}
+        
+        {/* Placeholder for non-image files or failed image loads */}
+        <div 
+          className={`absolute inset-0 flex items-center justify-center ${
+            document.fileType === "image" ? "hidden" : "flex"
+          }`}
+          style={{
+            background: `linear-gradient(135deg, 
+              hsl(var(--primary) / 0.1) 0%, 
+              hsl(var(--primary) / 0.05) 50%, 
+              hsl(var(--accent) / 0.1) 100%)`
+          }}
+        >
+          <div className="text-center">
+            {getFileIcon(document.fileType)}
+          </div>
+        </div>
+      </div>
+
+      {/* Document Content */}
+      <CardHeader className="">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-3 w-full">
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-base font-medium text-accent-foreground group-hover/document:text-primary-foreground transition-colors">
+                {formatFileName(document.name)}
+              </CardTitle>
+              <p className="text-xs text-muted-foreground line-clamp-2">
+                {formatFileSize(document.sizeBytes)}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 opacity-0 group-hover/document:opacity-100 transition-opacity"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive text-base"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (confirm(`Are you sure you want to delete "${document.name}"?`)) {
+                      handleDeleteDocument(document.id);
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </CardHeader>
+    </Card>
+  ));
+
+  DocumentCard.displayName = 'DocumentCard';
 
   if (isLoading) {
     return (
@@ -524,94 +622,7 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
           /* Documents list when documents exist */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredDocuments.map((document) => (
-              <Card
-                key={document.id}
-                className="hover:shadow-md col-span-1 py-0 w-full h-fill cursor-pointer group/document hover:bg-muted transition-all duration-300 overflow-hidden"
-                onClick={() => window.open(document.fileUrl, "_blank")}
-              >
-                {/* Document Preview Header */}
-                <div className="relative h-32 w-full overflow-hidden">
-                  {document.fileType === "image" ? (
-                    <Image
-                      src={document.fileUrl}
-                      alt={document.name}
-                      fill
-                      className="object-cover group-hover/document:scale-105 transition-transform duration-300"
-                      onError={(e) => {
-                        // Fallback to placeholder if image fails to load
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                        const placeholder = target.nextElementSibling as HTMLElement;
-                        if (placeholder) placeholder.style.display = 'flex';
-                      }}
-                    />
-                  ) : null}
-                  
-                  {/* Placeholder for non-image files or failed image loads */}
-                  <div 
-                    className={`absolute inset-0 flex items-center justify-center ${
-                      document.fileType === "image" ? "hidden" : "flex"
-                    }`}
-                    style={{
-                      background: `linear-gradient(135deg, 
-                        hsl(var(--primary) / 0.1) 0%, 
-                        hsl(var(--primary) / 0.05) 50%, 
-                        hsl(var(--accent) / 0.1) 100%)`
-                    }}
-                  >
-                    <div className="text-center">
-                      {getFileIcon(document.fileType)}
-                      {/* <p className="text-xs text-muted-foreground mt-1 font-medium">
-                        {document.fileType.toUpperCase()}
-                      </p> */}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Document Content */}
-                <CardHeader className="">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3 w-full">
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="text-base font-medium text-accent-foreground group-hover/document:text-primary-foreground transition-colors">
-                          {formatFileName(document.name)}
-                        </CardTitle>
-                        <p className="text-xs text-muted-foreground line-clamp-2">
-                          {formatFileSize(document.size)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 opacity-0 group-hover/document:opacity-100 transition-opacity"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive text-base"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (confirm(`Are you sure you want to delete "${document.name}"?`)) {
-                                handleDeleteDocument(document.id);
-                              }
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                </CardHeader>
-              </Card>
+              <DocumentCard key={document.id} document={document} />
             ))}
           </div>
         )}

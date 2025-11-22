@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryState, parseAsString } from "nuqs";
 import { cn } from "@/lib/utils";
 import {
   ArrowLeft,
@@ -230,20 +231,51 @@ const ObjectivesSection = ({
     error,
     tasks,
   });
-  const [activeTab, setActiveTab] = useState<"objectives" | "tasks">(
-    "objectives"
+  const [activeTab, setActiveTab] = useQueryState(
+    "tab",
+    parseAsString.withDefault("objectives").withOptions({ history: "push" })
   );
-  const [selectedObjective, setSelectedObjective] = useState<Objective | null>(
-    null
+  const [selectedObjectiveId, setSelectedObjectiveId] = useQueryState(
+    "objective",
+    parseAsString.withOptions({ history: "push" })
   );
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedTaskId, setSelectedTaskId] = useQueryState(
+    "task",
+    parseAsString.withOptions({ history: "push" })
+  );
+
+  // Derive selectedObjective and selectedTask from IDs
+  const selectedObjective = selectedObjectiveId
+    ? objectives.find((obj) => obj.id === selectedObjectiveId) || null
+    : null;
+  const selectedTask = selectedTaskId
+    ? tasks.find((task) => task.id === selectedTaskId) || null
+    : null;
+
+  // Helper to set selected objective
+  const handleSetSelectedObjective = (objective: Objective | null) => {
+    if (objective) {
+      setSelectedObjectiveId(objective.id);
+    } else {
+      setSelectedObjectiveId(null);
+    }
+  };
+
+  // Helper to set selected task
+  const handleSetSelectedTask = (task: Task | null) => {
+    if (task) {
+      setSelectedTaskId(task.id);
+    } else {
+      setSelectedTaskId(null);
+    }
+  };
 
   // Use the delete objective hook for optimistic updates
   const deleteObjectiveMutation = useDeleteObjective();
 
   // Handle back to objectives list
   const handleBackToObjectives = () => {
-    setSelectedObjective(null);
+    handleSetSelectedObjective(null);
   };
 
   const handleDeleteObjective = async (
@@ -307,7 +339,7 @@ const ObjectivesSection = ({
         <TaskDetailPane 
           task={selectedTask} 
           onTaskUpdate={UpdateTask} 
-          onBack={() => setSelectedTask(null)}
+          onBack={() => handleSetSelectedTask(null)}
           people={people}
         />
       </div>
@@ -388,7 +420,7 @@ const ObjectivesSection = ({
           workflowId={workflowId}
           people={people}
           objectiveId={selectedObjective.id}
-          setSelectedTask={setSelectedTask}
+          setSelectedTask={handleSetSelectedTask}
         />
       </div>
     );
@@ -452,11 +484,11 @@ const ObjectivesSection = ({
                       <TableRow
                         key={objective.id}
                         className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => setSelectedObjective(objective)}
+                        onClick={() => handleSetSelectedObjective(objective)}
                       >
                         <TableCell>
-                          <div className="max-w-[80%]">
-                            <p className="font-medium text-base line-clamp-1">
+                          <div className="flex gap-2 flex-col items-start py-1">
+                            <p className="font-medium text-base line-clamp-1 text-ellipsis">
                               {objective.title}
                             </p>
                             {objective.description && (
@@ -553,7 +585,7 @@ const ObjectivesSection = ({
             workflowId={workflowId}
             people={people}
             selectedTask={selectedTask}
-            setSelectedTask={setSelectedTask}
+            setSelectedTask={handleSetSelectedTask}
           />
         </TabsContent>
       </Tabs>

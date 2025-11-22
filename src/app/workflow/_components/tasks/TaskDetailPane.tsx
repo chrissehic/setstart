@@ -91,7 +91,7 @@ const TaskDetailPane: React.FC<TaskDetailPaneProps> = ({
   return (
     <div
       className={cn(
-        "w-full max-w-4xl mx-auto flex flex-col gap-6 h-full",
+        "w-full mx-auto flex flex-col gap-6 h-full",
         "transition-all duration-150"
       )}
     >

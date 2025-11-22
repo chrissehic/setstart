@@ -16,6 +16,10 @@ export function useDocuments(workflowId: string) {
     queryKey: documentKeys.byWorkflow(workflowId),
     queryFn: () => getDocuments(workflowId),
     enabled: !!workflowId,
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep unused data in cache for 10 minutes (formerly cacheTime)
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnMount: false, // Use cached data if available on mount
     retry: (failureCount, error) => {
       // Retry up to 3 times for network errors, but not for validation errors
       if (failureCount < 3 && (error as any)?.message?.includes('fetch failed')) {
@@ -42,9 +46,10 @@ export function useCreateDocument() {
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
     onSuccess: (data, variables) => {
       if (data.success) {
-        // Invalidate and refetch documents for the workflow
+        // Only invalidate queries, let React Query handle refetch based on staleTime
         queryClient.invalidateQueries({
-          queryKey: documentKeys.byWorkflow(variables.workflowId)
+          queryKey: documentKeys.byWorkflow(variables.workflowId),
+          refetchType: 'active', // Only refetch active queries
         });
       }
     }
@@ -66,9 +71,10 @@ export function useUpdateDocument() {
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
     onSuccess: (data, variables) => {
       if (data.success) {
-        // Invalidate and refetch documents for the workflow
+        // Only invalidate queries, let React Query handle refetch based on staleTime
         queryClient.invalidateQueries({
-          queryKey: documentKeys.byWorkflow(variables.workflowId)
+          queryKey: documentKeys.byWorkflow(variables.workflowId),
+          refetchType: 'active', // Only refetch active queries
         });
       }
     }
@@ -129,9 +135,10 @@ export function useDeleteDocument() {
       toast.success("Document deleted successfully");
     },
     onSettled: (_, __, variables) => {
-      // Always refetch after error or success to ensure consistency
+      // Only invalidate active queries to ensure consistency without unnecessary refetches
       queryClient.invalidateQueries({ 
-        queryKey: documentKeys.byWorkflow(variables.workflowId) 
+        queryKey: documentKeys.byWorkflow(variables.workflowId),
+        refetchType: 'active',
       });
     },
   });

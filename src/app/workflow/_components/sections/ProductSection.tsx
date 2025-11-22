@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryState, parseAsString } from "nuqs";
 import { Plus, Layers, AlertCircleIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,8 +21,25 @@ interface ProductSectionProps {
 
 export function ProductSection({ workflowId }: ProductSectionProps) {
   const { data: products = [], isLoading, error } = useProducts(workflowId);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProductId, setSelectedProductId] = useQueryState(
+    "product",
+    parseAsString.withOptions({ history: "push" })
+  );
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  // Derive selectedProduct from ID
+  const selectedProduct = selectedProductId
+    ? products.find((product) => product.id === selectedProductId) || null
+    : null;
+
+  // Helper to set selected product
+  const handleSetSelectedProduct = (product: Product | null) => {
+    if (product) {
+      setSelectedProductId(product.id);
+    } else {
+      setSelectedProductId(null);
+    }
+  };
 
   // Helper function to get the appropriate icon for a product type
   const getProductIcon = (productType: string) => {
@@ -31,12 +49,12 @@ export function ProductSection({ workflowId }: ProductSectionProps) {
 
   // Handle product selection
   const handleProductSelect = (product: Product) => {
-    setSelectedProduct(product);
+    handleSetSelectedProduct(product);
   };
 
   // Handle going back to product list
   const handleBackToList = () => {
-    setSelectedProduct(null);
+    handleSetSelectedProduct(null);
   };
 
   // Handle edit mode - open the modal
@@ -87,7 +105,7 @@ export function ProductSection({ workflowId }: ProductSectionProps) {
         </div>
         <ProductModal
           workflowId={workflowId}
-          onProductCreated={(newProduct) => setSelectedProduct(newProduct)}
+          onProductCreated={(newProduct) => handleSetSelectedProduct(newProduct)}
         >
           <Button>
             <Plus className="h-4 w-4" />
@@ -122,7 +140,7 @@ export function ProductSection({ workflowId }: ProductSectionProps) {
             </p>
             <ProductModal
               workflowId={workflowId}
-              onProductCreated={(newProduct) => setSelectedProduct(newProduct)}
+              onProductCreated={(newProduct) => handleSetSelectedProduct(newProduct)}
             >
               <Button variant="outline">
                 <Plus className="h-4 w-4" />

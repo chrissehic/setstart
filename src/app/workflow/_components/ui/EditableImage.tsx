@@ -43,7 +43,9 @@ export function EditableImage({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [localImageUrl, setLocalImageUrl] = useState<string | null | undefined>(imageUrl);
-  const [cacheBuster, setCacheBuster] = useState(Date.now());
+  const [cacheBuster, setCacheBuster] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  const mountedRef = useRef(false);
   const queryClient = useQueryClient();
 
   const { mutate: updateWorkflow } = useMutation({
@@ -52,8 +54,10 @@ export function EditableImage({
       toast.success("Image updated successfully!");
       // Update the React Query cache with the new data
       queryClient.setQueryData(["workflow", workflowId], updatedWorkflow);
-      // Force re-render of all components using this image
-      setCacheBuster(Date.now());
+      // Force re-render of all components using this image (only on client)
+      if (mountedRef.current) {
+        setCacheBuster(Date.now());
+      }
       // Emit event to notify other components
       imageEventEmitter.emit({ workflowId, field, imageUrl: localImageUrl || null });
     },
@@ -63,16 +67,27 @@ export function EditableImage({
     },
   });
 
+  // Set mounted state on client
+  useEffect(() => {
+    setMounted(true);
+    mountedRef.current = true;
+  }, []);
+
   // Update local state when imageUrl prop changes
   useEffect(() => {
     // Convert empty strings to undefined for local state
     const normalizedImageUrl = imageUrl && imageUrl.trim() !== "" ? imageUrl : undefined;
     setLocalImageUrl(normalizedImageUrl);
-    setCacheBuster(Date.now());
-  }, [imageUrl, field]);
+    // Only update cache buster on client side after mount
+    if (mounted) {
+      setCacheBuster(Date.now());
+    }
+  }, [imageUrl, field, mounted]);
 
   // Listen for image updates from other components
   useEffect(() => {
+    if (!mounted) return;
+    
     const unsubscribe = imageEventEmitter.subscribe((event) => {
       if (event.workflowId === workflowId && event.field === field) {
         // Convert empty strings to undefined for local state
@@ -83,7 +98,7 @@ export function EditableImage({
     });
 
     return unsubscribe;
-  }, [workflowId, field]);
+  }, [workflowId, field, mounted]);
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -134,7 +149,9 @@ export function EditableImage({
     try {
       // Clear local state immediately for instant UI update
       setLocalImageUrl(undefined);
-      setCacheBuster(Date.now());
+      if (mountedRef.current) {
+        setCacheBuster(Date.now());
+      }
 
       // Small delay to ensure state update is processed
       await new Promise(resolve => setTimeout(resolve, 10));
@@ -184,8 +201,13 @@ export function EditableImage({
   };
 
   // Create cache-busted URL for Next.js Image component
+  // Only add cache buster on client side to prevent hydration mismatches
   const getCacheBustedUrl = (url: string | null | undefined) => {
     if (!url) return url;
+    // On server or before mount, return URL without cache buster
+    if (!mounted || cacheBuster === 0) {
+      return url;
+    }
     const separator = url.includes('?') ? '&' : '?';
     return `${url}${separator}v=${cacheBuster}`;
   };

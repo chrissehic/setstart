@@ -157,7 +157,7 @@ const Sidebar = memo(function Sidebar({
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                  className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                  className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-md"
                   align="start"
                   side={isMobile ? "bottom" : "right"}
                   sideOffset={4}
@@ -187,7 +187,7 @@ const Sidebar = memo(function Sidebar({
                     className="gap-2 p-2"
                     onClick={handleCreateProject}
                   >
-                    <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
+                    <div className="flex size-6 items-center justify-center rounded border bg-transparent">
                       <Plus className="size-4" />
                     </div>
                     <div className="text-muted-foreground font-medium">
@@ -297,12 +297,12 @@ const Sidebar = memo(function Sidebar({
                         className="cursor-pointer data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                         tooltip={isCollapsed ? userDisplayName : undefined}
                       >
-                        <Avatar className="h-8 w-8 rounded-lg shrink-0">
+                        <Avatar className="h-8 w-8 rounded-md shrink-0">
                           <AvatarImage
                             src={user?.imageUrl || ""}
                             alt={userDisplayName}
                           />
-                          <AvatarFallback className="rounded-lg">
+                          <AvatarFallback className="rounded-md">
                             {userInitial}
                           </AvatarFallback>
                         </Avatar>
@@ -321,19 +321,19 @@ const Sidebar = memo(function Sidebar({
                     </DropdownMenuTrigger>
 
                     <DropdownMenuContent
-                      className="min-w-56 rounded-lg"
+                      className="min-w-56 rounded-md"
                       side={isMobile ? "bottom" : "right"}
                       align="end"
                       sideOffset={4}
                     >
                       <DropdownMenuLabel className="p-0 font-normal">
                         <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                          <Avatar className="h-8 w-8 rounded-lg shrink-0">
+                          <Avatar className="h-8 w-8 rounded-md shrink-0">
                             <AvatarImage
                               src={user?.imageUrl || ""}
                               alt={userDisplayName}
                             />
-                            <AvatarFallback className="rounded-lg">
+                            <AvatarFallback className="rounded-md">
                               {userInitial}
                             </AvatarFallback>
                           </Avatar>
@@ -396,8 +396,8 @@ const Sidebar = memo(function Sidebar({
                 className="cursor-default opacity-50 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 tooltip={isCollapsed ? "Loading..." : undefined}
               >
-                <Avatar className="h-8 w-8 rounded-lg shrink-0">
-                  <AvatarFallback className="rounded-lg">
+                <Avatar className="h-8 w-8 rounded-md shrink-0">
+                  <AvatarFallback className="rounded-md">
                     <Loader2 className="h-4 w-4 animate-spin" />
                   </AvatarFallback>
                 </Avatar>

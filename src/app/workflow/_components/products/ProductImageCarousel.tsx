@@ -120,7 +120,7 @@ export function ProductImageCarousel({
                   priority={index === 0}
                 />
                 {/* Image overlay with type indicator */}
-                <div className="absolute top-3 left-3">
+                <div className="absolute top-3 left-3 opacity-0 transition-all duration-300 group-hover/imagecard:opacity-100">
                   <Badge
                     className={`
                     text-xs font-medium text-foreground

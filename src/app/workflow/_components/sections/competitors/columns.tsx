@@ -585,7 +585,7 @@ function EditableColumnHeader({
 
   if (isEditing) {
     return (
-      <div className="flex items-center gap-2 w-full">
+      <div className="flex items-center gap-2 w-full capitalize">
         <Input
           variant="underline"
           value={editValue}
@@ -602,7 +602,7 @@ function EditableColumnHeader({
 
   return (
     <div
-      className="flex items-center justify-between w-full group cursor-pointer"
+      className="flex items-center justify-between w-full group cursor-pointer capitalize"
       onMouseEnter={() => setIsSelected(true)}
       onMouseLeave={() => setIsSelected(false)}
     >

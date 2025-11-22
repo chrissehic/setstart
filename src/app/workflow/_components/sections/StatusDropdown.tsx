@@ -26,12 +26,16 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
       <DropdownMenuTrigger asChild>
         <Badge
           className={cn("text-xs cursor-pointer", statusConfig.color)}
+          onClick={(e) => e.stopPropagation()}
         >
           {statusConfig.label}
           <ChevronDown className="h-4 w-4" />
         </Badge>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent 
+        align="end"
+        onClick={(e) => e.stopPropagation()}
+      >
         {[
           TaskStatus.NOT_STARTED,
           TaskStatus.IN_PROGRESS,
@@ -42,7 +46,10 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
           return (
             <DropdownMenuItem
               key={statusOption}
-              onClick={() => onStatusChange(statusOption)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onStatusChange(statusOption);
+              }}
             >
               <span className="text-muted-foreground text-xs">Set as</span> 
               <Badge className={cn("text-xs", config.color)}>

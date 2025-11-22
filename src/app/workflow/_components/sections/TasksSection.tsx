@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useQueryState, parseAsString, parseAsArrayOf } from "nuqs";
 import { classWrapper } from "@/styles/commonStyles";
 import { type Person, TaskStatus, Task } from "@/types";
 import TaskCard from "../ui/TaskCard";
@@ -52,10 +53,22 @@ function TasksSection({
   selectedTask,
   setSelectedTask,
 }: TasksSectionProps) {
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | TaskStatus>("all");
-  const [categoryFilter, setCategoryFilter] = useState<"all" | string>("all");
-  const [personFilter, setPersonFilter] = useState<string[]>([]);
+  const [search, setSearch] = useQueryState(
+    "search",
+    parseAsString.withDefault("").withOptions({ history: "push" })
+  );
+  const [statusFilter, setStatusFilter] = useQueryState(
+    "status",
+    parseAsString.withDefault("all").withOptions({ history: "push" })
+  );
+  const [categoryFilter, setCategoryFilter] = useQueryState(
+    "category",
+    parseAsString.withDefault("all").withOptions({ history: "push" })
+  );
+  const [personFilter, setPersonFilter] = useQueryState(
+    "people",
+    parseAsArrayOf(parseAsString).withDefault([]).withOptions({ history: "push" })
+  );
   const [isCreatingWithAI, setIsCreatingWithAI] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
@@ -97,7 +110,7 @@ function TasksSection({
         .toLowerCase()
         .includes(search.toLowerCase());
       const matchesStatus =
-        statusFilter === "all" || task.status === statusFilter;
+        statusFilter === "all" || task.status === (statusFilter as TaskStatus);
       const matchesCategory =
         categoryFilter === "all" || task.category === categoryFilter;
       const matchesPerson =
