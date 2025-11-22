@@ -12,7 +12,6 @@ import Sidebar from "../layout/SidebarMenu";
 import type { WorkflowData, WorkflowWithDetails } from "@/types/workflow";
 import { COMPANY_STAGES } from "@/types/companyStages";
 import { SectionHeader } from "../ui/SectionHeader";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { CARD_CLASS, SECTION_CLASS, WORKSPACE_ITEMS } from "@/lib/constants";
 import { SectionTabs } from "./SectionTabs";
 import { useWorkspaceNavigation } from "@/hooks/useWorkspaceNavigation";
@@ -34,7 +33,6 @@ const Workspace = ({
   allWorkflows,
   currentWorkflow,
 }: WorkspaceProps) => {
-  const [mounted, setMounted] = useState(false);
   const { tabActive, handleTabChange } = useWorkspaceNavigation();
   // const { shouldShowOverlay } = useOnboarding(data);
   const [fullScreen, setFullScreen] = useState(false);
@@ -72,14 +70,6 @@ const Workspace = ({
       COMPANY_STAGES?.find((s) => s?.key === data.stage) ?? COMPANY_STAGES[0],
     [data.stage]
   );
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return <LoadingSpinner />;
-  }
 
   return (
     <main className={cn("grid gap-2 h-full w-full overflow-hidden p-2")}>

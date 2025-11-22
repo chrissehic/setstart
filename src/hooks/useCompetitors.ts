@@ -69,7 +69,12 @@ export function useAddCompetitor(workflowId: string) {
     },
     onSuccess: () => {
       toast.success("Competitor added successfully");
+      // Invalidate and immediately refetch competitors
       queryClient.invalidateQueries({ 
+        queryKey: competitorKeys.byWorkflow(workflowId) 
+      });
+      // Force immediate refetch
+      queryClient.refetchQueries({ 
         queryKey: competitorKeys.byWorkflow(workflowId) 
       });
     },
@@ -93,7 +98,12 @@ export function useUpdateCompetitor(workflowId: string) {
     },
     onSuccess: () => {
       toast.success("Competitor updated successfully");
+      // Invalidate and immediately refetch competitors
       queryClient.invalidateQueries({ 
+        queryKey: competitorKeys.byWorkflow(workflowId) 
+      });
+      // Force immediate refetch
+      queryClient.refetchQueries({ 
         queryKey: competitorKeys.byWorkflow(workflowId) 
       });
     },

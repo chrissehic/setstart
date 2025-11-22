@@ -164,7 +164,7 @@ export const AssistantPane = ({ data }: AssistantPaneProps) => {
           </div>
         ) : (
           /* Messages */
-          <ScrollArea className="flex-1 p-6">
+          <ScrollArea className="flex-1 p-4">
             <div className="space-y-4">
               {messages.map((message) => (
                 <div
@@ -174,18 +174,13 @@ export const AssistantPane = ({ data }: AssistantPaneProps) => {
                     message.role === "user" ? "justify-end" : "justify-start"
                   )}
                 >
-                  {message.role === "assistant" && (
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      {/* <Bot className="w-4 h-4 text-primary" /> */}
-                    </div>
-                  )}
 
                   <div
                     className={cn(
-                      "max-w-[80%] rounded-lg px-4 py-3",
+                      "rounded-lg px-3 py-2",
                       message.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-foreground"
+                        ? "max-w-[80%] bg-accent text-accent-foreground"
+                        : "text-foreground"
                     )}
                   >
                     <p className="text-sm whitespace-pre-wrap">
@@ -195,12 +190,6 @@ export const AssistantPane = ({ data }: AssistantPaneProps) => {
                       {message.timestamp.toLocaleTimeString()}
                     </p>
                   </div>
-
-                  {message.role === "user" && (
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                      {/* <User className="w-4 h-4 text-muted-foreground" /> */}
-                    </div>
-                  )}
                 </div>
               ))}
 

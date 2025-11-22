@@ -17,7 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronsUpDown, LayoutTemplate, LogOut, Plus } from "lucide-react";
+import { ChevronsUpDown, LayoutTemplate, LogOut, Plus, Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSidebarWidth } from "@/hooks/useSidebarWidth";
 import { WorkflowWithDetails } from "@/types";
@@ -80,7 +80,23 @@ const Sidebar = memo(function Sidebar({
   const { isCollapsed, sidebarRef } = useSidebarWidth();
   const router = useRouter();
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const { user } = useUser();
+  const { user, isLoaded: isUserLoaded } = useUser();
+  
+  // Memoize user data to prevent unnecessary re-renders and reloads
+  const userDisplayName = useMemo(() => {
+    if (!user) return "User";
+    return user.fullName || user.firstName || "User";
+  }, [user]);
+  
+  const userEmail = useMemo(() => {
+    if (!user?.emailAddresses?.[0]) return 'No email';
+    return user.emailAddresses[0].emailAddress;
+  }, [user]);
+  
+  const userInitial = useMemo(() => {
+    if (!user) return "U";
+    return user.fullName?.[0] || user.firstName?.[0] || "U";
+  }, [user]);
 
   // Use the currentMode from props, fallback to "previewPanel" if not provided
   const switchMode = currentMode || "previewPanel";
@@ -105,7 +121,7 @@ const Sidebar = memo(function Sidebar({
     return switchMode === "previewPanel" ? "Ask assistant" : "Dashboard  ";
   }, [switchMode]);
   return (
-    <div ref={sidebarRef} className="h-full justify-between flex flex-col">
+    <div ref={sidebarRef} className="h-full justify-between flex flex-col w-full">
       {/* Project Selection Header */}
       {allWorkflows && currentWorkflow && (
         <SidebarHeader className="w-full px-1">
@@ -268,104 +284,137 @@ const Sidebar = memo(function Sidebar({
             <ModeToggle isCollapsed={isCollapsed} />
           </SidebarMenuItem>
 
-          {/* Authenticated user */}
-          <SignedIn>
-            <SidebarMenuItem>
-              {/* User dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <SidebarMenuButton
-                    size="lg"
-                    className="cursor-pointer data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                    tooltip={isCollapsed ? (user?.fullName || "User") : undefined}
-                  >
-                    <Avatar className="h-8 w-8 rounded-lg">
-                      <AvatarImage
-                        src={user?.imageUrl || ""}
-                        alt={user?.fullName || ""}
-                      />
-                      <AvatarFallback className="rounded-lg">
-                        {user?.fullName?.[0] || "CN"}
-                      </AvatarFallback>
-                    </Avatar>
-                    {!isCollapsed && (
-                      <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-medium">
-                          {user?.fullName}
-                        </span>
-                        <span className="truncate text-xs text-muted-foreground">
-                          {user?.emailAddresses?.[0]?.emailAddress || 'No email'}
-                        </span>
-                      </div>
-                    )}
-                    {!isCollapsed && <ChevronsUpDown className="ml-auto size-4" />}
-                  </SidebarMenuButton>
-                </DropdownMenuTrigger>
-
-                <DropdownMenuContent
-                  className="min-w-56 rounded-lg"
-                  side={isMobile ? "bottom" : "right"}
-                  align="end"
-                  sideOffset={4}
-                >
-                  <DropdownMenuLabel className="p-0 font-normal">
-                    <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                      <Avatar className="h-8 w-8 rounded-lg">
-                        <AvatarImage
-                          src={user?.imageUrl || ""}
-                          alt={user?.fullName || ""}
-                        />
-                        <AvatarFallback className="rounded-lg">
-                          {user?.fullName?.[0] || "CN"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-medium">
-                          {user?.fullName}
-                        </span>
-                        <span className="truncate text-xs text-muted-foreground">
-                          {user?.emailAddresses?.[0]?.emailAddress || 'No email'}
-                        </span>
-                      </div>
-                    </div>
-                  </DropdownMenuLabel>
-
-                  <DropdownMenuSeparator />
-
-                  <DropdownMenuItem
-                    asChild
-                    className="w-full flex justify-start"
-                  >
-                    <SignOutButton>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start p-0 text-left"
+          {/* Authenticated user - only show when Clerk is loaded */}
+          {isUserLoaded && (
+            <>
+              <SignedIn>
+                <SidebarMenuItem>
+                  {/* User dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <SidebarMenuButton
+                        size="lg"
+                        className="cursor-pointer data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                        tooltip={isCollapsed ? userDisplayName : undefined}
                       >
-                        <LogOut className="mr-2 size-4" />
-                        Log out
-                      </Button>
-                    </SignOutButton>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </SidebarMenuItem>
-          </SignedIn>
+                        <Avatar className="h-8 w-8 rounded-lg shrink-0">
+                          <AvatarImage
+                            src={user?.imageUrl || ""}
+                            alt={userDisplayName}
+                          />
+                          <AvatarFallback className="rounded-lg">
+                            {userInitial}
+                          </AvatarFallback>
+                        </Avatar>
+                        {!isCollapsed && (
+                          <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
+                            <span className="truncate font-medium">
+                              {userDisplayName}
+                            </span>
+                            <span className="truncate text-xs text-muted-foreground">
+                              {userEmail}
+                            </span>
+                          </div>
+                        )}
+                        {!isCollapsed && <ChevronsUpDown className="ml-auto size-4 shrink-0" />}
+                      </SidebarMenuButton>
+                    </DropdownMenuTrigger>
 
-          {/* Unauthenticated user */}
-          <SignedOut>
+                    <DropdownMenuContent
+                      className="min-w-56 rounded-lg"
+                      side={isMobile ? "bottom" : "right"}
+                      align="end"
+                      sideOffset={4}
+                    >
+                      <DropdownMenuLabel className="p-0 font-normal">
+                        <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                          <Avatar className="h-8 w-8 rounded-lg shrink-0">
+                            <AvatarImage
+                              src={user?.imageUrl || ""}
+                              alt={userDisplayName}
+                            />
+                            <AvatarFallback className="rounded-lg">
+                              {userInitial}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
+                            <span className="truncate font-medium">
+                              {userDisplayName}
+                            </span>
+                            <span className="truncate text-xs text-muted-foreground">
+                              {userEmail}
+                            </span>
+                          </div>
+                        </div>
+                      </DropdownMenuLabel>
+
+                      <DropdownMenuSeparator />
+
+                      <DropdownMenuItem
+                        asChild
+                        className="w-full flex justify-start"
+                      >
+                        <SignOutButton>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start p-0 text-left"
+                          >
+                            <LogOut className="mr-2 size-4" />
+                            Log out
+                          </Button>
+                        </SignOutButton>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </SidebarMenuItem>
+              </SignedIn>
+
+              {/* Unauthenticated user */}
+              <SignedOut>
+                <SidebarMenuItem>
+                  <SignInButton>
+                    <Button className="w-full">Log In</Button>
+                  </SignInButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SignUpButton>
+                    <Button variant="outline" className="w-full">
+                      Sign Up
+                    </Button>
+                  </SignUpButton>
+                </SidebarMenuItem>
+              </SignedOut>
+            </>
+          )}
+
+          {/* Loading state - show placeholder while Clerk loads */}
+          {!isUserLoaded && (
             <SidebarMenuItem>
-              <SignInButton>
-                <Button className="w-full">Log In</Button>
-              </SignInButton>
+              <SidebarMenuButton
+                size="lg"
+                disabled
+                className="cursor-default opacity-50 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                tooltip={isCollapsed ? "Loading..." : undefined}
+              >
+                <Avatar className="h-8 w-8 rounded-lg shrink-0">
+                  <AvatarFallback className="rounded-lg">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  </AvatarFallback>
+                </Avatar>
+                {!isCollapsed && (
+                  <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
+                    <span className="truncate font-medium text-muted-foreground">
+                      Loading...
+                    </span>
+                    <span className="truncate text-xs text-muted-foreground/50">
+                      &nbsp;
+                    </span>
+                  </div>
+                )}
+                {!isCollapsed && <ChevronsUpDown className="ml-auto size-4 shrink-0 opacity-30" />}
+              </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SignUpButton>
-                <Button variant="outline" className="w-full">
-                  Sign Up
-                </Button>
-              </SignUpButton>
-            </SidebarMenuItem>
-          </SignedOut>
+          )}
         </SidebarMenu>
       </SidebarFooter>
     </div>

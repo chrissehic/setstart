@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { createWorkflowSchema, createWorkflowSchemaType } from "../../../schema/workflow";
 import { auth } from "@clerk/nextjs/server";
 import { WorkflowStatus } from "@/types/workflow";
+import { revalidatePath } from "next/cache";
 
 export async function CreateWorkflow(form: createWorkflowSchemaType) {
     // Validate form data
@@ -28,6 +29,11 @@ export async function CreateWorkflow(form: createWorkflowSchemaType) {
             ...data,
         },
     });
+
+    // Revalidate all relevant paths to ensure fresh data
+    revalidatePath(`/project/${result.id}`);
+    revalidatePath("/");
+    revalidatePath("/workflows");
 
     // Return the created workflow
     return result;

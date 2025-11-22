@@ -118,11 +118,15 @@ function WorkflowForm({
   const { mutate, isPending } = useMutation({
     mutationFn: CreateWorkflow,
     onSuccess: (data) => {
-      toast.success("Project created successfully", { id: "create-workflow" });
-      onClose(); // Close the modal on success
-      // Redirect to the newly created project
       if (data && data.id) {
-        router.push(`/project/${data.id}`);
+        // Dismiss any existing toasts to prevent stale toasts (especially AI prompt toasts)
+        toast.dismiss();
+        toast.success("Project created successfully", { id: "create-workflow", duration: 2000 });
+        onClose(); // Close the modal on success
+        
+        // Use window.location for hard navigation to ensure clean state
+        // This prevents any race conditions with server actions during navigation
+        window.location.href = `/project/${data.id}`;
       }
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

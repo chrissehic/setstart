@@ -72,7 +72,7 @@ export const WORKSPACE_ITEMS = [
 export const SECTION_CLASS =
   "relative w-full flex flex-col justify-start items-start rounded-sm p-1 border border-transparent h-full"
 
-export const CARD_CLASS = "flex h-full overflow-y-scroll! flex-col bg-accent w-full rounded-2xl group border bg-card"
+export const CARD_CLASS = "flex h-full flex-col bg-accent w-full rounded-2xl group border bg-card"
 
 export const PRODUCT_TYPES = [
   { value: "SaaS", label: "SaaS" },

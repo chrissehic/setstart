@@ -18,13 +18,24 @@ interface ModeToggleProps {
 
 export function ModeToggle({ isCollapsed = false }: ModeToggleProps) {
   const { setTheme, theme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  // Only render theme text after client-side hydration to prevent hydration mismatch
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Get theme text safely (only after mount to prevent hydration issues)
+  const themeText = mounted 
+    ? (theme === "dark" ? "Dark" : theme === "light" ? "Light" : "System")
+    : "System"; // Default fallback for SSR
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <SidebarMenuButton 
           className={`w-full ${isCollapsed ? "justify-center" : ""}`}
-          tooltip={isCollapsed ? `${theme === "dark" ? "Dark" : theme === "light" ? "Light" : "System"} theme` : undefined}
+          tooltip={isCollapsed ? `${themeText} theme` : undefined}
         >
           <div className={`relative ${isCollapsed ? "h-6 w-6" : "h-4 w-4"}`}>
             <Sun className={`absolute inset-0 rotate-0 scale-100 transition-all duration-300 dark:rotate-90 dark:scale-0 ${
@@ -36,7 +47,7 @@ export function ModeToggle({ isCollapsed = false }: ModeToggleProps) {
           </div>
           {!isCollapsed && (
             <span className="text-sm font-medium">
-              {theme === "dark" ? "Dark" : theme === "light" ? "Light" : "System"} theme
+              {themeText} theme
             </span>
           )}
         </SidebarMenuButton>

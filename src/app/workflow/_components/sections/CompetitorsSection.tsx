@@ -149,13 +149,12 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
         attributes: {},
       });
 
-      toast.success("Competitor added successfully");
+      // Mutation hook handles refetch automatically
       setNewRowId(null);
       setNewRowData({ name: "", description: "", website: "" });
-      refetch();
     } catch (error) {
       console.error("Error saving competitor:", error);
-      toast.error("Failed to add competitor");
+      // Error toast is handled by the mutation hook
     }
   };
 

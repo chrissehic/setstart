@@ -18,13 +18,31 @@ interface AddTaskInput {
   objectiveId?: string;
 }
 
+// Helper function to safely parse a date string
+function parseDate(dateString: string | undefined | null): Date | null {
+  if (!dateString || typeof dateString !== 'string' || dateString.trim() === '') {
+    return null;
+  }
+  
+  const date = new Date(dateString);
+  
+  // Check if the date is valid
+  if (isNaN(date.getTime())) {
+    console.warn(`Invalid date string provided: "${dateString}". Skipping dueDate.`);
+    return null;
+  }
+  
+  return date;
+}
+
 export async function AddTask(data: AddTaskInput) {
   const { userId } = await auth();
   if (!userId) {
     throw new Error("Unauthenticated");
   }
 
-  
+  // Safely parse the dueDate
+  const parsedDueDate = parseDate(data.dueDate);
 
   const task = await prisma.task.create({
     data: {
@@ -32,10 +50,10 @@ export async function AddTask(data: AddTaskInput) {
       title: data.title,
       category: data.category,
       description: data.description,
-      dueDate: data.dueDate ? new Date(data.dueDate) : null,
+      dueDate: parsedDueDate,
       priority: data.priority ?? undefined,
       responsibility: data.responsibility ?? "IN_HOUSE",
-      status: "NOT_STARTED",
+      status: data.status ?? "NOT_STARTED",
       objectiveId: data.objectiveId ?? null,
       assignedPeople: data.assignedPeople
         ? {

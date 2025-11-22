@@ -18,6 +18,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import Image from "next/image"
+import { parseVariantAttributes } from "@/lib/helpers/variantUtils"
 
 interface ProductVariantsListProps {
   productId: string
@@ -30,14 +31,14 @@ interface ProductVariantsListProps {
 const VariantImage = ({ variant }: { variant: ProductVariant }) => {
   if (!variant.image) {
     return (
-      <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center">
-        <div className="w-6 h-6 bg-muted-foreground/20 rounded" />
+      <div className="size-24 rounded-lg bg-muted flex items-center justify-center">
+        <div className="size-6 bg-muted-foreground/20 rounded" />
       </div>
     )
   }
 
   return (
-    <div className="relative w-16 h-16 rounded-lg overflow-hidden border">
+    <div className="relative size-24 rounded-lg overflow-hidden border">
       <Image src={variant.image || "/placeholder.svg"} alt={variant.name} fill className="object-cover" />
     </div>
   )
@@ -122,13 +123,34 @@ export function ProductVariantsList({ productId, workflowId, variants, onVariant
           {variants.map((variant) => (
             <ProductVariantModal key={variant.id} productId={productId} workflowId={workflowId} variant={variant} onSuccess={onVariantChange}>
               <Card className="group/variant hover:bg-muted/50 transition-colors p-0 cursor-pointer">
-                <CardContent className="p-1">
+                <CardContent className="p-2">
                   <div className="flex items-center gap-4">
                     <VariantImage variant={variant} />
 
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-sm">{variant.name}</h4>
-                      {variant.description && <p className="text-sm text-muted-foreground">{variant.description}</p>}
+                      {variant.description && <p className="text-sm text-muted-foreground line-clamp-1">{variant.description}</p>}
+                      {(() => {
+                        const attrs = typeof variant.attributes === 'string' 
+                          ? parseVariantAttributes(variant.attributes)
+                          : variant.attributes;
+                        if (attrs && Object.keys(attrs).length > 0) {
+                          return (
+                            <div className="flex flex-wrap gap-1.5 mt-1.5">
+                              {Object.entries(attrs).map(([key, value]) => (
+                                <span
+                                  key={key}
+                                  className="inline-flex items-center gap-1 bg-muted text-xs text-muted-foreground"
+                                >
+                                  <span className="font-medium">{key}:</span>
+                                  <span>{String(value)}</span>
+                                </span>
+                              ))}
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
                     </div>
 
                     <VariantActions

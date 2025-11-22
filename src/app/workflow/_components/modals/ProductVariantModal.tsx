@@ -32,6 +32,7 @@ import {
 import { ProductVariant } from "@/types/workflow";
 import { toast } from "sonner";
 import Image from "next/image";
+import { parseVariantAttributes } from "@/lib/helpers/variantUtils";
 
 const variantSchema = z.object({
   name: z.string().min(1, "Variant name is required"),
@@ -66,7 +67,14 @@ export function ProductVariantModal({
   const [internalOpen, setInternalOpen] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [attributes, setAttributes] = useState<Record<string, string>>({});
+  const [attributes, setAttributes] = useState<Array<{ id: string; key: string; value: string }>>([]);
+  const [originalValues, setOriginalValues] = useState<{
+    name: string;
+    description: string;
+    price: number | undefined;
+    image: string | null;
+    attributes: Record<string, string>;
+  } | null>(null);
 
   // Use controlled state if provided, otherwise use internal state
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
@@ -90,6 +98,9 @@ export function ProductVariantModal({
     },
   });
 
+  // Watch form values for change detection
+  const watchedValues = form.watch();
+
   // Reset form when modal opens/closes
   useEffect(() => {
     if (open) {
@@ -103,13 +114,29 @@ export function ProductVariantModal({
           attributes: {},
         });
         setImageUrl(variant.image || null);
-        // Parse attributes from JSON string
-        try {
-          const parsedAttributes = variant.attributes ? JSON.parse(variant.attributes) : {};
-          setAttributes(parsedAttributes);
-        } catch {
-          setAttributes({});
+        // Parse attributes from JSON string using helper
+        const parsedAttributes = parseVariantAttributes(variant.attributes);
+        // Convert Record to array with IDs
+        let attrsArray: Array<{ id: string; key: string; value: string }> = [];
+        if (parsedAttributes && Object.keys(parsedAttributes).length > 0) {
+          attrsArray = Object.entries(parsedAttributes).map(([key, value], index) => ({
+            id: `attr_${index}_${Date.now()}`,
+            key,
+            value: value as string,
+          }));
+          setAttributes(attrsArray);
+        } else {
+          setAttributes([]);
         }
+        
+        // Store original values for change detection
+        setOriginalValues({
+          name: variant.name,
+          description: variant.description || "",
+          price: variant.price || undefined,
+          image: variant.image || null,
+          attributes: parsedAttributes || {},
+        });
       } else {
         // Creating mode - clear form
         form.reset({
@@ -120,7 +147,8 @@ export function ProductVariantModal({
           attributes: {},
         });
         setImageUrl(null);
-        setAttributes({});
+        setAttributes([]);
+        setOriginalValues(null);
       }
     }
   }, [open, variant, form]);
@@ -169,32 +197,67 @@ export function ProductVariantModal({
   };
 
   const addAttribute = () => {
-    setAttributes((prev) => ({
+    setAttributes((prev) => [
       ...prev,
-      [`attribute_${Object.keys(prev).length + 1}`]: "",
-    }));
+      {
+        id: `attr_${Date.now()}_${Math.random()}`,
+        key: `attribute_${prev.length + 1}`,
+        value: "",
+      },
+    ]);
   };
 
-  const removeAttribute = (key: string) => {
-    setAttributes((prev) => {
-      const newAttrs = { ...prev };
-      delete newAttrs[key];
-      return newAttrs;
-    });
+  const removeAttribute = (id: string) => {
+    setAttributes((prev) => prev.filter((attr) => attr.id !== id));
   };
 
-  const updateAttribute = (key: string, value: string) => {
-    setAttributes((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  };
+  // Check if there are any changes (only for editing mode)
+  const hasChanges = isEditing && originalValues ? (() => {
+    // Compare form values (normalize empty strings and null)
+    const normalizeString = (val: string | null | undefined) => val || "";
+    if (normalizeString(watchedValues.name) !== normalizeString(originalValues.name)) return true;
+    if (normalizeString(watchedValues.description) !== normalizeString(originalValues.description)) return true;
+    if (watchedValues.price !== originalValues.price) return true;
+    
+    // Compare image (normalize null and empty string)
+    const normalizeImage = (val: string | null | undefined) => val || null;
+    if (normalizeImage(imageUrl) !== normalizeImage(originalValues.image)) return true;
+    
+    // Compare attributes
+    const currentAttributes = attributes.reduce((acc, attr) => {
+      if (attr.key.trim()) {
+        acc[attr.key.trim()] = attr.value;
+      }
+      return acc;
+    }, {} as Record<string, string>);
+    
+    const originalKeys = Object.keys(originalValues.attributes || {});
+    const currentKeys = Object.keys(currentAttributes);
+    
+    if (originalKeys.length !== currentKeys.length) return true;
+    
+    for (const key of originalKeys) {
+      if ((originalValues.attributes[key] || "") !== (currentAttributes[key] || "")) {
+        return true;
+      }
+    }
+    
+    return false;
+  })() : true; // Always allow changes for new variants
 
   const onSubmit = (values: VariantSchemaType) => {
+    // Convert attributes array back to Record format
+    const attributesRecord = attributes.reduce((acc, attr) => {
+      if (attr.key.trim()) {
+        acc[attr.key.trim()] = attr.value;
+      }
+      return acc;
+    }, {} as Record<string, string>);
+
     const variantData = {
       ...values,
       image: imageUrl || undefined,
-      attributes: Object.keys(attributes).length > 0 ? attributes : undefined,
+      attributes: Object.keys(attributesRecord).length > 0 ? attributesRecord : undefined,
     };
 
     if (isEditing && variant) {
@@ -414,25 +477,33 @@ export function ProductVariantModal({
                 
               </div>
 
-              {Object.keys(attributes).length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No attributes added yet.
-                </p>
-              ) : (
+              {attributes.length === 0 && (
+                <div key="no-attributes" className="py-3 border border-dashed border-muted rounded-md px-3">
+                  <p className="text-sm text-muted-foreground text-center">
+                    No attributes added yet.
+                  </p>
+                </div>
+              )}
+              {attributes.length > 0 && (
                 <div className="space-y-2">
-                  {Object.entries(attributes).map(([key, value]) => (
-                    <div key={key} className="flex gap-2">
+                  {attributes.map((attr) => (
+                    <div key={attr.id} className="flex gap-2">
                       <Input
                         variant="underline"
                         placeholder="Attribute name (e.g., Flavor, Size, Color)"
-                        value={key}
+                        value={attr.key}
                         onChange={(e) => {
                           const newKey = e.target.value;
                           setAttributes((prev) => {
-                            const newAttrs = { ...prev };
-                            delete newAttrs[key];
-                            newAttrs[newKey] = value;
-                            return newAttrs;
+                            // Check if new key already exists in another attribute
+                            const keyExists = prev.some(
+                              (a) => a.id !== attr.id && a.key.trim() === newKey.trim() && newKey.trim() !== ""
+                            );
+                            if (keyExists) return prev; // Don't update if duplicate
+                            
+                            return prev.map((a) =>
+                              a.id === attr.id ? { ...a, key: newKey } : a
+                            );
                           });
                         }}
                         disabled={isLoading}
@@ -440,8 +511,14 @@ export function ProductVariantModal({
                       />
                       <Input
                         placeholder="Value"
-                        value={value as string}
-                        onChange={(e) => updateAttribute(key, e.target.value)}
+                        value={attr.value}
+                        onChange={(e) => {
+                          setAttributes((prev) =>
+                            prev.map((a) =>
+                              a.id === attr.id ? { ...a, value: e.target.value } : a
+                            )
+                          );
+                        }}
                         disabled={isLoading}
                         className="flex-1"
                         variant="underline"
@@ -450,7 +527,7 @@ export function ProductVariantModal({
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={() => removeAttribute(key)}
+                        onClick={() => removeAttribute(attr.id)}
                         disabled={isLoading}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -459,6 +536,8 @@ export function ProductVariantModal({
                   ))}
                 </div>
               )}
+
+           
             </div>
 
             <DialogFooter>
@@ -472,7 +551,7 @@ export function ProductVariantModal({
                 </Button>
                 <Button 
                   type="submit" 
-                  disabled={isLoading || !form.formState.isValid}
+                  disabled={isLoading || !form.formState.isValid || (isEditing && !hasChanges)}
                 >
                   {isLoading ? (
                     <Loader2 className="animate-spin" />

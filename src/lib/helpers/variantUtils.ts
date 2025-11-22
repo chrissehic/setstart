@@ -1,15 +1,26 @@
 /**
  * Parse attributes from JSON string stored in database
+ * Handles both string (JSON) and object formats
  */
-export function parseVariantAttributes(attributesString: string | null): Record<string, any> | null {
-  if (!attributesString) return null;
+export function parseVariantAttributes(attributes: string | Record<string, any> | null): Record<string, any> | null {
+  if (!attributes) return null;
   
-  try {
-    return JSON.parse(attributesString);
-  } catch (error) {
-    console.error("Error parsing variant attributes:", error);
-    return null;
+  // If it's already an object, return it
+  if (typeof attributes === 'object' && !(attributes instanceof String)) {
+    return attributes;
   }
+  
+  // If it's a string, try to parse it
+  if (typeof attributes === 'string') {
+    try {
+      return JSON.parse(attributes);
+    } catch (error) {
+      console.error("Error parsing variant attributes:", error);
+      return null;
+    }
+  }
+  
+  return null;
 }
 
 /**

@@ -10,7 +10,6 @@ import { Loader2 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { CreateWorkflow } from "@/actions/workflows/createWorkflow";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import SetIcon from "@/components/SetIcon";
 
 const workspaceSchema = z.object({
@@ -20,8 +19,6 @@ const workspaceSchema = z.object({
 type WorkspaceSchemaType = z.infer<typeof workspaceSchema>;
 
 export function OnboardingStartPage() {
-  const router = useRouter();
-
   const form = useForm<WorkspaceSchemaType>({
     resolver: zodResolver(workspaceSchema),
     defaultValues: {
@@ -32,9 +29,15 @@ export function OnboardingStartPage() {
   const createWorkflowMutation = useMutation({
     mutationFn: CreateWorkflow,
     onSuccess: (data) => {
-      toast.success("Project created successfully!");
-      // Redirect to the new project
-      router.push(`/project/${data.id}`);
+      if (data && data.id) {
+        // Dismiss any existing toasts to prevent stale toasts (especially AI prompt toasts)
+        toast.dismiss();
+        toast.success("Project created successfully!", { duration: 2000 });
+        
+        // Use window.location for hard navigation to ensure clean state
+        // This prevents any race conditions with server actions during navigation
+        window.location.href = `/project/${data.id}`;
+      }
     },
     onError: (error: unknown) => {
       console.error("Failed to create project:", error);
@@ -51,24 +54,28 @@ export function OnboardingStartPage() {
     createWorkflowMutation.mutate(values);
   };
 
+  const isPending = createWorkflowMutation.isPending;
+
   return (
-    <div className=" z-40 flex items-center justify-center h-screen w-full">
-      {/* Subtle background overlay with animated aura */}
-      <div className="absolute inset-0 bg-background/95 backdrop-blur-md rounded-lg border border-border/50" />
-
-      {/* Animated aura - contrasting with primary */}
-      <div className="absolute inset-0 overflow-hidden rounded-lg">
-        {/* Main aura gradient */}
-
+    <main 
+      className="relative flex items-center justify-center min-h-screen w-full"
+      role="main"
+      aria-label="Create your first business project"
+    >
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+        {/* Subtle background overlay */}
+        <div className="absolute inset-0 bg-background/95 backdrop-blur-md" />
+        
         {/* Primary Aura Gradient Background */}
         <div
           className="absolute inset-0 opacity-15"
           style={{
             background: `
-    radial-gradient(circle at 30% 20%, var(--primary) 0%, transparent 50%),
-    radial-gradient(circle at 70% 80%, var(--primary) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, var(--primary) 0%, transparent 60%)
-  `,
+              radial-gradient(circle at 30% 20%, var(--primary) 0%, transparent 50%),
+              radial-gradient(circle at 70% 80%, var(--primary) 0%, transparent 50%),
+              radial-gradient(circle at 50% 50%, var(--primary) 0%, transparent 60%)
+            `,
           }}
         />
 
@@ -87,99 +94,127 @@ export function OnboardingStartPage() {
             animation: "auraGlow 6s ease-in-out infinite alternate",
           }}
         />
+
+        {/* Minimal primary accent */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.008] via-transparent to-primary/[0.004]" />
       </div>
 
-      {/* Minimal primary accent */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.008] via-transparent to-primary/[0.004] rounded-lg" />
-
-      {/* Content */}
-      <div className="relative z-10 w-full flex flex-col items-center justify-center max-w-4xl px-8 py-12 animate-in fade-in-0 slide-in-from-bottom-4 duration-700">
-        {/* Content hierarchy */}
-        <div className="space-y-2">
-          {/* Header */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 mb-6">
-              <SetIcon className="h-14 text-foreground" />
-              {/* <SetStartText className="h-6 text-foreground" /> */}
+      {/* Main content */}
+      <div className="relative z-10 w-full max-w-2xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+        <div className="space-y-8 animate-in fade-in-0 slide-in-from-bottom-4 duration-700">
+          {/* Header section */}
+          <header className="text-center space-y-4">
+            <div className="flex justify-center mb-6" aria-hidden="true">
+              <SetIcon className="h-14 w-14 text-foreground" aria-hidden="true" animated/>
             </div>
-            <h1 className="text-3xl font-medium tracking-tight text-foreground">
+            <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground">
               Let&apos;s create your first business project
             </h1>
-            <p className="text-base text-muted-foreground leading-relaxed max-w-lg">
-              Give your business project a name to get started.
+            <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-xl mx-auto">
+              Give your business project a name to get started. You can always create more projects later.
             </p>
-          </div>
+          </header>
 
-          {/* Form */}
-          <div className="space-y-4 max-w-md">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base font-medium">
-                        Project Name
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="My First Project"
-                          {...field}
-                          disabled={createWorkflowMutation.isPending}
-                          className="text-base"
-                          autoFocus
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button
-                  type="submit"
-                  disabled={createWorkflowMutation.isPending}
-                  className="w-full"
-                  size="lg"
+          {/* Form section */}
+          <section aria-labelledby="project-form-heading">
+            <h2 id="project-form-heading" className="sr-only">
+              Project creation form
+            </h2>
+            <div className="max-w-md mx-auto">
+              <Form {...form}>
+                <form 
+                  onSubmit={form.handleSubmit(onSubmit)} 
+                  className="space-y-6"
+                  aria-label="Create new project"
+                  noValidate
                 >
-                  {createWorkflowMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating project...
-                    </>
-                  ) : (
-                    "Create Project"
-                  )}
-                </Button>
-              </form>
-            </Form>
-          </div>
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel 
+                          htmlFor="project-name"
+                          className="text-base font-medium"
+                        >
+                          Project Name
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            id="project-name"
+                            placeholder="e.g., My First Project"
+                            {...field}
+                            disabled={isPending}
+                            className="text-base h-11"
+                            autoFocus
+                            autoComplete="off"
+                            aria-required="true"
+                            aria-invalid={form.formState.errors.name ? "true" : "false"}
+                            aria-describedby={
+                              form.formState.errors.name 
+                                ? "project-name-error" 
+                                : "project-name-hint"
+                            }
+                          />
+                        </FormControl>
+                        {form.formState.errors.name && (
+                          <FormMessage 
+                            id="project-name-error"
+                            role="alert"
+                            aria-live="polite"
+                          />
+                        )}
+                        {!form.formState.errors.name && (
+                          <p 
+                            id="project-name-hint" 
+                            className="text-sm text-muted-foreground"
+                          >
+                            Choose a descriptive name for your project (max 100 characters)
+                          </p>
+                        )}
+                      </FormItem>
+                    )}
+                  />
 
-          {/* Subtle tip */}
-          <div className="pt-2">
-            <p className="text-xs text-muted-foreground/70 leading-relaxed">
-              You can always create more projects later from the projects page.
-            </p>
+                  <Button
+                    type="submit"
+                    disabled={isPending}
+                    className="w-full"
+                    size="lg"
+                    aria-busy={isPending}
+                    aria-disabled={isPending}
+                  >
+                    {isPending ? (
+                      <>
+                        <Loader2 
+                          className="mr-2 h-4 w-4 animate-spin" 
+                          aria-hidden="true"
+                        />
+                        <span>Creating project...</span>
+                        <span className="sr-only">Please wait, creating your project</span>
+                      </>
+                    ) : (
+                      "Create Project"
+                    )}
+                  </Button>
+                </form>
+              </Form>
+            </div>
+          </section>
+
+          {/* Status announcement for screen readers */}
+          <div 
+            role="status" 
+            aria-live="polite" 
+            aria-atomic="true"
+            className="sr-only"
+          >
+            {isPending && "Creating your project, please wait..."}
           </div>
         </div>
       </div>
-      <style jsx>{`
-        @keyframes auraFloat {
-          0%,
-          100% {
-            transform: translate(0, 0) scale(1);
-            opacity: var(--start-opacity, 1);
-          }
-          33% {
-            transform: translate(20px, -15px) scale(1.05);
-            opacity: var(--mid-opacity, 0.8);
-          }
-          66% {
-            transform: translate(-15px, 10px) scale(0.95);
-            opacity: var(--mid-opacity, 0.8);
-          }
-        }
 
+      <style jsx>{`
         @keyframes auraGlow {
           0% {
             opacity: 0.003;
@@ -200,6 +235,6 @@ export function OnboardingStartPage() {
           }
         }
       `}</style>
-    </div>
+    </main>
   );
 } 

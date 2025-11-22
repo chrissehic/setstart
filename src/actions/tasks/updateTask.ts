@@ -19,6 +19,23 @@ interface UpdateTaskInput {
   objectiveId?: string | null;
 }
 
+// Helper function to safely parse a date string
+function parseDate(dateString: string | undefined | null): Date | null {
+  if (!dateString || typeof dateString !== 'string' || dateString.trim() === '') {
+    return null;
+  }
+  
+  const date = new Date(dateString);
+  
+  // Check if the date is valid
+  if (isNaN(date.getTime())) {
+    console.warn(`Invalid date string provided: "${dateString}". Skipping dueDate.`);
+    return null;
+  }
+  
+  return date;
+}
+
 export type { UpdateTaskInput };
 export async function UpdateTask(data: UpdateTaskInput) {
   const { userId } = await auth();
@@ -50,7 +67,7 @@ export async function UpdateTask(data: UpdateTaskInput) {
     if (data.priority !== undefined) updateData.priority = data.priority;
     if (data.responsibility !== undefined) updateData.responsibility = data.responsibility;
     if (data.dueDate !== undefined) {
-      updateData.dueDate = data.dueDate ? new Date(data.dueDate) : null;
+      updateData.dueDate = parseDate(data.dueDate);
     }
     if (data.objectiveId !== undefined) updateData.objectiveId = data.objectiveId;
 
