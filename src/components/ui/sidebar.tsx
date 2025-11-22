@@ -520,14 +520,19 @@ function SidebarMenuButton({
   const Comp = asChild ? Slot : "button";
   const { isMobile, state } = useSidebar();
 
+  // Allow data-slot to be overridden by props (e.g., when used inside DropdownMenuTrigger)
+  // Extract it from props to avoid setting it twice
+  const { "data-slot": dataSlotProp, ...restProps } = props;
+  const dataSlot = dataSlotProp ?? "sidebar-menu-button";
+
   const button = (
     <Comp
-      data-slot="sidebar-menu-button"
+      data-slot={dataSlot}
       data-sidebar="menu-button"
       data-size={size}
       data-active={isActive}
       className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
-      {...props}
+      {...restProps}
     />
   );
 

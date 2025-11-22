@@ -1,13 +1,13 @@
-import { ArrowRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import RolesList from "../ui/RolesList"
-import type { WorkflowData } from "@/types/workflow"
-import { SECTION_CLASS } from "@/lib/constants"
+import { ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import RolesList from "../ui/RolesList";
+import type { WorkflowData } from "@/types/workflow";
+import { SECTION_CLASS } from "@/lib/constants";
 
 interface RolesTabProps {
-  data: WorkflowData
-  title: string
-  value: string
+  data: WorkflowData;
+  title: string;
+  value: string;
 }
 
 export const RolesTab = ({ data, title, value }: RolesTabProps) => (
@@ -22,17 +22,20 @@ export const RolesTab = ({ data, title, value }: RolesTabProps) => (
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center text-center">
-          <h2 className="text-base font-medium tracking-tight">Structure your team</h2>
+          <h2 className="text-base font-medium tracking-tight">
+            Structure your team
+          </h2>
           <p className="text-sm text-muted-foreground max-w-lg text-wrap">
-            You haven&apos;t added any roles yet. Define the key roles and responsibilities to build a clear company overview
-            and align your team.
+            You haven&apos;t added any roles yet. Define the key roles and
+            responsibilities to build a clear company overview and align your
+            team.
           </p>
           <Button variant="link" className="no-underline font-normal">
             Add your first role
-            <ArrowRight className="size-3" />
+            <ArrowRight className="size-3 -rotate-45" />
           </Button>
         </div>
       )}
     </div>
   </section>
-)
+);

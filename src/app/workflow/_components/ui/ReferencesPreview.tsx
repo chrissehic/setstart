@@ -4,12 +4,7 @@ import type React from "react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Instagram,
-  Globe,
-  ArrowRight,
-  AlertCircleIcon,
-} from "lucide-react";
+import { Instagram, Globe, ArrowRight, AlertCircleIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRef, useEffect, useState } from "react";
 import { useReferences } from "@/hooks/useReferences";
@@ -260,26 +255,7 @@ export const ReferencesPreview = ({ workflowId }: ReferencesPreviewProps) => {
 
   // Skeleton component for platform summary cards
   const PlatformSummarySkeleton = () => (
-    <Card className="w-fit p-0">
-      <CardContent className="p-2 flex flex-row items-center gap-2 h-full">
-        <div className="flex items-center gap-2 flex-1">
-          {/* Platform icon skeleton */}
-          <Skeleton className="size-6 rounded-sm" />
-          <div className="flex min-w-0 flex-row items-center gap-2">
-            <div className="flex flex-col items-start justify-center gap-1">
-              {/* Platform name skeleton */}
-              <Skeleton className="h-4 w-20 rounded" />
-              {/* Direct references count skeleton */}
-              <Skeleton className="h-3 w-24 rounded" />
-            </div>
-            <div className="flex items-center gap-0.5">
-              {/* Total count badge skeleton */}
-              <Skeleton className="h-5 w-8 rounded" />
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <Skeleton className="h-10 w-[450px] rounded" />
   );
 
   if (isLoading) {
@@ -292,8 +268,8 @@ export const ReferencesPreview = ({ workflowId }: ReferencesPreviewProps) => {
         </div>
 
         {/* Platform summaries skeleton */}
-        <div className="flex flex-row gap-2 overflow-x-auto overflow-y-hidden p-0.5 scrollbar-hide">
-          {Array.from({ length: 6 }).map((_, index) => (
+        <div className="flex flex-row gap-2 overflow-x-hidden overflow-y-hidden p-0.5 scrollbar-hide">
+          {Array.from({ length: 4 }).map((_, index) => (
             <PlatformSummarySkeleton key={index} />
           ))}
         </div>
@@ -322,7 +298,7 @@ export const ReferencesPreview = ({ workflowId }: ReferencesPreviewProps) => {
         </div>
         <Button variant="link" className="no-underline font-normal">
           Add your first reference
-          <ArrowRight className="size-3" />
+          <ArrowRight className="size-3 -rotate-45" />
         </Button>
       </div>
     );

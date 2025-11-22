@@ -1,7 +1,9 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { SECTION_CLASS } from "@/lib/constants"
 import type { Competitor } from "@/types/workflow"
+import { ArrowRight } from "lucide-react"
 
 interface CompetitorsTabProps {
   workflowId: string
@@ -19,13 +21,15 @@ function CompetitorPreview({
 
   if (!competitors.length) {
     return (
-      <div className="text-center">
-        <div>
-          <h3 className="text-base font-medium">No competitors yet</h3>
-          <p className="text-muted-foreground text-sm">
-            Start tracking your competitors to understand the market landscape
-          </p>
-        </div>
+      <div className="flex flex-col items-center justify-center text-center">
+        <h3 className="text-base font-medium">No competitors yet</h3>
+        <p className="text-muted-foreground text-sm max-w-lg text-wrap">
+          Start tracking your competitors to understand the market landscape
+        </p>
+        <Button variant="link" className="no-underline font-normal">
+          Start populating your competitors table
+          <ArrowRight className="size-3 -rotate-45" />
+        </Button>
       </div>
     )
   }

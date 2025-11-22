@@ -29,17 +29,17 @@ const RolesList = memo(function RolesList({
           readOnly={readOnly}
         >
           <Badge
-            className="relative group/badge text-base min-h-[50px] font-normal gap-2 rounded-2xl py-1 pr-4 hover:bg-accent/80"
+            className="relative group/badge text-base min-h-[50px] font-normal gap-3 rounded-base py-2 pl-3 pr-5 hover:bg-accent/80"
             variant={"secondary"}
           >
             <Avatar
               className={cn(
-                "bg-sidebar-border rounded-lg transition-all duration-150",
+                "bg-sidebar-border rounded-sm transition-all duration-150",
                 readOnly ? "" : "group-hover/badge:bg-accent-foreground"
               )}
             >
               <AvatarImage
-                className="rounded-lg"
+                className="rounded-sm"
                 src={roleInWorkflow.person.avatarImage || undefined}
               />
               <AvatarFallback
@@ -51,7 +51,7 @@ const RolesList = memo(function RolesList({
                 {getInitials(roleInWorkflow.person.name)}
               </AvatarFallback>
             </Avatar>
-            <div className="flex flex-col justify-center gap-0">
+            <div className="flex flex-col justify-center gap-0.5">
               <span className="text-xs font-medium">{roleInWorkflow.role}</span>
               <span className="leading-tight font-normal text-md text-accent-foreground">
                 {roleInWorkflow.person.name}
@@ -63,13 +63,13 @@ const RolesList = memo(function RolesList({
       {!readOnly && (
         <AddRoleModal workflowId={data.id}>
           <Badge
-            className="relative group/badge text-base min-h-[50px] font-normal gap-2 rounded-2xl py-1 pr-4 hover:bg-accent/80 cursor-pointer"
+            className="relative group/badge text-base min-h-[50px] font-normal gap-2 rounded-base py-2 pr-4 hover:bg-accent/80 cursor-pointer"
             variant={"secondary"}
           >
-            <div className="h-10 w-10 rounded-lg bg-sidebar-border flex items-center justify-center group-hover/badge:bg-accent-foreground transition-all duration-150">
+            <div className="h-10 w-10 rounded-sm bg-sidebar-border flex items-center justify-center group-hover/badge:bg-accent-foreground transition-all duration-150">
               <Plus className="size-6 group-hover/badge:text-accent transition-all duration-150" />
             </div>
-            <div className="flex flex-col justify-center gap-0">
+            <div className="flex flex-col justify-center gap-0.5">
               <span className="text-sm font-normal">Add Role</span>
             </div>
           </Badge>

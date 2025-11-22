@@ -43,7 +43,7 @@ export const ProductTab = ({
             </p>
             <Button variant="link" className="no-underline font-normal">
               Set up your offering
-              <ArrowRight className="size-3" />
+              <ArrowRight className="size-3 -rotate-45" />
             </Button>
           </div>
         ) : (
