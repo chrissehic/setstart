@@ -37,9 +37,16 @@ import { TaskSearchInput } from "@/components/TaskSearchInput";
 
 type CompetitorsSectionProps = {
   workflowId: string;
+  workflowData?: {
+    id: string;
+    name: string;
+    description?: string | null;
+    logoImage?: string | null;
+    socialLinks?: Array<{ name: string; url: string }>;
+  };
 };
 
-function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
+function CompetitorsSection({ workflowId, workflowData }: CompetitorsSectionProps) {
   const [search, setSearch] = useState("");
   const [newRowId, setNewRowId] = useState<string | null>(null);
   const [newRowData, setNewRowData] = useState({
@@ -115,6 +122,60 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [dirtyRows]);
 
+  // Use a special identifier: workflow-{workflowId} to mark our company
+  const ourCompanyId = `workflow-${workflowId}`;
+
+  // Get website URL from socialLinks (look for "Website" or first URL)
+  const companyWebsite = useMemo(() => {
+    if (!workflowData?.socialLinks) return "";
+    const websiteLink = workflowData.socialLinks.find(
+      (link) => link.name.toLowerCase() === "website" || link.name.toLowerCase() === "site"
+    );
+    return websiteLink?.url || workflowData.socialLinks[0]?.url || "";
+  }, [workflowData?.socialLinks]);
+
+  // Create "our company" competitor data
+  const ourCompanyCompetitor = useMemo(() => {
+    if (!workflowData) return null;
+    
+    // Check if "our company" already exists in competitors (by special ID or matching workflowId + name)
+    const existingOurCompany = competitors.find(
+      (c) => c.id === ourCompanyId || (c.workflowId === workflowId && c.name === workflowData.name)
+    );
+
+    if (existingOurCompany) {
+      const currentData = rowData[existingOurCompany.id] || {
+        name: existingOurCompany.name,
+        description: existingOurCompany.description || workflowData.description || "",
+        website: existingOurCompany.website || companyWebsite,
+      };
+      return {
+        id: existingOurCompany.id,
+        name: currentData.name,
+        description: currentData.description,
+        website: currentData.website,
+        logoImage: existingOurCompany.logoImage || workflowData.logoImage || "",
+        attributes: existingOurCompany.attributes,
+        isNew: false,
+        isOurCompany: true,
+        workflowId: existingOurCompany.workflowId,
+      };
+    }
+
+    // Return virtual "our company" row (not yet saved) with workflow data
+    return {
+      id: ourCompanyId,
+      name: workflowData.name,
+      description: workflowData.description || "",
+      website: companyWebsite,
+      logoImage: workflowData.logoImage || "",
+      attributes: {},
+      isNew: false,
+      isOurCompany: true,
+      workflowId: workflowId,
+    };
+  }, [workflowData, competitors, rowData, companyWebsite, workflowId, ourCompanyId]);
+
   const filteredCompetitors = useMemo(() => {
     if (!search.trim()) return competitors;
 
@@ -137,13 +198,14 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
   };
 
   const handleSaveNew = async () => {
-    if (!newRowData.name.trim()) {
-      return; // Don't save if name is empty
+    // Allow saving with either name or website URL
+    if (!newRowData.name.trim() && !newRowData.website.trim()) {
+      return; // Don't save if both name and website are empty
     }
 
     try {
       await addCompetitorMutation.mutateAsync({
-        name: newRowData.name.trim(),
+        name: newRowData.name.trim() || newRowData.website.trim() || "Untitled",
         description: newRowData.description.trim() || "",
         website: newRowData.website.trim() || "",
         logoImage: "",
@@ -164,8 +226,13 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
   };
 
   const handleNewRowBlur = (field: string, value: string) => {
-    // If name field is blurred and empty, discard the new row
-    if (field === "name" && !value.trim()) {
+    // Only discard the row if both name and website are empty
+    if (field === "name" && !value.trim() && !newRowData.website.trim()) {
+      setNewRowId(null);
+      setNewRowData({ name: "", description: "", website: "" });
+    }
+    // If website field is blurred and empty, and name is also empty, discard the row
+    if (field === "website" && !value.trim() && !newRowData.name.trim()) {
       setNewRowId(null);
       setNewRowData({ name: "", description: "", website: "" });
     }
@@ -389,11 +456,14 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
         const currentCompetitor = competitors.find(c => c.id === competitorId);
         const currentRowData = rowData[competitorId];
         
-        // Build current data with fallback to competitor data to preserve website and other fields
+        // Check if this is our company (virtual row that needs to be created)
+        const isOurCompanyVirtual = competitorId === ourCompanyId && !currentCompetitor;
+        
+        // Build current data with fallback to competitor data or workflow data
         const currentData = {
-          name: currentRowData?.name || currentCompetitor?.name || "",
-          description: currentRowData?.description || currentCompetitor?.description || "",
-          website: currentRowData?.website || currentCompetitor?.website || "",
+          name: currentRowData?.name || currentCompetitor?.name || workflowData?.name || "",
+          description: currentRowData?.description || currentCompetitor?.description || workflowData?.description || "",
+          website: currentRowData?.website || currentCompetitor?.website || companyWebsite,
           attributes: currentRowData?.attributes || currentCompetitor?.attributes || {},
         };
 
@@ -403,14 +473,25 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
           [field]: value,
         };
 
-        // Save to backend
-        await updateCompetitorMutation.mutateAsync({
-          id: competitorId,
-          name: updatedData.name,
-          description: updatedData.description,
-          website: updatedData.website, // Preserve website even when saving other fields
-          attributes: updatedData.attributes,
-        });
+        if (isOurCompanyVirtual) {
+          // Create new competitor for our company
+          await addCompetitorMutation.mutateAsync({
+            name: updatedData.name,
+            description: updatedData.description,
+            website: updatedData.website,
+            logoImage: workflowData?.logoImage || "",
+            attributes: updatedData.attributes,
+          });
+        } else {
+          // Update existing competitor
+          await updateCompetitorMutation.mutateAsync({
+            id: competitorId,
+            name: updatedData.name,
+            description: updatedData.description,
+            website: updatedData.website,
+            attributes: updatedData.attributes,
+          });
+        }
 
         // Clear dirty state for this row
         setDirtyRows((prev) => {
@@ -432,8 +513,12 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
       rowData,
       competitors,
       updateCompetitorMutation,
+      addCompetitorMutation,
       refetch,
       handleCancelEdit,
+      ourCompanyId,
+      workflowData,
+      companyWebsite,
     ]
   );
 
@@ -459,7 +544,7 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
       className={cn("flex flex-col justify-start gap-2 w-full")}
     >
       <div className="flex flex-col gap-4 w-full">
-        <div className="sticky top-0 z-10 backdrop-blur-3xl bg-card border-b border-border/50 py-3 mb-6">
+        <div className="sticky top-0 z-10 backdrop-blur-3xl bg-card border-b border-border/50 py-3">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div className="flex flex-col items-start gap-1 min-w-0 flex-1">
               <h2 className="text-2xl font-semibold tracking-tight">Competitor Analysis</h2>
@@ -476,8 +561,17 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
                     <ChevronDown className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent side="bottom">
-                  <DropdownMenuItem onClick={handleAddCompetitor}>
+                <DropdownMenuContent 
+                  side="bottom"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <DropdownMenuItem 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      handleAddCompetitor();
+                    }}
+                  >
                     <div className="flex items-center gap-2 w-full">
                       <Plus className="size-5" />
                       Add a new row
@@ -533,8 +627,16 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
                         <ChevronDown className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem onClick={handleAddCompetitor}>
+                    <DropdownMenuContent
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <DropdownMenuItem 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          handleAddCompetitor();
+                        }}
+                      >
                         <div className="flex items-center gap-2 w-full">
                           <Plus className="size-5" />
                           Create a table
@@ -588,24 +690,32 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
                        handleMetadataExtracted
                      )}
                     data={[
-                      // Existing competitors first
-                      ...filteredCompetitors.map((competitor) => {
-                        const currentData = rowData[competitor.id] || {
-                          name: competitor.name,
-                          description: competitor.description || "",
-                          website: competitor.website || "",
-                        };
-                        return {
-                          id: competitor.id,
-                          name: currentData.name,
-                          description: currentData.description,
-                          website: currentData.website,
-                          logoImage: competitor.logoImage,
-                          attributes: competitor.attributes,
-                          isNew: false,
-                          workflowId: competitor.workflowId,
-                        };
-                      }),
+                      // Our company row first (if available)
+                      ...(ourCompanyCompetitor ? [ourCompanyCompetitor] : []),
+                      // Existing competitors (excluding our company if it exists)
+                      ...filteredCompetitors
+                        .filter((competitor) => {
+                          // Exclude if it's our company (matched by special ID or workflowId + name)
+                          return competitor.id !== ourCompanyId && 
+                                 !(workflowData && competitor.workflowId === workflowId && competitor.name === workflowData.name);
+                        })
+                        .map((competitor) => {
+                          const currentData = rowData[competitor.id] || {
+                            name: competitor.name,
+                            description: competitor.description || "",
+                            website: competitor.website || "",
+                          };
+                          return {
+                            id: competitor.id,
+                            name: currentData.name,
+                            description: currentData.description,
+                            website: currentData.website,
+                            logoImage: competitor.logoImage,
+                            attributes: competitor.attributes,
+                            isNew: false,
+                            workflowId: competitor.workflowId,
+                          };
+                        }),
                       // Add new row at the end if adding
                       ...(newRowId
                         ? [

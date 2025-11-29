@@ -62,7 +62,7 @@ export const TabContent = ({ data, stageObj }: WorkspaceTabContentProps) => (
         <DocumentsSection workflowId={data.id} />
       </TabsContent>
       <TabsContent value="competitors" className="min-h-0">
-        <CompetitorsSection workflowId={data.id} />
+        <CompetitorsSection workflowId={data.id} workflowData={data} />
       </TabsContent>
       {/* <TabsContent value="masterbrief" className="min-h-0">
         <MasterbriefSection workflowId={data.id} />

@@ -3,7 +3,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Input } from "@/components/ui/input";
 import { MoreHorizontal, Trash2 } from "lucide-react";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef, forwardRef } from "react";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -32,20 +32,11 @@ export type CompetitorColumn = {
   logoImage?: string | null;
   attributes: Record<string, string | number | boolean>;
   isNew?: boolean;
-  workflowId?: string;
+  isOurCompany?: boolean;
 };
 
 // Simple input component (reverted to normal state)
-function HybridInput({
-  value,
-  onChange,
-  onBlur,
-  onKeyDown,
-  placeholder,
-  className,
-  disabled = false,
-  autoFocus = false,
-}: {
+const HybridInput = forwardRef<HTMLInputElement, {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur: () => void;
@@ -54,9 +45,19 @@ function HybridInput({
   className?: string;
   disabled?: boolean;
   autoFocus?: boolean;
-}) {
+}>(({
+  value,
+  onChange,
+  onBlur,
+  onKeyDown,
+  placeholder,
+  className,
+  disabled = false,
+  autoFocus = false,
+}, ref) => {
   return (
     <Input
+      ref={ref}
       variant="underline"
       value={value}
       onChange={onChange}
@@ -68,7 +69,9 @@ function HybridInput({
       autoFocus={autoFocus}
     />
   );
-}
+});
+
+HybridInput.displayName = "HybridInput";
 
 
 // Cell component that manages its own draft state and auto-saves on blur
@@ -310,12 +313,23 @@ function WebsiteCell({
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const { extractMetadata, isLoading: isExtractingMetadata } = useCompetitorMetadataExtraction();
 
   // Update draft when initialValue changes (external updates)
   useEffect(() => {
     setDraftValue(initialValue);
   }, [initialValue]);
+
+  // Focus the input when autoFocus is true (for new rows)
+  useEffect(() => {
+    if (autoFocus && isNewRow && inputRef.current) {
+      // Use setTimeout to ensure the input is rendered before focusing
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
+    }
+  }, [autoFocus, isNewRow]);
 
   // Listen for Ctrl key press/release for visual feedback
   useEffect(() => {
@@ -358,14 +372,13 @@ function WebsiteCell({
 
   const handleBlur = useCallback(async () => {
     if (isNewRow) {
-      // For new rows: if name is empty, discard; if has value, save
-      if (field === "name" && !draftValue.trim()) {
-        // Name is empty, discard the row
-        onNewRowBlur?.(field, draftValue);
-        return;
+      // For new rows: call onNewRowBlur to let parent handle discard logic
+      // Parent will check if both name and website are empty before discarding
+      onNewRowBlur?.(field, draftValue);
+      // If we have a value (website URL), try to save
+      if (draftValue.trim()) {
+        onSaveNew?.();
       }
-      // Has value, save the row
-      onSaveNew?.();
       return;
     }
 
@@ -395,9 +408,10 @@ function WebsiteCell({
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "Enter") {
         if (isNewRow) {
-          // For new rows, Enter saves if name has value
-          if (field === "name" && draftValue.trim()) {
+          // For new rows, Enter saves if website has value
+          if (draftValue.trim()) {
             // Trigger save
+            onSaveNew?.();
             return;
           }
           // Move to next field
@@ -410,7 +424,7 @@ function WebsiteCell({
         e.currentTarget.blur();
       }
     },
-    [initialValue, isNewRow, field, draftValue]
+    [initialValue, isNewRow, draftValue, onSaveNew]
   );
 
   // Check if the value looks like a URL
@@ -471,7 +485,8 @@ function WebsiteCell({
                   }
                 }}
               >
-                <HybridInput  
+                <HybridInput
+                  ref={inputRef}
                   value={draftValue}
                   onChange={handleChange}
                   onBlur={handleBlur}
@@ -494,6 +509,7 @@ function WebsiteCell({
         </TooltipProvider>
       ) : (
         <HybridInput
+          ref={inputRef}
           value={draftValue}
           onChange={handleChange}
           onBlur={handleBlur}
@@ -660,14 +676,14 @@ export const createCompetitorColumns = (
   deletingColumns?: Set<string>,
   onMetadataExtracted?: (competitorId: string, metadata: { name: string; description: string; faviconUrl?: string }) => void
 ): ColumnDef<CompetitorColumn>[] => [
-  // Name
+  // Name - first column
   {
     accessorKey: "name",
     header: "Name",
     cell: ({ row }) => {
       const c = row.original;
       return (
-        <div className="relative">
+        <div className={`relative ${c.isOurCompany ? "border-l-2 border-l-primary" : ""}`}>
           <Avatar className="absolute left-2 top-1/2 -translate-y-1/2 h-6 w-6 z-10">
             <AvatarImage 
               src={c.logoImage || undefined} 
@@ -678,24 +694,23 @@ export const createCompetitorColumns = (
               {getInitials(c.name)}
             </AvatarFallback>
           </Avatar>
-          <EditableCell
-            initialValue={c.name}
-            competitorId={c.id}
-            field="name"
-            onSave={onSaveEdit}
-            onNewRowFieldChange={onNewRowFieldChange}
-            onNewRowBlur={onNewRowBlur}
-            onSaveNew={onSaveNew}
-            isNewRow={c.isNew}
-            autoFocus={c.isNew}
-            className="pl-10"
-          />
+            <EditableCell
+              initialValue={c.name}
+              competitorId={c.id}
+              field="name"
+              onSave={onSaveEdit}
+              onNewRowFieldChange={onNewRowFieldChange}
+              onNewRowBlur={onNewRowBlur}
+              onSaveNew={onSaveNew}
+              isNewRow={c.isNew}
+              className="pl-10"
+            />
         </div>
       );
     },
   },
 
-  // Website
+  // Website - second column, but gets autoFocus for new rows to allow URL entry first
   {
     accessorKey: "website",
     header: "Website",
@@ -711,6 +726,7 @@ export const createCompetitorColumns = (
           onNewRowBlur={onNewRowBlur}
           onSaveNew={onSaveNew}
           isNewRow={c.isNew}
+          autoFocus={c.isNew}
           placeholder="https://example.com"
           onMetadataExtracted={onMetadataExtracted ? (metadata) => onMetadataExtracted(c.id, metadata) : undefined}
         />

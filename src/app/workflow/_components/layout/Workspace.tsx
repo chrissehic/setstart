@@ -149,7 +149,7 @@ const Workspace = ({
                         : "opacity-0 scale-95 absolute inset-0 pointer-events-none"
                     )}
                   >
-                    <AssistantPane data={data} />
+                    <AssistantPane data={data} currentSection={tabActive} />
                   </div>
                 </div>
               </Tabs>

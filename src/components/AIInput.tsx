@@ -127,7 +127,7 @@ export default function MultiPurposeInput({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             className={cn(
-              "w-full resize-none border-0 text-md shadow-none min-h-[60px] pr-12 bg-transparent",
+              "w-full p-1 resize-none border-0 text-md shadow-none min-h-[60px] pr-12 bg-transparent",
               "focus:ring-0 focus:outline-none text-foreground placeholder:text-muted-foreground",
               className
             )}

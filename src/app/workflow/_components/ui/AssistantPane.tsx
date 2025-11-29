@@ -9,6 +9,7 @@ import type { WorkflowData } from "@/types/workflow";
 import SetIcon from "@/components/SetIcon";
 import MultiPurposeInput from "@/components/AIInput";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getAssistantSuggestions, type SectionValue } from "@/lib/assistantSuggestions";
 
 interface Message {
   id: string;
@@ -19,39 +20,18 @@ interface Message {
 
 interface AssistantPaneProps {
   data: WorkflowData;
+  currentSection?: SectionValue | string;
 }
 
-const SUGGESTED_PROMPTS = [
-  {
-    title: "Project Goals",
-    prompt:
-      "What are the main objectives for this project and how can I achieve them?",
-    color: "text-blue-600",
-  },
-  {
-    title: "Progress Analysis",
-    prompt:
-      "Analyze the current progress and suggest next steps for improvement.",
-    color: "text-green-600",
-  },
-  {
-    title: "Ideas & Innovation",
-    prompt: "What innovative approaches could I take to enhance this project?",
-    color: "text-yellow-600",
-  },
-  {
-    title: "Optimization",
-    prompt: "How can I optimize the workflow and make it more efficient?",
-    color: "text-purple-600",
-  },
-];
-
-export const AssistantPane = ({ data }: AssistantPaneProps) => {
+export const AssistantPane = ({ data, currentSection }: AssistantPaneProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Get section-specific suggestions
+  const suggestedPrompts = getAssistantSuggestions(currentSection || "default");
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -93,7 +73,7 @@ export const AssistantPane = ({ data }: AssistantPaneProps) => {
 
       setMessages((prev) => [...prev, assistantMessage]);
       setIsLoading(false);
-    }, 1000);
+    }, 5000);
   };
 
   // const handleSubmit = (e: React.FormEvent) => {
@@ -144,14 +124,16 @@ export const AssistantPane = ({ data }: AssistantPaneProps) => {
 
             {/* Suggested Prompts */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl">
-              {SUGGESTED_PROMPTS.map((suggestion, index) => (
+              {suggestedPrompts.map((suggestion, index) => (
                 <Card
                   key={index}
                   className="cursor-pointer hover:bg-accent/50 transition-colors"
                   onClick={() => setInputValue(suggestion.prompt)}
                 >
                   <CardHeader>
-                    <CardTitle>{suggestion.title}</CardTitle>
+                    <CardTitle>
+                      {suggestion.title}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-xs text-muted-foreground">
@@ -174,10 +156,9 @@ export const AssistantPane = ({ data }: AssistantPaneProps) => {
                     message.role === "user" ? "justify-end" : "justify-start"
                   )}
                 >
-
                   <div
                     className={cn(
-                      "rounded-lg px-3 py-2",
+                      "rounded-sm px-3 py-2",
                       message.role === "user"
                         ? "max-w-[80%] bg-accent text-accent-foreground"
                         : "text-foreground"
@@ -195,22 +176,11 @@ export const AssistantPane = ({ data }: AssistantPaneProps) => {
 
               {isLoading && (
                 <div className="flex gap-3 justify-start">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    {/* <Bot className="w-4 h-4 text-primary" /> */}
-                  </div>
-                  <div className="bg-muted text-foreground rounded-lg px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" />
-                      <div
-                        className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
-                        style={{ animationDelay: "0.1s" }}
-                      />
-                      <div
-                        className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
-                        style={{ animationDelay: "0.2s" }}
-                      />
-                    </div>
-                  </div>
+                  <SetIcon
+                    className="size-8 text-primary"
+                    loading={isLoading}
+                    animated={false}
+                  />
                 </div>
               )}
 
@@ -237,7 +207,7 @@ export const AssistantPane = ({ data }: AssistantPaneProps) => {
 
         {/* Info Section */}
         <div className="flex justify-center items-center pointer-events-none">
-          <div className="bg-background/95 backdrop-blur-sm border border-border/50 rounded-md p-2 max-w-4xl mx-auto">
+          <div className="bg-background/95 backdrop-blur-sm border border-border/50 rounded-md max-w-4xl mx-auto">
             <p className="text-xs text-muted-foreground text-center">
               AI powered by your project context • Press Enter to send
             </p>

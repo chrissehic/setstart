@@ -17,7 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronsUpDown, LayoutTemplate, LogOut, Plus, Loader2 } from "lucide-react";
+import { ChevronsUpDown, LogOut, Plus, Loader2, LandPlot } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSidebarWidth } from "@/hooks/useSidebarWidth";
 import { WorkflowWithDetails } from "@/types";
@@ -126,12 +126,6 @@ const Sidebar = memo(function Sidebar({
       {allWorkflows && currentWorkflow && (
         <SidebarHeader className="w-full px-1">
           <SidebarMenu>
-            {/* <SidebarMenuItem className="relative w-full h-12 overflow-hidden flex items-center justify-start px-2 py-1">
-              <div className="flex flex-row gap-2 items-center text-foreground/60">
-                <SetIcon className="size-7" />
-                <SetStartText className="h-3.5" />
-              </div>
-            </SidebarMenuItem> */}
             <SidebarMenuItem className="w-full">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -225,7 +219,7 @@ const Sidebar = memo(function Sidebar({
                       animated={true}
                     />
                   ) : (
-                    <LayoutTemplate className="text-primary-foreground/60 !h-6 !w-5 stroke-[1.5px]"/>
+                    <LandPlot className="size-5! stroke-[1.5px] text-accent-foreground m-0.5"/>
                   )}
                   {!isCollapsed && (
                     <span className="text-[15px] text-primary-foreground">{buttonText}</span>
