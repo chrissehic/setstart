@@ -56,7 +56,7 @@ export function EditableImage({
       queryClient.setQueryData(["workflow", workflowId], updatedWorkflow);
       // Force re-render of all components using this image (only on client)
       if (mountedRef.current) {
-        setCacheBuster(Date.now());
+      setCacheBuster(Date.now());
       }
       // Emit event to notify other components
       imageEventEmitter.emit({ workflowId, field, imageUrl: localImageUrl || null });
@@ -80,7 +80,7 @@ export function EditableImage({
     setLocalImageUrl(normalizedImageUrl);
     // Only update cache buster on client side after mount
     if (mounted) {
-      setCacheBuster(Date.now());
+    setCacheBuster(Date.now());
     }
   }, [imageUrl, field, mounted]);
 
@@ -150,7 +150,7 @@ export function EditableImage({
       // Clear local state immediately for instant UI update
       setLocalImageUrl(undefined);
       if (mountedRef.current) {
-        setCacheBuster(Date.now());
+      setCacheBuster(Date.now());
       }
 
       // Small delay to ensure state update is processed

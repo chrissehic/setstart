@@ -428,13 +428,13 @@ const ObjectivesSection = ({
 
   // Main view with tabs (only hidden when a task is selected)
   return (
-    <div className={cn(SECTION_CLASS, "flex flex-col h-full w-full")}>
+    <div className={cn(SECTION_CLASS, "flex flex-col w-full")}>
       <Tabs
         value={activeTab}
         onValueChange={(value) => setActiveTab(value as "objectives" | "tasks")}
-        className="flex-1 flex flex-col h-full w-full"
+        className="flex flex-col w-full"
       >
-        <TabsList className="grid w-fit grid-cols-2 mb-4 gap-2">
+        <TabsList className="sticky top-0 z-10 backdrop-blur-3xl bg-card border-b border-border/50 py-4 mb-4 grid w-fit grid-cols-2 gap-2">
           <TabsTrigger value="objectives" className="">
             <LibrarySquare className="h-4 w-4" />
             Objectives
@@ -445,23 +445,25 @@ const ObjectivesSection = ({
           </TabsTrigger>
         </TabsList>
         {/* Objectives Tab */}
-        <TabsContent value="objectives" className="flex-1 overflow-auto">
+        <TabsContent value="objectives" className="flex-1">
           {/* Header */}
           <div className="flex flex-col gap-4 w-full">
-          <div className="flex flex-col sm:flex-row gap-2 justify-between items-start sm:items-center">
-            <div>
-              <h2 className="text-lg font-semibold">Objectives</h2>
-              <p className="text-sm text-muted-foreground">
-                Manage your project objectives and track its tasks and their progress
-              </p>
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+              <div className="flex flex-col items-start gap-1 min-w-0 flex-1">
+                <h2 className="text-2xl font-semibold tracking-tight">Objectives</h2>
+                <p className="text-sm text-muted-foreground">
+                  Manage your project objectives and track its tasks and their progress
+                </p>
+              </div>
+              <div className="flex-shrink-0">
+                <ObjectiveModal workflowId={workflowId}>
+                  <Button className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Add Objective
+                  </Button>
+                </ObjectiveModal>
+              </div>
             </div>
-            <ObjectiveModal workflowId={workflowId}>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                Add Objective
-              </Button>
-            </ObjectiveModal>
-          </div>
           
 
           {/* Objectives Table */}
@@ -580,7 +582,7 @@ const ObjectivesSection = ({
           </div>
         </TabsContent>
         {/* All Tasks Tab */}
-        <TabsContent value="tasks" className="flex-1 overflow-hidden">
+        <TabsContent value="tasks" className="flex-1">
           <TasksSection
             workflowId={workflowId}
             people={people}

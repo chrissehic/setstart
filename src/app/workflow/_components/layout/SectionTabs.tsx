@@ -12,7 +12,7 @@ import { GrowthStageTab } from "../tabs/GrowthStageTab";
 import { ReferencesPreview } from "../ui/ReferencesPreview";
 import { DocumentsTab } from "../tabs/DocumentsTab";
 import { CompetitorsTab } from "../tabs/CompetitorsTab";
-import { MasterbriefTab } from "../tabs/MasterbriefTab";
+// import { MasterbriefTab } from "../tabs/MasterbriefTab";
 
 interface WorkspaceTabTriggersProps {
   data: WorkflowData;
@@ -63,12 +63,12 @@ export const SectionTabs = ({
               competitors={data.competitors}
             />
           )}
-          {item.value === "masterbrief" && (
+          {/* {item.value === "masterbrief" && (
             <MasterbriefTab
               title={item.title}
               value={item.title}
             />
-          )}
+          )} */}
           {item.value === "reference-hub" && (
             <div className="flex flex-col justify-start gap-2 w-full p-1">
               <h4 className="scroll-m-20 text-lg font-medium text-start">

@@ -296,6 +296,7 @@ const Sidebar = memo(function Sidebar({
                         size="lg"
                         className="cursor-pointer data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                         tooltip={isCollapsed ? userDisplayName : undefined}
+                        data-slot="dropdown-menu-trigger"
                       >
                         <Avatar className="h-8 w-8 rounded-md shrink-0">
                           <AvatarImage

@@ -31,14 +31,14 @@ interface ProductVariantsListProps {
 const VariantImage = ({ variant }: { variant: ProductVariant }) => {
   if (!variant.image) {
     return (
-      <div className="size-24 rounded-lg bg-muted flex items-center justify-center">
+      <div className="size-18 rounded-lg bg-muted flex items-center justify-center">
         <div className="size-6 bg-muted-foreground/20 rounded" />
       </div>
     )
   }
 
   return (
-    <div className="relative size-24 rounded-lg overflow-hidden border">
+    <div className="relative size-18 rounded-xs overflow-hidden border">
       <Image src={variant.image || "/placeholder.svg"} alt={variant.name} fill className="object-cover" />
     </div>
   )
@@ -124,7 +124,7 @@ export function ProductVariantsList({ productId, workflowId, variants, onVariant
             <ProductVariantModal key={variant.id} productId={productId} workflowId={workflowId} variant={variant} onSuccess={onVariantChange}>
               <Card className="group/variant hover:bg-muted/50 transition-colors p-0 cursor-pointer">
                 <CardContent className="p-2">
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
                     <VariantImage variant={variant} />
 
                     <div className="flex-1 min-w-0">

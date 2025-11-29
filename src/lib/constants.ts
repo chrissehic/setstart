@@ -6,7 +6,7 @@ import {
   Tv,
   Watch,
   Amphora,
-  FileKey2,
+  // FileKey2,
   Trophy,
 } from "lucide-react"
 
@@ -18,12 +18,12 @@ export const WORKSPACE_ITEMS = [
     value: "overview",
     icon: Presentation,
   },
-  {
-    title: "Masterbrief",
-    url: "#masterbrief",
-    value: "masterbrief",
-    icon: FileKey2,
-  },
+  // {
+  //   title: "Masterbrief",
+  //   url: "#masterbrief",
+  //   value: "masterbrief",
+  //   icon: FileKey2,
+  // },
   {
     title: "Taskboard",
     url: "#taskboard",

@@ -67,7 +67,9 @@ export function ProductVariantModal({
   const [internalOpen, setInternalOpen] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [attributes, setAttributes] = useState<Array<{ id: string; key: string; value: string }>>([]);
+  const [attributes, setAttributes] = useState<
+    Array<{ id: string; key: string; value: string }>
+  >([]);
   const [originalValues, setOriginalValues] = useState<{
     name: string;
     description: string;
@@ -119,16 +121,18 @@ export function ProductVariantModal({
         // Convert Record to array with IDs
         let attrsArray: Array<{ id: string; key: string; value: string }> = [];
         if (parsedAttributes && Object.keys(parsedAttributes).length > 0) {
-          attrsArray = Object.entries(parsedAttributes).map(([key, value], index) => ({
-            id: `attr_${index}_${Date.now()}`,
-            key,
-            value: value as string,
-          }));
+          attrsArray = Object.entries(parsedAttributes).map(
+            ([key, value], index) => ({
+              id: `attr_${index}_${Date.now()}`,
+              key,
+              value: value as string,
+            })
+          );
           setAttributes(attrsArray);
         } else {
           setAttributes([]);
         }
-        
+
         // Store original values for change detection
         setOriginalValues({
           name: variant.name,
@@ -212,38 +216,54 @@ export function ProductVariantModal({
   };
 
   // Check if there are any changes (only for editing mode)
-  const hasChanges = isEditing && originalValues ? (() => {
-    // Compare form values (normalize empty strings and null)
-    const normalizeString = (val: string | null | undefined) => val || "";
-    if (normalizeString(watchedValues.name) !== normalizeString(originalValues.name)) return true;
-    if (normalizeString(watchedValues.description) !== normalizeString(originalValues.description)) return true;
-    if (watchedValues.price !== originalValues.price) return true;
-    
-    // Compare image (normalize null and empty string)
-    const normalizeImage = (val: string | null | undefined) => val || null;
-    if (normalizeImage(imageUrl) !== normalizeImage(originalValues.image)) return true;
-    
-    // Compare attributes
-    const currentAttributes = attributes.reduce((acc, attr) => {
-      if (attr.key.trim()) {
-        acc[attr.key.trim()] = attr.value;
-      }
-      return acc;
-    }, {} as Record<string, string>);
-    
-    const originalKeys = Object.keys(originalValues.attributes || {});
-    const currentKeys = Object.keys(currentAttributes);
-    
-    if (originalKeys.length !== currentKeys.length) return true;
-    
-    for (const key of originalKeys) {
-      if ((originalValues.attributes[key] || "") !== (currentAttributes[key] || "")) {
-        return true;
-      }
-    }
-    
-    return false;
-  })() : true; // Always allow changes for new variants
+  const hasChanges =
+    isEditing && originalValues
+      ? (() => {
+          // Compare form values (normalize empty strings and null)
+          const normalizeString = (val: string | null | undefined) => val || "";
+          if (
+            normalizeString(watchedValues.name) !==
+            normalizeString(originalValues.name)
+          )
+            return true;
+          if (
+            normalizeString(watchedValues.description) !==
+            normalizeString(originalValues.description)
+          )
+            return true;
+          if (watchedValues.price !== originalValues.price) return true;
+
+          // Compare image (normalize null and empty string)
+          const normalizeImage = (val: string | null | undefined) =>
+            val || null;
+          if (normalizeImage(imageUrl) !== normalizeImage(originalValues.image))
+            return true;
+
+          // Compare attributes
+          const currentAttributes = attributes.reduce((acc, attr) => {
+            if (attr.key.trim()) {
+              acc[attr.key.trim()] = attr.value;
+            }
+            return acc;
+          }, {} as Record<string, string>);
+
+          const originalKeys = Object.keys(originalValues.attributes || {});
+          const currentKeys = Object.keys(currentAttributes);
+
+          if (originalKeys.length !== currentKeys.length) return true;
+
+          for (const key of originalKeys) {
+            if (
+              (originalValues.attributes[key] || "") !==
+              (currentAttributes[key] || "")
+            ) {
+              return true;
+            }
+          }
+
+          return false;
+        })()
+      : true; // Always allow changes for new variants
 
   const onSubmit = (values: VariantSchemaType) => {
     // Convert attributes array back to Record format
@@ -257,7 +277,8 @@ export function ProductVariantModal({
     const variantData = {
       ...values,
       image: imageUrl || undefined,
-      attributes: Object.keys(attributesRecord).length > 0 ? attributesRecord : undefined,
+      attributes:
+        Object.keys(attributesRecord).length > 0 ? attributesRecord : undefined,
     };
 
     if (isEditing && variant) {
@@ -298,7 +319,7 @@ export function ProductVariantModal({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {isEditing ? "Edit Variant" : "Add New Variant"}
@@ -384,9 +405,10 @@ export function ProductVariantModal({
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Variant Name *</FormLabel>
+                        <FormLabel>Variant Name</FormLabel>
                         <FormControl>
                           <Input
+                            required
                             placeholder="e.g., Chocolate, Vanilla, Large, Premium..."
                             {...field}
                             disabled={isLoading}
@@ -396,27 +418,6 @@ export function ProductVariantModal({
                       </FormItem>
                     )}
                   />
-
-                  {/* <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Price</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        {...field}
-                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              /> */}
                 </div>
 
                 <FormField
@@ -446,23 +447,12 @@ export function ProductVariantModal({
                 <FormLabel className="flex flex-col items-start">
                   Attributes
                   <p className="text-sm text-muted-foreground">
-                    Add Attribute&quot; to define specific characteristics like flavor, size, color, etc.
+                    Add Attribute&quot; to define specific characteristics like
+                    flavor, size, color, etc.
                   </p>
                 </FormLabel>
 
                 <div className="flex gap-2">
-                  {/* <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const examples = getExampleAttributes("Food");
-                        setAttributes(examples);
-                      }}
-                      disabled={isLoading}
-                    >
-                      Load Examples
-                    </Button> */}
                   <Button
                     type="button"
                     variant="outline"
@@ -474,11 +464,13 @@ export function ProductVariantModal({
                     Add Attribute
                   </Button>
                 </div>
-                
               </div>
 
               {attributes.length === 0 && (
-                <div key="no-attributes" className="py-3 border border-dashed border-muted rounded-md px-3">
+                <div
+                  key="no-attributes"
+                  className="py-3 border border-dashed border-muted rounded-md px-3"
+                >
                   <p className="text-sm text-muted-foreground text-center">
                     No attributes added yet.
                   </p>
@@ -497,10 +489,13 @@ export function ProductVariantModal({
                           setAttributes((prev) => {
                             // Check if new key already exists in another attribute
                             const keyExists = prev.some(
-                              (a) => a.id !== attr.id && a.key.trim() === newKey.trim() && newKey.trim() !== ""
+                              (a) =>
+                                a.id !== attr.id &&
+                                a.key.trim() === newKey.trim() &&
+                                newKey.trim() !== ""
                             );
                             if (keyExists) return prev; // Don't update if duplicate
-                            
+
                             return prev.map((a) =>
                               a.id === attr.id ? { ...a, key: newKey } : a
                             );
@@ -515,7 +510,9 @@ export function ProductVariantModal({
                         onChange={(e) => {
                           setAttributes((prev) =>
                             prev.map((a) =>
-                              a.id === attr.id ? { ...a, value: e.target.value } : a
+                              a.id === attr.id
+                                ? { ...a, value: e.target.value }
+                                : a
                             )
                           );
                         }}
@@ -536,8 +533,6 @@ export function ProductVariantModal({
                   ))}
                 </div>
               )}
-
-           
             </div>
 
             <DialogFooter>
@@ -549,9 +544,13 @@ export function ProductVariantModal({
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
-                  disabled={isLoading || !form.formState.isValid || (isEditing && !hasChanges)}
+                <Button
+                  type="submit"
+                  disabled={
+                    isLoading ||
+                    !form.formState.isValid ||
+                    (isEditing && !hasChanges)
+                  }
                 >
                   {isLoading ? (
                     <Loader2 className="animate-spin" />

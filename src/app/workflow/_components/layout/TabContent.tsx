@@ -5,7 +5,7 @@ import RolesSection from "../sections/RolesSection";
 import ObjectivesSection from "../sections/ObjectivesSection";
 import { ProductSection } from "../sections/ProductSection";
 import { ReferencesSection } from "../sections/ReferencesSection";
-import MasterbriefSection from "../sections/MasterbriefSection";
+// import MasterbriefSection from "../sections/MasterbriefSection";
 
 import type { WorkflowData } from "@/types/workflow";
 import { COMPANY_STAGES } from "@/types/companyStages";
@@ -27,47 +27,49 @@ interface WorkspaceTabContentProps {
 }
 
 export const TabContent = ({ data, stageObj }: WorkspaceTabContentProps) => (
-  <div className="flex flex-col flex-3 p-4 gap-5 z-20 overflow-y-auto w-full max-w-5xl">
-    <TabsContent value="overview">
-      <AboutSection workflowId={data.id} />
-    </TabsContent>
-    <TabsContent value="growth-stage">
-      <StagesSection
-        workflowId={data.id}
-        stages={COMPANY_STAGES}
-        currentStage={stageObj}
-      />
-    </TabsContent>
-    <TabsContent value="roles">
-      <RolesSection data={data} />
-    </TabsContent>
-    <TabsContent value="offering">
-      <ProductSection workflowId={data.id} />
-    </TabsContent>
-    <TabsContent value="taskboard">
-      <ObjectivesSection
-        workflowId={data.id}
-        objectives={data.objectives || []}
-        tasks={data.tasks || []}
-        people={
-          data.people?.map((p) => ({
-            ...p.person,
-            avatarImage: p.person.avatarImage || undefined,
-          })) || []
-        }
-      />
-    </TabsContent>
-    <TabsContent value="documents">
-      <DocumentsSection workflowId={data.id} />
-    </TabsContent>
-    <TabsContent value="competitors">
-      <CompetitorsSection workflowId={data.id} />
-    </TabsContent>
-    <TabsContent value="masterbrief">
-      <MasterbriefSection workflowId={data.id} />
-    </TabsContent>
-    <TabsContent value="reference-hub">
-      <ReferencesSection workflowId={data.id} />
-    </TabsContent>
+  <div className="flex flex-col h-full z-20 w-full overflow-y-auto">
+    <div className="p-4 space-y-5 max-w-7xl mx-auto w-full">
+      <TabsContent value="overview" className="min-h-0">
+        <AboutSection workflowId={data.id} />
+      </TabsContent>
+      <TabsContent value="growth-stage" className="min-h-0">
+        <StagesSection
+          workflowId={data.id}
+          stages={COMPANY_STAGES}
+          currentStage={stageObj}
+        />
+      </TabsContent>
+      <TabsContent value="roles" className="min-h-0">
+        <RolesSection data={data} />
+      </TabsContent>
+      <TabsContent value="offering" className="min-h-0">
+        <ProductSection workflowId={data.id} />
+      </TabsContent>
+      <TabsContent value="taskboard" className="min-h-0">
+        <ObjectivesSection
+          workflowId={data.id}
+          objectives={data.objectives || []}
+          tasks={data.tasks || []}
+          people={
+            data.people?.map((p) => ({
+              ...p.person,
+              avatarImage: p.person.avatarImage || undefined,
+            })) || []
+          }
+        />
+      </TabsContent>
+      <TabsContent value="documents" className="min-h-0">
+        <DocumentsSection workflowId={data.id} />
+      </TabsContent>
+      <TabsContent value="competitors" className="min-h-0">
+        <CompetitorsSection workflowId={data.id} />
+      </TabsContent>
+      {/* <TabsContent value="masterbrief" className="min-h-0">
+        <MasterbriefSection workflowId={data.id} />
+      </TabsContent> */}
+      <TabsContent value="reference-hub" className="min-h-0">
+        <ReferencesSection workflowId={data.id} />
+      </TabsContent>
+    </div>
   </div>
 );

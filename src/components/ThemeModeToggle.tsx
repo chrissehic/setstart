@@ -36,6 +36,7 @@ export function ModeToggle({ isCollapsed = false }: ModeToggleProps) {
         <SidebarMenuButton 
           className={`w-full ${isCollapsed ? "justify-center" : ""}`}
           tooltip={isCollapsed ? `${themeText} theme` : undefined}
+          data-slot="dropdown-menu-trigger"
         >
           <div className={`relative ${isCollapsed ? "h-6 w-6" : "h-4 w-4"}`}>
             <Sun className={`absolute inset-0 rotate-0 scale-100 transition-all duration-300 dark:rotate-90 dark:scale-0 ${

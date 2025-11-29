@@ -20,6 +20,7 @@ interface DocumentsPreviewProps {
 export function DocumentsPreview({ workflowId }: DocumentsPreviewProps) {
   const { data: documents = [], isLoading } = useDocuments(workflowId);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const getFileIcon = (type: string) => {
     switch (type) {
       case "pdf":
@@ -100,7 +101,7 @@ export function DocumentsPreview({ workflowId }: DocumentsPreviewProps) {
           <Card key={document.id} className="w-full p-0 rounded-md">
             <CardContent className="p-2 flex flex-row items-center gap-2 h-full">
               <div className="flex items-center gap-2 w-full">
-                {getFileIcon(document.fileType)}
+                {/* {getFileIcon(document.fileType)} */}
                 <div className="flex min-w-0 flex-row items-center gap-1">
                   <div className="flex flex-col items-start justify-center w-full">
                     <p className="text-sm font-medium overflow-hidden text-ellipsis whitespace-nowrap line-clamp-1 w-full">
@@ -117,9 +118,12 @@ export function DocumentsPreview({ workflowId }: DocumentsPreviewProps) {
         ))}
 
         {documents.length > 3 && (
-          <div className="text-center absolute bottom-2 right-0 left-0">
-            <Badge variant="outline" className="text-xs">
-              +{documents.length - 3} more
+          <div className="text-center absolute bottom-1 right-0 left-0">
+            <Badge
+              variant="inverse"
+              className="text-xs bg-accent-foreground/20 hover:bg-accent-foreground/30"
+            >
+              <span className="text-foreground">+{documents.length - 3} more</span>
             </Badge>
           </div>
         )}

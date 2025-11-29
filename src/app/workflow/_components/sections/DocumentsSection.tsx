@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, memo, useCallback } from "react";
+import React, { useState, useMemo, memo, useCallback, Suspense } from "react";
 import Image from "next/image";
 
 declare global {
@@ -296,7 +296,65 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
     }
   }, [deleteDocumentMutation, workflowId]);
 
-  // Memoize document card component
+  // Image component with skeleton loading state
+  const ImageWithSkeleton = memo(({ 
+    src, 
+    alt 
+  }: { 
+    src: string; 
+    alt: string;
+  }) => {
+    const [isLoading, setIsLoading] = useState(true);
+    const [hasError, setHasError] = useState(false);
+
+    if (hasError) {
+      return (
+        <div 
+          className="absolute inset-0 flex items-center justify-center"
+          style={{
+            background: `linear-gradient(135deg, 
+              hsl(var(--primary) / 0.1) 0%, 
+              hsl(var(--primary) / 0.05) 50%, 
+              hsl(var(--accent) / 0.1) 100%)`
+          }}
+        >
+          <div className="text-center">
+            {getFileIcon("image")}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        {isLoading && (
+          <div className="absolute inset-0 bg-accent animate-pulse z-0">
+            <Skeleton className="h-full w-full rounded-none" />
+          </div>
+        )}
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          className={`object-cover group-hover/document:scale-105 transition-all duration-300 ${
+            isLoading ? 'opacity-0' : 'opacity-100'
+          }`}
+          loading="lazy"
+          unoptimized={false}
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 300px"
+          onLoad={() => setIsLoading(false)}
+          onError={() => {
+            setIsLoading(false);
+            setHasError(true);
+          }}
+        />
+      </>
+    );
+  });
+
+  ImageWithSkeleton.displayName = 'ImageWithSkeleton';
+
+  // Memoize document card component with comparison function
   const DocumentCard = memo(({ document }: { document: typeof documents[0] }) => (
     <Card
       key={document.id}
@@ -306,40 +364,31 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
       {/* Document Preview Header */}
       <div className="relative h-32 w-full overflow-hidden">
         {document.fileType === "image" ? (
-          <Image
-            src={document.fileUrl}
-            alt={document.name}
-            fill
-            className="object-cover group-hover/document:scale-105 transition-transform duration-300"
-            loading="lazy"
-            unoptimized={false}
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 300px"
-            onError={(e) => {
-              // Fallback to placeholder if image fails to load
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              const placeholder = target.nextElementSibling as HTMLElement;
-              if (placeholder) placeholder.style.display = 'flex';
+          <Suspense fallback={
+            <div className="absolute inset-0 bg-accent animate-pulse">
+              <Skeleton className="h-full w-full rounded-none" />
+            </div>
+          }>
+            <ImageWithSkeleton
+              src={document.fileUrl}
+              alt={document.name}
+            />
+          </Suspense>
+        ) : (
+          <div 
+            className="absolute inset-0 flex items-center justify-center"
+            style={{
+              background: `linear-gradient(135deg, 
+                hsl(var(--primary) / 0.1) 0%, 
+                hsl(var(--primary) / 0.05) 50%, 
+                hsl(var(--accent) / 0.1) 100%)`
             }}
-          />
-        ) : null}
-        
-        {/* Placeholder for non-image files or failed image loads */}
-        <div 
-          className={`absolute inset-0 flex items-center justify-center ${
-            document.fileType === "image" ? "hidden" : "flex"
-          }`}
-          style={{
-            background: `linear-gradient(135deg, 
-              hsl(var(--primary) / 0.1) 0%, 
-              hsl(var(--primary) / 0.05) 50%, 
-              hsl(var(--accent) / 0.1) 100%)`
-          }}
-        >
-          <div className="text-center">
-            {getFileIcon(document.fileType)}
+          >
+            <div className="text-center">
+              {getFileIcon(document.fileType)}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Document Content */}
@@ -386,13 +435,24 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
         </div>
       </CardHeader>
     </Card>
-  ));
+  ), (prevProps, nextProps) => {
+    // Return true if props are equal (skip re-render), false if different (re-render)
+    return (
+      prevProps.document.id === nextProps.document.id &&
+      prevProps.document.name === nextProps.document.name &&
+      prevProps.document.fileUrl === nextProps.document.fileUrl &&
+      prevProps.document.fileType === nextProps.document.fileType &&
+      prevProps.document.sizeBytes === nextProps.document.sizeBytes
+    );
+  });
 
   DocumentCard.displayName = 'DocumentCard';
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="flex flex-col h-full w-full">
+        {/* Fixed Header Section */}
+        <div className="flex-shrink-0 space-y-6 pb-6">
         {/* Header skeleton */}
         <div className="flex items-center justify-between">
           <div className="flex flex-col items-start gap-1">
@@ -408,30 +468,24 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
           <Skeleton className="h-5 w-12" />
           <Skeleton className="h-5 w-12" />
         </div>
-
-        {/* Filters skeleton */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Skeleton className="h-10 flex-1" />
         </div>
 
+        {/* Scrollable Content Section */}
+        <div className="flex-1 overflow-y-auto min-h-0">
         {/* Documents grid skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, index) => (
             <Card key={index}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <Skeleton className="h-8 w-8 rounded" />
-                  <div className="flex-1">
-                    <Skeleton className="h-4 w-24 mb-2" />
-                    <Skeleton className="h-3 w-20" />
-                  </div>
+                <div className="relative h-32 w-full overflow-hidden">
+                  <Skeleton className="h-full w-full rounded-none" />
                 </div>
+                <CardHeader>
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <Skeleton className="h-3 w-20" />
               </CardHeader>
-              <CardContent>
-                <Skeleton className="h-3 w-16" />
-              </CardContent>
             </Card>
           ))}
+          </div>
         </div>
       </div>
     );
@@ -439,7 +493,9 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
 
   // Always render the main structure
   return (
-    <div className="space-y-6 w-full h-screen">
+    <div className="flex flex-col w-full">
+      {/* Sticky Header Section */}
+      <div className="sticky top-0 z-10 backdrop-blur-3xl bg-card border-b border-border/50 py-3 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex flex-col items-start gap-1">
@@ -507,7 +563,10 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
             )}
           </div>
         )}
+      </div>
 
+      {/* Content Section */}
+      <div className="flex-1 min-h-0">
         {/* Conditional content based on whether documents exist */}
         {documents.length === 0 ? (
           /* Empty state with Google Drive card */
@@ -620,12 +679,29 @@ export function DocumentsSection({ workflowId }: DocumentsSectionProps) {
           
         ) : (
           /* Documents list when documents exist */
+          <Suspense fallback={
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredDocuments.map((document) => (
-              <DocumentCard key={document.id} document={document} />
+              {Array.from({ length: 6 }).map((_, index) => (
+                <Card key={index}>
+                <div className="relative h-32 w-full overflow-hidden">
+                    <Skeleton className="h-full w-full" />
+                  </div>
+                  <CardHeader>
+                    <Skeleton className="h-4 w-24 mb-2" />
+                    <Skeleton className="h-3 w-20" />
+                </CardHeader>
+              </Card>
             ))}
           </div>
+          }>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredDocuments.map((document) => (
+                <DocumentCard key={document.id} document={document} />
+              ))}
+            </div>
+          </Suspense>
         )}
+      </div>
     </div>
   );
 }

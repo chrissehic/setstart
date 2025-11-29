@@ -33,6 +33,7 @@ import { DataTable } from "./competitors/data-table";
 import { createCompetitorColumns } from "./competitors/columns";
 import { toast } from "sonner";
 import { CompetitorsModal } from "../modals/CompetitorsModal";
+import { TaskSearchInput } from "@/components/TaskSearchInput";
 
 type CompetitorsSectionProps = {
   workflowId: string;
@@ -458,38 +459,42 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
       className={cn("flex flex-col justify-start gap-2 w-full")}
     >
       <div className="flex flex-col gap-4 w-full">
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col gap-1">
-          <h2 className="text-2xl font-semibold tracking-tight">Competitor Analysis</h2>
-            <p className="text-sm text-muted-foreground">
-              Track and analyze your competitors to stay ahead
-            </p>
+        <div className="sticky top-0 z-10 backdrop-blur-3xl bg-card border-b border-border/50 py-3 mb-6">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div className="flex flex-col items-start gap-1 min-w-0 flex-1">
+              <h2 className="text-2xl font-semibold tracking-tight">Competitor Analysis</h2>
+              <p className="text-sm text-muted-foreground">
+                Track and analyze your competitors to stay ahead
+              </p>
+            </div>
+            <div className="flex-shrink-0">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Add Competitor
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="bottom">
+                  <DropdownMenuItem onClick={handleAddCompetitor}>
+                    <div className="flex items-center gap-2 w-full">
+                      <Plus className="size-5" />
+                      Add a new row
+                    </div>
+                  </DropdownMenuItem>
+                  <CompetitorsModal workflowId={workflowId}>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      <div className="flex items-center gap-2 w-full">
+                        <FileSpreadsheet className="size-5" />
+                        Import CSV Table
+                      </div>
+                    </DropdownMenuItem>
+                  </CompetitorsModal>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                <Plus className="h-4 w-4" />
-                Add Competitor
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="bottom">
-              <DropdownMenuItem onClick={handleAddCompetitor}>
-                <div className="flex items-center gap-2 w-full">
-                  <Plus className="size-5" />
-                  Add a new row
-                </div>
-              </DropdownMenuItem>
-              <CompetitorsModal workflowId={workflowId}>
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  <div className="flex items-center gap-2 w-full">
-                    <FileSpreadsheet className="size-5" />
-                    Import CSV Table
-                  </div>
-                </DropdownMenuItem>
-              </CompetitorsModal>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
 
         <div className="flex flex-col gap-4">
@@ -499,15 +504,13 @@ function CompetitorsSection({ workflowId }: CompetitorsSectionProps) {
             </div>
           ) : (
             <>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search competitors..."
+              <div className="w-full">
+                <TaskSearchInput
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                  onChange={setSearch}
+                  placeholder="Search competitors..."
+                  className="w-full"
                 />
-             
               </div>
 
               {!newRowId && competitors.length === 0 && (

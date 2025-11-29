@@ -94,24 +94,28 @@ export function ProductSection({ workflowId }: ProductSectionProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col items-start gap-1">
-          <h2 className="text-2xl font-semibold tracking-tight">Offering</h2>
-          <p className="text-sm text-muted-foreground">
-            Showcase your current offering (product, service, etc.). This
-            helps your team understand what you&apos;re building and
-            delivering to customers.
-          </p>
+      <div className="sticky top-0 z-10 backdrop-blur-3xl bg-card border-b border-border/50 py-3">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="flex flex-col items-start gap-1 min-w-0 flex-1">
+            <h2 className="text-2xl font-semibold tracking-tight">Offering</h2>
+            <p className="text-sm text-muted-foreground">
+              Showcase your current offering (product, service, etc.). This
+              helps your team understand what you&apos;re building and
+              delivering to customers.
+            </p>
+          </div>
+          <div className="flex-shrink-0">
+            <ProductModal
+              workflowId={workflowId}
+              onProductCreated={(newProduct) => handleSetSelectedProduct(newProduct)}
+            >
+              <Button>
+                <Plus className="h-4 w-4" />
+                Add offering
+              </Button>
+            </ProductModal>
+          </div>
         </div>
-        <ProductModal
-          workflowId={workflowId}
-          onProductCreated={(newProduct) => handleSetSelectedProduct(newProduct)}
-        >
-          <Button>
-            <Plus className="h-4 w-4" />
-            Add offering
-          </Button>
-        </ProductModal>
       </div>
 
       {isLoading ? (

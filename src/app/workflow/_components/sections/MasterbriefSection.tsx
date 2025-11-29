@@ -4,7 +4,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { SECTION_CLASS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
-import { FileKey2, RefreshCw, RotateCcw } from "lucide-react";
+import { FileKey2, RefreshCw } from "lucide-react";
 import { useWorkflow } from "@/hooks/useWorkflow";
 import {
   generateMasterBrief,
@@ -22,6 +22,7 @@ export default function MasterbriefSection({
   const { data: workflow, isLoading, error, refetch } = useWorkflow(workflowId);
   const [generatedHtml, setGeneratedHtml] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const refreshWorkflowData = async () => {
@@ -106,13 +107,14 @@ export default function MasterbriefSection({
   return (
     <div className={cn(SECTION_CLASS)}>
       {/* Header */}
-      <div className="flex items-center justify-between w-full mb-6">
-        <div className="flex flex-col items-start gap-1">
-          <h2 className="text-2xl font-semibold tracking-tight">Masterbrief</h2>
-          <p className="text-sm text-muted-foreground">
-            Generate an investor-ready strategic document from your project data
-          </p>
-        </div>
+      <div className="sticky top-0 z-10 backdrop-blur-3xl bg-card border-b border-border/50 py-3">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="flex flex-col items-start gap-1 min-w-0 flex-1">
+            <h2 className="text-2xl font-semibold tracking-tight">Masterbrief</h2>
+            <p className="text-sm text-muted-foreground">
+              Generate an investor-ready strategic document from your project data
+            </p>
+          </div>
 
         <div className="flex items-center gap-2">
           {/* <Button 
@@ -133,7 +135,7 @@ export default function MasterbriefSection({
       </div>
 
       {/* A4 Document Display */}
-      <div className="flex flex-col items-center justify-center py-6 text-center w-full h-full">
+      <div className="flex flex-col items-center justify-center text-center w-full h-full">
         <div className="aspect-[1/1.414] h-full bg-muted rounded-lg overflow-hidden">
           {!generatedHtml ? (
             <div className="w-full h-full flex flex-col items-center justify-center gap-4">
@@ -166,5 +168,6 @@ export default function MasterbriefSection({
         </div>
       </div>
     </div>
+  </div>
   );
 }

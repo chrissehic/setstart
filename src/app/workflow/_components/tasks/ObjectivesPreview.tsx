@@ -51,7 +51,7 @@ export default function ObjectivesPreview({ objectives = [], max = 4 }: Objectiv
       ))}
 
       {objectives.length > max && (
-        <div className="absolute flex flex-row w-full items-center justify-center  bg-transparent -bottom-3">
+        <div className="absolute flex flex-row w-full items-center justify-center bg-transparent -bottom-3">
           <Badge variant="inverse" className="text-xs bg-accent-foreground/20 hover:bg-accent-foreground/30">
             <span className="text-foreground">+{objectives.length - max} more</span>
           </Badge>

@@ -74,7 +74,7 @@ const Workspace = ({
   return (
     <main className={cn("grid gap-2 h-full w-full overflow-hidden p-2")}>
       <ResizablePanelGroup
-        key={`${fullScreen}-${isSmallScreen}`}
+        key={isSmallScreen ? "small" : "large"}
         direction="horizontal"
         className="h-full w-full gap-2"
       >
@@ -101,12 +101,16 @@ const Workspace = ({
         {/* Main Content Panel - hidden on small screens */}
         {!fullScreen && !isSmallScreen && (
           <>
-            <ResizableHandle />
+            <ResizableHandle className="transition-opacity duration-300 ease-out" />
             <ResizablePanel
               defaultSize={30}
               minSize={30}
               maxSize={40}
-              className={cn("relative", CARD_CLASS)}
+              className={cn(
+                "relative transition-all duration-300 ease-out",
+                "animate-in fade-in slide-in-from-left-2",
+                CARD_CLASS
+              )}
               data-testid={`workspace-${id}`}
             >
               <Tabs
@@ -155,14 +159,22 @@ const Workspace = ({
         )}
 
         {/* Handle for small screens or fullScreen - only between sidebar and detail */}
-        {(fullScreen || isSmallScreen) && <ResizableHandle />}
+        {(fullScreen || isSmallScreen) && (
+          <ResizableHandle className="transition-opacity duration-300 ease-out" />
+        )}
 
         {/* Detail Panel */}
         {tabActive !== "" && (
           <ResizablePanel
             defaultSize={isSmallScreen ? 75 : 50}
             minSize={isSmallScreen ? 50 : 20}
-            className={cn("relative", CARD_CLASS)}
+            className={cn(
+              "relative transition-all duration-300 ease-out",
+              fullScreen
+                ? "animate-in fade-in slide-in-from-right-2"
+                : "animate-in fade-in slide-in-from-right-1",
+              CARD_CLASS
+            )}
           >
             <Tabs
               value={tabActive}

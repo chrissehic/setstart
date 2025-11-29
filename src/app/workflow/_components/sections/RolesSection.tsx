@@ -46,13 +46,15 @@ function RolesSection({ data }: { data: WorkflowData }) {
   return (
     <div className={cn(SECTION_CLASS, "gap-6")}>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col items-start">
-          <h2 className="text-2xl font-semibold tracking-tight">Roles</h2>
-          <p className="text-sm text-muted-foreground">
-            Structure your team and define the key roles and responsibilities to
-            build a clear company overview and align your team.
-          </p>
+      <div className="sticky top-0 z-10 backdrop-blur-3xl bg-card border-b border-border/50 py-3">  
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="flex flex-col items-start gap-1 min-w-0 flex-1">
+            <h2 className="text-2xl font-semibold tracking-tight">Roles</h2>
+            <p className="text-sm text-muted-foreground">
+              Structure your team and define the key roles and responsibilities to
+              build a clear company overview and align your team.
+            </p>
+          </div>
         </div>
       </div>
 

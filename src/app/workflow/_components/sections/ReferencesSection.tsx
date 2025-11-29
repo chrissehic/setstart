@@ -181,19 +181,23 @@ export function ReferencesSection({ workflowId }: ReferencesSectionProps) {
     return (
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col items-start gap-1">
-            <h2 className="text-2xl font-semibold tracking-tight">
-              Social Insights
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Collect and analyze social media content to inform your strategy
-            </p>
+        <div className="sticky top-0 z-10 backdrop-blur-3xl bg-card border-b border-border/50 py-3">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div className="flex flex-col items-start gap-1 min-w-0 flex-1">
+              <h2 className="text-2xl font-semibold tracking-tight">
+                Social Insights
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Collect and analyze social media content to inform your strategy
+              </p>
+            </div>
+            <div className="flex-shrink-0">
+              <Button disabled>
+                <Plus className="h-4 w-4" />
+                Add Reference
+              </Button>
+            </div>
           </div>
-          <Button disabled>
-            <Plus className="h-4 w-4" />
-            Add Reference
-          </Button>
         </div>
 
         {/* Stats skeleton */}
@@ -221,20 +225,24 @@ export function ReferencesSection({ workflowId }: ReferencesSectionProps) {
     return (
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col items-start gap-1">
-            <h2 className="text-2xl font-semibold tracking-tight">
-              Social Insights
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Collect and analyze social media content to inform your strategy
-            </p>
+        <div className="sticky top-0 z-10 backdrop-blur-3xl bg-card border-b border-border/50 py-3">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div className="flex flex-col items-start gap-1 min-w-0 flex-1">
+              <h2 className="text-2xl font-semibold tracking-tight">
+                Social Insights
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Collect and analyze social media content to inform your strategy
+              </p>
           </div>
-          <Button onClick={() => setShowAddModal(true)}>
-            <Plus className="h-4 w-4" />
-            Add Reference
-          </Button>
+          <div className="flex-shrink-0">
+            <Button onClick={() => setShowAddModal(true)}>
+              <Plus className="h-4 w-4" />
+              Add Reference
+            </Button>
+          </div>
         </div>
+      </div>
 
         {/* Empty state */}
         <Card className="border-none shadow-none">
@@ -269,19 +277,23 @@ export function ReferencesSection({ workflowId }: ReferencesSectionProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col items-start gap-1">
-          <h2 className="text-2xl font-semibold tracking-tight">
-            Social Insights
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Collect and analyze social media content to inform your strategy
-          </p>
+      <div className="sticky top-0 z-10 backdrop-blur-3xl bg-card border-b border-border/50 py-3">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="flex flex-col items-start gap-1 min-w-0 flex-1">
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Social Insights
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Collect and analyze social media content to inform your strategy
+            </p>
+          </div>
+          <div className="flex-shrink-0">
+            <Button onClick={() => setShowAddModal(true)}>
+              <Plus className="h-4 w-4" />
+              Add Reference
+            </Button>
+          </div>
         </div>
-        <Button onClick={() => setShowAddModal(true)}>
-          <Plus className="h-4 w-4" />
-          Add Reference
-        </Button>
       </div>
 
       {/* Stats */}
