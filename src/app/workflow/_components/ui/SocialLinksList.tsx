@@ -32,6 +32,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface SocialLink {
   id: string;
@@ -53,6 +54,7 @@ export default function SocialLinksList({
   const [editingSocialLink, setEditingSocialLink] = useState<SocialLink | null>(
     null
   );
+  const [showDeleteDialog, setShowDeleteDialog] = useState<{ open: boolean; socialLinkId: string | null; socialLinkName: string | null }>({ open: false, socialLinkId: null, socialLinkName: null });
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
@@ -202,9 +204,7 @@ export default function SocialLinksList({
                          <DropdownMenuItem
                            onClick={(e) => {
                              e.stopPropagation();
-                             if (confirm(`Are you sure you want to delete "${socialLink.name}"? This action cannot be undone.`)) {
-                               handleDelete(socialLink.id);
-                             }
+                             setShowDeleteDialog({ open: true, socialLinkId: socialLink.id, socialLinkName: socialLink.name });
                            }}
                            className="text-destructive focus:text-destructive"
                          >
@@ -232,6 +232,39 @@ export default function SocialLinksList({
           <div />
         </SocialLinkModal>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog 
+        open={showDeleteDialog.open} 
+        onOpenChange={(open) => setShowDeleteDialog({ ...showDeleteDialog, open })}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{showDeleteDialog.socialLinkName}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              onClick={() => setShowDeleteDialog({ open: false, socialLinkId: null, socialLinkName: null })}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (showDeleteDialog.socialLinkId) {
+                  handleDelete(showDeleteDialog.socialLinkId);
+                  setShowDeleteDialog({ open: false, socialLinkId: null, socialLinkName: null });
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

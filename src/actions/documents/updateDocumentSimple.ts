@@ -11,6 +11,7 @@ interface UpdateDocumentInput {
   description?: string;
   status?: string;
   tags?: string[];
+  content?: string; // JSON string for block-based editor content
 }
 
 export async function updateDocumentSimple(input: UpdateDocumentInput) {
@@ -40,6 +41,7 @@ export async function updateDocumentSimple(input: UpdateDocumentInput) {
         ...(input.description !== undefined && { description: input.description }),
         ...(input.status !== undefined && { status: input.status }),
         ...(input.tags !== undefined && { tags: JSON.stringify(input.tags) }),
+        ...(input.content !== undefined && { content: input.content }),
       },
     });
 

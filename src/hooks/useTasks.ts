@@ -87,9 +87,32 @@ export function useUpdateTask(workflowId: string, showToast: boolean = true) {
       // Optimistically update
       queryClient.setQueryData<Task[]>(
         taskKeys.byWorkflow(workflowId),
-        (old) => old?.map(task => 
-          task.id === updatedTask.id 
-            ? { 
+        (old) => old?.map(task => {
+          if (task.id !== updatedTask.id) return task;
+          
+          // Preserve assignedPeople unless explicitly being updated
+          let assignedPeople = task.assignedPeople || [];
+          if (updatedTask.assignedPeople !== undefined) {
+            // If assignedPeople is being updated, map personIds to person objects
+            // We need to get person data from the existing task's assignedPeople
+            assignedPeople = updatedTask.assignedPeople.map(personId => {
+              // Try to find existing person data from the current task
+              const existingAssignment = task.assignedPeople?.find(ap => ap.person.id === personId);
+              if (existingAssignment) {
+                return existingAssignment;
+              }
+              // If not found, create a placeholder (will be replaced by server response)
+              return {
+                person: {
+                  id: personId,
+                  name: '', // Will be populated by server
+                  avatarImage: undefined,
+                }
+              };
+            });
+          }
+          
+          return { 
                 ...task, 
                 title: updatedTask.title ?? task.title,
                 category: updatedTask.category ?? task.category,
@@ -98,10 +121,10 @@ export function useUpdateTask(workflowId: string, showToast: boolean = true) {
                 priority: updatedTask.priority ?? task.priority,
                 responsibility: updatedTask.responsibility ?? task.responsibility,
                 dueDate: updatedTask.dueDate ? new Date(updatedTask.dueDate) : task.dueDate,
+            assignedPeople, // Always preserve assignedPeople
                 updatedAt: new Date() 
-              }
-            : task
-        ) || []
+          };
+        }) || []
       );
       
       return { previousTasks };

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardContent,
@@ -22,6 +22,16 @@ import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import { TaskModal } from "../modals/TaskModal";
 import AssignedPeopleBadge from "../sections/AssignedPeopleBadge";
 import StatusDropdown from "../sections/StatusDropdown";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface TaskCardProps {
   task: Task;
@@ -31,6 +41,7 @@ interface TaskCardProps {
 }
 
 function TaskCard({ task, workflowId, people, onEditTask }: TaskCardProps) {
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const categoryConfig = getCategoryConfig(task.category);
 
   const deleteTaskMutation = useDeleteTask(workflowId);
@@ -46,9 +57,8 @@ function TaskCard({ task, workflowId, people, onEditTask }: TaskCardProps) {
   };
 
   const handleDeleteTask = () => {
-    if (confirm("Are you sure you want to delete this task?")) {
-      deleteTaskMutation.mutate({ id: task.id, workflowId });
-    }
+    deleteTaskMutation.mutate({ id: task.id, workflowId });
+    setShowDeleteDialog(false);
   };
 
   const handleEditTask = () => {
@@ -57,7 +67,12 @@ function TaskCard({ task, workflowId, people, onEditTask }: TaskCardProps) {
     }
   };
 
-  const assignedPeople = task.assignedPeople?.map((ap) => ap.person) || [];
+  // Safely extract assigned people, handling both array and undefined cases
+  const assignedPeople = Array.isArray(task.assignedPeople) 
+    ? task.assignedPeople
+        .map((ap) => ap?.person)
+        .filter((person): person is NonNullable<typeof person> => !!person)
+    : [];
 
   return (
     <Card className="relative space-y-2 hover:bg-accent/20 transition-colors duration-100 ease-in-out">
@@ -109,7 +124,7 @@ function TaskCard({ task, workflowId, people, onEditTask }: TaskCardProps) {
                   <DropdownMenuItem
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDeleteTask();
+                      setShowDeleteDialog(true);
                     }}
                     className="text-destructive focus:text-destructive"
                   >
@@ -148,6 +163,27 @@ function TaskCard({ task, workflowId, people, onEditTask }: TaskCardProps) {
           )}
         </div>
       </CardContent>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this task? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteTask}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

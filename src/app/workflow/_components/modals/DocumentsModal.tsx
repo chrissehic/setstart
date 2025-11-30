@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Upload, FileText, Trash2, Loader2 } from "lucide-react";
+import { GoogleDriveIcon } from "@/components/ui/GoogleDriveIcon";
 import { v4 as uuid } from "uuid";
 import { useCreateDocument } from "@/hooks/useDocuments";
 import { toast } from "sonner";
@@ -24,6 +25,8 @@ interface DocumentsModalProps {
   onImport?: (files: ImportedFile[]) => void; // Make optional since we're now handling uploads
   /** optional max size per file, default 25MB */
   maxFileSizeBytes?: number;
+  /** Callback for Google Drive upload */
+  onGoogleDriveClick?: () => void;
 }
 
 // Utility: narrow mime to our 2 allowed families
@@ -49,7 +52,7 @@ function fileToImported(f: File): ImportedFile | null {
 const DEFAULT_MAX = 25 * 1024 * 1024; // 25MB
 
 // Main component
-export const DocumentsModal: React.FC<DocumentsModalProps> = ({ workflowId, children, onImport, maxFileSizeBytes = DEFAULT_MAX }) => {
+export const DocumentsModal: React.FC<DocumentsModalProps> = ({ workflowId, children, onImport, maxFileSizeBytes = DEFAULT_MAX, onGoogleDriveClick }) => {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<ImportedFile[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
@@ -404,6 +407,7 @@ export const DocumentsModal: React.FC<DocumentsModalProps> = ({ workflowId, chil
               {isDragging ? "Drop files here!" : "Drag & drop files here"}
             </div>
             <div className="text-xs text-muted-foreground">or</div>
+            <div className="flex gap-2">
             <Button
               type="button"
               variant="secondary"
@@ -416,6 +420,23 @@ export const DocumentsModal: React.FC<DocumentsModalProps> = ({ workflowId, chil
             >
               Browse files
             </Button>
+              {onGoogleDriveClick && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-2xl"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onGoogleDriveClick();
+                    setOpen(false);
+                  }}
+                  disabled={isUploading}
+                >
+                  <GoogleDriveIcon className="h-4 w-4 mr-2" />
+                  From Google Drive
+                </Button>
+              )}
+            </div>
             <input
               ref={inputRef}
               type="file"

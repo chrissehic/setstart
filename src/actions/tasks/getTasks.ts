@@ -37,7 +37,7 @@ export async function GetTasks(workflowId: string): Promise<Task[]> {
       responsibility: task.responsibility as Task['responsibility'],
       priority: task.priority as Task['priority'],
       dueDate: task.dueDate,
-      assignedPeople: task.assignedPeople.map(ap => ({
+      assignedPeople: (task.assignedPeople || []).map(ap => ({
         person: {
           id: ap.person.id,
           name: ap.person.name,

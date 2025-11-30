@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getDocuments } from '../actions/documents/getDocuments';
 import { addDocument } from '../actions/documents/addDocument';
+import { createEditableDocument } from '../actions/documents/createEditableDocument';
 import { updateDocumentSimple } from '../actions/documents/updateDocumentSimple';
 import { deleteDocumentSimple } from '../actions/documents/deleteDocumentSimple';
 import { toast } from 'sonner';
@@ -78,6 +79,35 @@ export function useUpdateDocument() {
         });
       }
     }
+  });
+}
+
+export function useCreateEditableDocument() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createEditableDocument,
+    retry: (failureCount, error) => {
+      if (failureCount < 2 && (error as any)?.message?.includes('fetch failed')) {
+        return true;
+      }
+      return false;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+    onSuccess: (data, variables) => {
+      if (data.success) {
+        queryClient.invalidateQueries({
+          queryKey: documentKeys.byWorkflow(variables.workflowId),
+          refetchType: 'active',
+        });
+        toast.success("Document created successfully");
+      } else {
+        toast.error("Failed to create document");
+      }
+    },
+    onError: () => {
+      toast.error("Failed to create document");
+    },
   });
 }
 

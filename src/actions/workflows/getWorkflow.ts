@@ -19,10 +19,26 @@ export async function getWorkflow(workflowId: string) {
       tags: true,
       objectives: {
         include: {
-          tasks: true,
+          tasks: {
+            include: {
+              assignedPeople: {
+                include: {
+                  person: true,
+                },
+              },
+            },
+          },
         },
       },
-      tasks: true,
+      tasks: {
+        include: {
+          assignedPeople: {
+            include: {
+              person: true,
+            },
+          },
+        },
+      },
       people: {
         include: {
           person: true,

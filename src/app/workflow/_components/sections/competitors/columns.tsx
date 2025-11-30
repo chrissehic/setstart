@@ -636,13 +636,7 @@ function EditableColumnHeader({
           className="h-6 w-6 p-0 ml-2 hover:bg-destructive/10 hover:text-destructive transition-all"
           onClick={(e) => {
             e.stopPropagation();
-            if (
-              window.confirm(
-                `Are you sure you want to delete the column "${columnName}"? This will remove all data in this column.`
-              )
-            ) {
-              onDelete(columnId);
-            }
+            onDelete(columnId);
           }}
           title="Delete column"
           disabled={isDeleting}
@@ -845,13 +839,7 @@ export const createCompetitorColumns = (
           <DropdownMenuContent align="end">
             <DropdownMenuItem
               onClick={() => {
-                if (
-                  window.confirm(
-                    "Are you sure you want to delete this competitor?"
-                  )
-                ) {
-                  onDelete?.(c.id);
-                }
+                onDelete?.(c.id);
               }}
               className="text-destructive"
             >

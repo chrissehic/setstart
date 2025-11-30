@@ -7,10 +7,12 @@ import { auth } from "@clerk/nextjs/server";
 interface AddDocumentInput {
   workflowId: string;
   name: string;
-  fileUrl: string;
-  fileType: "pdf" | "image";
-  sizeBytes: number;
+  fileUrl?: string;
+  fileType?: "pdf" | "image";
+  sizeBytes?: number;
   metadata?: string;
+  content?: string; // JSON string for block-based editor content
+  isEditable?: boolean; // Whether this is an editable document
 }
 
 export async function addDocument(input: AddDocumentInput) {
@@ -24,10 +26,12 @@ export async function addDocument(input: AddDocumentInput) {
       data: {
         workflowId: input.workflowId,
         name: input.name,
-        fileUrl: input.fileUrl,
-        fileType: input.fileType,
-        sizeBytes: input.sizeBytes,
+        fileUrl: input.fileUrl || null,
+        fileType: input.fileType || null,
+        sizeBytes: input.sizeBytes || null,
         metadata: input.metadata,
+        content: input.content || null,
+        isEditable: input.isEditable || false,
         userId: userId,
       },
     });

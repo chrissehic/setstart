@@ -106,7 +106,15 @@ export function TaskModal({
         setDueDate(
           task.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : ""
         );
-        setSelectedPeople(task.assignedPeople?.map((ap) => ap.person.id) || []);
+        
+        // Extract assigned people IDs safely
+        const assignedPeopleIds = Array.isArray(task.assignedPeople)
+          ? task.assignedPeople
+              .map((ap) => ap?.person?.id)
+              .filter((id): id is string => !!id)
+          : [];
+        
+        setSelectedPeople(assignedPeopleIds);
       } else {
         // Creating mode - clear form
         setTitle("");
@@ -341,6 +349,7 @@ export function TaskModal({
           <div className="space-y-2">
             <Label>Assigned People</Label>
             <MultiSelect
+              key={task?.id || "new-task"}
               options={people.map((person) => ({
                 label: person.name,
                 value: person.id,

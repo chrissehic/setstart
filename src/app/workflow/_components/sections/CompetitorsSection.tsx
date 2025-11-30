@@ -34,6 +34,16 @@ import { createCompetitorColumns } from "./competitors/columns";
 import { toast } from "sonner";
 import { CompetitorsModal } from "../modals/CompetitorsModal";
 import { TaskSearchInput } from "@/components/TaskSearchInput";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type CompetitorsSectionProps = {
   workflowId: string;
@@ -48,6 +58,7 @@ type CompetitorsSectionProps = {
 
 function CompetitorsSection({ workflowId, workflowData }: CompetitorsSectionProps) {
   const [search, setSearch] = useState("");
+  const [showCancelDialog, setShowCancelDialog] = useState<{ open: boolean; competitorId: string | null }>({ open: false, competitorId: null });
   const [newRowId, setNewRowId] = useState<string | null>(null);
   const [newRowData, setNewRowData] = useState({
     name: "",
@@ -238,26 +249,6 @@ function CompetitorsSection({ workflowId, workflowData }: CompetitorsSectionProp
     }
   };
 
-  const handleDeleteCompetitor = async (competitorId: string) => {
-    try {
-      await deleteCompetitorMutation.mutateAsync(competitorId);
-      // Remove from local state
-      setRowData((prev) => {
-        const newData = { ...prev };
-        delete newData[competitorId];
-        return newData;
-      });
-      // Remove from dirty rows
-      setDirtyRows((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(competitorId);
-        return newSet;
-      });
-    } catch (error) {
-      console.error("Error deleting competitor:", error);
-      // Error handling is already done in the mutation hook
-    }
-  };
 
   // Listen for add row events from the table cue
   useEffect(() => {
@@ -316,24 +307,59 @@ function CompetitorsSection({ workflowId, workflowData }: CompetitorsSectionProp
     }
   };
 
-  const handleDeleteColumn = async (columnId: string) => {
+  const handleDeleteColumn = (columnId: string) => {
+    const column = customColumns.find(c => c.id === columnId);
+    setShowDeleteColumnDialog({ open: true, columnId, columnName: column?.name || null });
+  };
+
+  const confirmDeleteColumn = async () => {
+    if (!showDeleteColumnDialog.columnId) return;
+    
     // Prevent concurrent deletions
-    if (deletingColumns.has(columnId)) {
+    if (deletingColumns.has(showDeleteColumnDialog.columnId)) {
       return;
     }
 
     try {
-      setDeletingColumns(prev => new Set(prev).add(columnId));
-      await deleteColumnMutation.mutateAsync(columnId);
+      setDeletingColumns(prev => new Set(prev).add(showDeleteColumnDialog.columnId!));
+      await deleteColumnMutation.mutateAsync(showDeleteColumnDialog.columnId);
+      setShowDeleteColumnDialog({ open: false, columnId: null, columnName: null });
     } catch (error) {
       console.error('Error deleting column:', error);
       // Error handling is already done in the mutation hook
     } finally {
       setDeletingColumns(prev => {
         const newSet = new Set(prev);
-        newSet.delete(columnId);
+        newSet.delete(showDeleteColumnDialog.columnId!);
         return newSet;
       });
+    }
+  };
+
+  const handleDeleteCompetitor = (competitorId: string) => {
+    setShowDeleteCompetitorDialog({ open: true, competitorId });
+  };
+
+  const confirmDeleteCompetitor = async () => {
+    if (!showDeleteCompetitorDialog.competitorId) return;
+    
+    try {
+      await deleteCompetitorMutation.mutateAsync(showDeleteCompetitorDialog.competitorId);
+      // Remove from local state
+      setRowData((prev) => {
+        const newData = { ...prev };
+        delete newData[showDeleteCompetitorDialog.competitorId!];
+        return newData;
+      });
+      // Remove from dirty rows
+      setDirtyRows((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(showDeleteCompetitorDialog.competitorId!);
+        return newSet;
+      });
+      setShowDeleteCompetitorDialog({ open: false, competitorId: null });
+    } catch (error) {
+      console.error('Error deleting competitor:', error);
     }
   };
 
@@ -378,29 +404,28 @@ function CompetitorsSection({ workflowId, workflowData }: CompetitorsSectionProp
 
   const handleCancelEdit = useCallback(
     (competitorId: string) => {
-      if (window.confirm("Are you sure you want to discard your changes?")) {
-        const competitor = competitors.find((c) => c.id === competitorId);
-        if (competitor) {
-          setRowData((prev) => ({
-            ...prev,
-            [competitorId]: {
-              name: competitor.name,
-              description: competitor.description || "",
-              website: competitor.website || "",
-              attributes: competitor.attributes || {},
-            },
-          }));
-        }
-
-        setDirtyRows((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(competitorId);
-          return newSet;
-        });
-      }
+      setShowCancelDialog({ open: true, competitorId });
     },
-    [competitors]
+    []
   );
+
+  const confirmCancelEdit = useCallback(() => {
+    if (!showCancelDialog.competitorId) return;
+    const competitor = competitors.find((c) => c.id === showCancelDialog.competitorId);
+    if (competitor) {
+      setRowData((prev) => ({
+        ...prev,
+        [showCancelDialog.competitorId!]: {
+          name: competitor.name,
+          description: competitor.description || "",
+          website: competitor.website || "",
+          attributes: competitor.attributes || {},
+        },
+      }));
+      setEditingRowId(null);
+      setShowCancelDialog({ open: false, competitorId: null });
+    }
+  }, [showCancelDialog.competitorId, competitors]);
 
   // Simplified save handler for cell-level editing
   const handleCellSave = useCallback(
@@ -484,13 +509,13 @@ function CompetitorsSection({ workflowId, workflowData }: CompetitorsSectionProp
           });
         } else {
           // Update existing competitor
-          await updateCompetitorMutation.mutateAsync({
-            id: competitorId,
-            name: updatedData.name,
-            description: updatedData.description,
+        await updateCompetitorMutation.mutateAsync({
+          id: competitorId,
+          name: updatedData.name,
+          description: updatedData.description,
             website: updatedData.website,
-            attributes: updatedData.attributes,
-          });
+          attributes: updatedData.attributes,
+        });
         }
 
         // Clear dirty state for this row
@@ -700,22 +725,22 @@ function CompetitorsSection({ workflowId, workflowData }: CompetitorsSectionProp
                                  !(workflowData && competitor.workflowId === workflowId && competitor.name === workflowData.name);
                         })
                         .map((competitor) => {
-                          const currentData = rowData[competitor.id] || {
-                            name: competitor.name,
-                            description: competitor.description || "",
-                            website: competitor.website || "",
-                          };
-                          return {
-                            id: competitor.id,
-                            name: currentData.name,
-                            description: currentData.description,
-                            website: currentData.website,
-                            logoImage: competitor.logoImage,
-                            attributes: competitor.attributes,
-                            isNew: false,
-                            workflowId: competitor.workflowId,
-                          };
-                        }),
+                        const currentData = rowData[competitor.id] || {
+                          name: competitor.name,
+                          description: competitor.description || "",
+                          website: competitor.website || "",
+                        };
+                        return {
+                          id: competitor.id,
+                          name: currentData.name,
+                          description: currentData.description,
+                          website: currentData.website,
+                          logoImage: competitor.logoImage,
+                          attributes: competitor.attributes,
+                          isNew: false,
+                          workflowId: competitor.workflowId,
+                        };
+                      }),
                       // Add new row at the end if adding
                       ...(newRowId
                         ? [
@@ -739,6 +764,90 @@ function CompetitorsSection({ workflowId, workflowData }: CompetitorsSectionProp
           )}
         </div>
       </div>
+
+      {/* Cancel Edit Confirmation Dialog */}
+      <AlertDialog 
+        open={showCancelDialog.open} 
+        onOpenChange={(open) => setShowCancelDialog({ ...showCancelDialog, open })}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Discard changes?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to discard your changes? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              onClick={() => setShowCancelDialog({ open: false, competitorId: null })}
+            >
+              Keep editing
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmCancelEdit}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Discard changes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Column Confirmation Dialog */}
+      <AlertDialog 
+        open={showDeleteColumnDialog.open} 
+        onOpenChange={(open) => setShowDeleteColumnDialog({ ...showDeleteColumnDialog, open })}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete column?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the column "{showDeleteColumnDialog.columnName}"? This will remove all data in this column. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              onClick={() => setShowDeleteColumnDialog({ open: false, columnId: null, columnName: null })}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteColumn}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Competitor Confirmation Dialog */}
+      <AlertDialog 
+        open={showDeleteCompetitorDialog.open} 
+        onOpenChange={(open) => setShowDeleteCompetitorDialog({ ...showDeleteCompetitorDialog, open })}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete competitor?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this competitor? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              onClick={() => setShowDeleteCompetitorDialog({ open: false, competitorId: null })}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteCompetitor}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

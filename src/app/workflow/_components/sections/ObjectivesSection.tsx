@@ -45,6 +45,16 @@ import TaskDetailPane from "../tasks/TaskDetailPane";
 import { Badge } from "@/components/ui/badge";
 import { UpdateTask } from "@/actions/tasks/updateTask";
 import { useDeleteObjective } from "@/hooks/useObjectives";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 
 type ObjectivesSectionProps = {
@@ -219,18 +229,19 @@ function ObjectiveTasksDisplay({
 const ObjectivesSection = ({
   workflowId,
   objectives = [],
-  tasks = [],
+  tasks: tasksProp = [],
   people = [],
   isLoading = false,
   error = null,
 }: ObjectivesSectionProps) => {
-  console.log("ObjectivesSection props:", {
-    objectives,
-    people,
-    isLoading,
-    error,
-    tasks,
-  });
+  // Use useTasks hook to get tasks with proper assignedPeople structure
+  // This ensures tasks always have assignedPeople, unlike tasks from workflow data
+  const { data: tasksFromHook = [], isLoading: tasksLoading } = useTasks(workflowId);
+  
+  // Use tasks from hook if available, otherwise fall back to prop
+  // The hook ensures tasks have proper assignedPeople structure
+  const tasks = tasksFromHook.length > 0 ? tasksFromHook : tasksProp;
+  
   const [activeTab, setActiveTab] = useQueryState(
     "tab",
     parseAsString.withDefault("objectives").withOptions({ history: "push" })
@@ -272,6 +283,11 @@ const ObjectivesSection = ({
 
   // Use the delete objective hook for optimistic updates
   const deleteObjectiveMutation = useDeleteObjective();
+  const [deleteDialogState, setDeleteDialogState] = useState<{
+    open: boolean;
+    id: string | null;
+    title: string | null;
+  }>({ open: false, id: null, title: null });
 
   // Handle back to objectives list
   const handleBackToObjectives = () => {
@@ -283,16 +299,23 @@ const ObjectivesSection = ({
     title: string,
     workflowId: string
   ) => {
-    if (confirm(`Are you sure you want to delete "${title}"?`)) {
-      try {
-        console.log("Deleting objective:", id);
+    setDeleteDialogState({ open: true, id, title });
+  };
 
-        await deleteObjectiveMutation.mutateAsync({ id, workflowId });
-        toast.success("Objective deleted successfully");
-      } catch (error) {
-        console.error("Error deleting objective:", error);
-        toast.error("Failed to delete objective");
-      }
+  const confirmDeleteObjective = async () => {
+    if (!deleteDialogState.id || !deleteDialogState.title) return;
+    
+    try {
+      console.log("Deleting objective:", deleteDialogState.id);
+      await deleteObjectiveMutation.mutateAsync({ 
+        id: deleteDialogState.id, 
+        workflowId 
+      });
+      toast.success("Objective deleted successfully");
+      setDeleteDialogState({ open: false, id: null, title: null });
+    } catch (error) {
+      console.error("Error deleting objective:", error);
+      toast.error("Failed to delete objective");
     }
   };
 
@@ -591,6 +614,34 @@ const ObjectivesSection = ({
           />
         </TabsContent>
       </Tabs>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog 
+        open={deleteDialogState.open} 
+        onOpenChange={(open) => setDeleteDialogState({ ...deleteDialogState, open })}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{deleteDialogState.title}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              onClick={() => setDeleteDialogState({ open: false, id: null, title: null })}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteObjective}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

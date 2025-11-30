@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useObjective } from "@/hooks/useObjectives";
 import { useTasks } from "@/hooks/useTasks";
+import { useWorkflowPeople } from "@/hooks/useWorkflowPeople";
 import TaskCard from "@/app/workflow/_components/ui/TaskCard";
 import { TaskPriority, TaskStatus } from "@/types/workflow";
 
@@ -20,6 +21,7 @@ export default function ObjectiveDetailPage() {
 
   const { data: objective, isLoading: objectiveLoading, error: objectiveError } = useObjective(objectiveId);
   const { data: allTasks = [], isLoading: tasksLoading } = useTasks(workflowId);
+  const { data: people = [], isLoading: peopleLoading } = useWorkflowPeople(workflowId);
 
   // Filter tasks for this objective
   const objectiveTasks = allTasks.filter(task => task.objectiveId === objectiveId);
@@ -54,7 +56,7 @@ export default function ObjectiveDetailPage() {
     router.back()
   };
 
-  if (objectiveLoading || tasksLoading) {
+  if (objectiveLoading || tasksLoading || peopleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -182,7 +184,7 @@ export default function ObjectiveDetailPage() {
                   key={task.id}
                   task={task}
                   workflowId={workflowId}
-                  people={[]} // We'll need to pass people from the workflow
+                  people={people}
                 />
               ))}
             </div>

@@ -35,6 +35,7 @@ export function ReferencesSection({ workflowId }: ReferencesSectionProps) {
   const [search, setSearch] = useState("");
   const [platformFilter, setPlatformFilter] = useState<string>("all");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState<{ open: boolean; referenceId: string | null }>({ open: false, referenceId: null });
   const queryClient = useQueryClient();
 
   const { data: references = [], isLoading } = useReferences(workflowId);
@@ -416,9 +417,7 @@ export function ReferencesSection({ workflowId }: ReferencesSectionProps) {
                              onClick={(e) => {
                                e.stopPropagation();
                                e.preventDefault();
-                               if (confirm("Are you sure you want to delete this reference?")) {
-                                 handleDeleteReference(reference.id);
-                               }
+                               setShowDeleteDialog({ open: true, referenceId: reference.id });
                              }}
                              className="cursor-pointer text-destructive focus:text-destructive"
                            >

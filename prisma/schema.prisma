@@ -9,32 +9,32 @@ datasource db {
 }
 
 model Workflow {
-  id                String            @id @default(cuid())
-  userId            String
-  name              String
-  tagline           String?
-  description       String?
-  logoImage         String?
-  backgroundImage   String?
-  mainLogo          String?           // Main logo for identity
-  logoIcon          String?           // Logo icon for identity
-  additionalAssets  String?           // JSON array of additional asset URLs
-  estimatedDuration String?
-  stage             String            @default("existence")
-  status            String            @default("BLUEPRINT")
-  definition        String
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  objectives        Objective[]
-  products          Product[]
-  people            RolesInWorkflow[]
-  tasks             Task[]
-  tags              Tag[]             @relation("TagToWorkflow")
-  socialLinks       SocialLink[]
-  references        Reference[]
-  documents         Document[]
-  competitors       Competitor[]
+  id                     String                  @id @default(cuid())
+  userId                 String
+  name                   String
+  tagline                String?
+  description            String?
+  logoImage              String?
+  backgroundImage        String?
+  estimatedDuration      String?
+  stage                  String                  @default("existence")
+  status                 String                  @default("BLUEPRINT")
+  definition             String
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  additionalAssets       String?
+  logoIcon               String?
+  mainLogo               String?
+  competitors            Competitor[]
   competitorTableColumns CompetitorTableColumn[]
+  documents              Document[]
+  objectives             Objective[]
+  products               Product[]
+  references             Reference[]
+  people                 RolesInWorkflow[]
+  socialLinks            SocialLink[]
+  tasks                  Task[]
+  tags                   Tag[]                   @relation("TagToWorkflow")
 
   @@unique([userId, name])
 }
@@ -144,47 +144,47 @@ model SocialLink {
 }
 
 model Reference {
-  id              String   @id @default(cuid())
-  workflowId      String
-  title           String
-  sourcePlatform  String
-  url             String
-  tags            String   // JSON array of tags
-  description     String?
+  id               String   @id @default(cuid())
+  workflowId       String
+  title            String
+  sourcePlatform   String
+  url              String
+  tags             String
+  description      String?
   relatedProductId String?
-  addedBy         String?
-  dateAdded       DateTime @default(now())
-  thumbnailUrl    String?
-  durationSeconds Int      @default(0)
-  notes           String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  workflow        Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  addedBy          String?
+  dateAdded        DateTime @default(now())
+  thumbnailUrl     String?
+  durationSeconds  Int      @default(0)
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  workflow         Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 }
 
 model Document {
-  id          String   @id @default(cuid())
-  workflowId  String
-  name        String
-  fileUrl     String
-  fileType    DocumentFileType
-  sizeBytes   Int
-  status      DocumentStatus @default(uploaded)
-  metadata    String? // JSON string for SQLite compatibility
+  id           String            @id @default(cuid())
+  workflowId   String
+  name         String
+  fileUrl      String?
+  fileType     DocumentFileType?
+  sizeBytes    Int?
+  status       DocumentStatus    @default(uploaded)
+  metadata     String?
   convertedUrl String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  userId      String
-  
-  // Relations
-  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  tags       DocumentTag[]
-  pages      DocumentPage[]
+  content      String?
+  isEditable   Boolean           @default(false)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  userId       String
+  workflow     Workflow          @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  pages        DocumentPage[]
+  tags         DocumentTag[]     @relation("DocumentToDocumentTag")
   
   @@index([workflowId])
   @@index([userId])
   @@index([status])
+  @@index([isEditable])
 }
 
 model DocumentPage {
@@ -193,22 +193,18 @@ model DocumentPage {
   pageNumber    Int
   imageUrl      String
   text          String?
-  bboxTextItems String? // JSON string for SQLite compatibility
+  bboxTextItems String?
   createdAt     DateTime @default(now())
-  
-  // Relations
-  document     Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  document      Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
   
   @@unique([documentId, pageNumber])
   @@index([documentId])
 }
 
 model DocumentTag {
-  id       String @id @default(cuid())
-  name     String @unique
-  
-  // Relations
-  documents Document[]
+  id        String     @id @default(cuid())
+  name      String     @unique
+  documents Document[] @relation("DocumentToDocumentTag")
   
   @@index([name])
 }
@@ -221,6 +217,52 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
+model Competitor {
+  id          String   @id @default(cuid())
+  workflowId  String
+  name        String
+  description String?
+  website     String?
+  logoImage   String?
+  attributes  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+}
+
+model CompetitorTableColumn {
+  id         String   @id @default(cuid())
+  workflowId String
+  name       String
+  type       String
+  required   Boolean  @default(false)
+  options    String?
+  order      Int
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@unique([workflowId, name])
+  @@index([workflowId])
+}
+
+model GoogleDriveToken {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  accessToken  String
+  refreshToken String?
+  tokenType    String   @default("Bearer")
+  scope        String
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+}
+
 enum DocumentFileType {
   pdf
   image
@@ -231,56 +273,4 @@ enum DocumentStatus {
   processing
   converted
   failed
-}
-
-model Competitor {
-  id          String   @id @default(cuid())
-  workflowId  String
-  name        String   // Required
-  description String?  // Optional
-  website     String?  // Optional
-  logoImage   String?  // Optional logo image URL
-  
-  // Dynamic attributes stored as JSON - users can add custom columns
-  attributes  String   // JSON string for SQLite compatibility - stores key-value pairs
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  
-  @@index([workflowId])
-}
-
-// New model for managing competitor table columns/attributes
-model CompetitorTableColumn {
-  id          String   @id @default(cuid())
-  workflowId  String
-  name        String   // Column name (e.g., "Customer Segment", "Technology Stack")
-  type        String   // Column type: "text", "number", "select", "boolean", "date"
-  required    Boolean  @default(false)
-  options     String?  // JSON string for select options (if type is "select")
-  order       Int      // Display order
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  
-  @@unique([workflowId, name])
-  @@index([workflowId])
-}
-
-model GoogleDriveToken {
-  id            String   @id @default(cuid())
-  userId        String   @unique
-  accessToken   String
-  refreshToken  String?
-  tokenType     String   @default("Bearer")
-  scope         String
-  expiresAt     DateTime
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  @@index([userId])
 }
