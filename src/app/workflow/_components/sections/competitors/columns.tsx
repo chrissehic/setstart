@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { MoreHorizontal, Trash2 } from "lucide-react";
 import { useState, useCallback, useEffect, useRef, forwardRef } from "react";
 import { cn } from "@/lib/utils";
+import { normalizeWebsiteUrl } from "@/lib/utils/normalizeWebsiteUrl";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -232,9 +233,8 @@ function EditableCell({
                   // Handle Ctrl+click to open URL
                   if (e.ctrlKey || e.metaKey) {
                     e.preventDefault();
-                    const url = draftValue.trim();
-                    const finalUrl = url.startsWith('http') ? url : `https://${url}`;
-                    window.open(finalUrl, '_blank', 'noopener,noreferrer');
+                    const finalUrl = normalizeWebsiteUrl(draftValue.trim());
+                    if (finalUrl) window.open(finalUrl, "_blank", "noopener,noreferrer");
                   }
                 }}
               >
@@ -371,22 +371,23 @@ function WebsiteCell({
   );
 
   const handleBlur = useCallback(async () => {
+    const normalized = normalizeWebsiteUrl(draftValue);
+    if (normalized !== draftValue) {
+      setDraftValue(normalized);
+    }
+
     if (isNewRow) {
-      // For new rows: call onNewRowBlur to let parent handle discard logic
-      // Parent will check if both name and website are empty before discarding
-      onNewRowBlur?.(field, draftValue);
-      // If we have a value (website URL), try to save
-      if (draftValue.trim()) {
+      onNewRowBlur?.(field, normalized);
+      if (normalized.trim()) {
         onSaveNew?.();
       }
       return;
     }
 
-    // For existing rows: auto-save on change
-    if (isEditing && draftValue !== initialValue) {
+    if (isEditing && normalized !== initialValue) {
       setIsSaving(true);
       try {
-        await onSave(competitorId, field, draftValue);
+        await onSave(competitorId, field, normalized);
       } finally {
         setIsSaving(false);
       }
@@ -427,10 +428,11 @@ function WebsiteCell({
     [initialValue, isNewRow, draftValue, onSaveNew]
   );
 
-  // Check if the value looks like a URL
   const isValidUrl = (url: string) => {
+    const candidate = normalizeWebsiteUrl(url);
+    if (!candidate.trim()) return false;
     try {
-      new URL(url);
+      new URL(candidate);
       return true;
     } catch {
       return false;
@@ -441,8 +443,8 @@ function WebsiteCell({
 
   const handleExtractMetadata = async () => {
     if (!hasValidUrl) return;
-    
-    const urlToSave = draftValue.trim();
+
+    const urlToSave = normalizeWebsiteUrl(draftValue.trim());
     
     // Always save the URL first to ensure it's persisted, even if it matches initialValue
     setIsSaving(true);
@@ -479,9 +481,8 @@ function WebsiteCell({
                   // Handle Ctrl+click to open URL
                   if (e.ctrlKey || e.metaKey) {
                     e.preventDefault();
-                    const url = draftValue.trim();
-                    const finalUrl = url.startsWith('http') ? url : `https://${url}`;
-                    window.open(finalUrl, '_blank', 'noopener,noreferrer');
+                    const finalUrl = normalizeWebsiteUrl(draftValue.trim());
+                    if (finalUrl) window.open(finalUrl, "_blank", "noopener,noreferrer");
                   }
                 }}
               >

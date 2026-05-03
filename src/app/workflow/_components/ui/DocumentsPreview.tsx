@@ -64,7 +64,7 @@ export function DocumentsPreview({ workflowId }: DocumentsPreviewProps) {
         <h2 className="text-base font-medium tracking-tight">
           Add documents to your workflow
         </h2>
-        <p className="text-sm text-muted-foreground max-w-lg text-wrap">
+        <p className="text-xs text-muted-foreground max-w-lg text-wrap">
           Start building your document library by uploading PDFs and images that
           are relevant to your business.
         </p>
@@ -107,7 +107,7 @@ export function DocumentsPreview({ workflowId }: DocumentsPreviewProps) {
                     <p className="text-sm font-medium overflow-hidden text-ellipsis whitespace-nowrap line-clamp-1 w-full">
                       {document.name}
                     </p>
-                    <p className="text-xs text-muted-foreground capitalize overflow-hidden text-ellipsis whitespace-nowrap line-clamp-1 w-full">
+                    <p className="text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap line-clamp-1 w-full">
                       {document.fileType}
                     </p>
                   </div>

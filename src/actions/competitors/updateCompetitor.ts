@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { CompetitorFormData } from "@/types/workflow";
+import { normalizeWebsiteUrl } from "@/lib/utils/normalizeWebsiteUrl";
 
 interface UpdateCompetitorInput extends Partial<CompetitorFormData> {
   id: string;
@@ -46,7 +47,10 @@ export async function updateCompetitor(input: UpdateCompetitorInput) {
     
     if (input.name !== undefined) updateData.name = input.name;
     if (input.description !== undefined) updateData.description = input.description;
-    if (input.website !== undefined) updateData.website = input.website;
+    if (input.website !== undefined) {
+      const w = normalizeWebsiteUrl(input.website ?? "");
+      updateData.website = w ? w : null;
+    }
     if (input.logoImage !== undefined) updateData.logoImage = input.logoImage;
     if (input.attributes !== undefined) updateData.attributes = JSON.stringify(input.attributes);
 

@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn, getStatusConfig } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
+import { getTaskStatusIcon } from "../icons/TaskStatusIcons";
 
 interface StatusDropdownProps {
   status: TaskStatus;
@@ -21,13 +22,17 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
     return null;
   }
 
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Badge
-          className={cn("text-xs cursor-pointer", statusConfig.color)}
+          className={cn("text-xs cursor-pointer flex items-center gap-1.5", statusConfig.color)}
           onClick={(e) => e.stopPropagation()}
         >
+          <span className={cn("text-xs shrink-0")}>
+            {getTaskStatusIcon(status, "size-3 shrink-0")}
+          </span>
           {statusConfig.label}
           <ChevronDown className="h-4 w-4" />
         </Badge>
@@ -52,8 +57,13 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
               }}
             >
               <span className="text-muted-foreground text-xs">Set as</span> 
-              <Badge className={cn("text-xs", config.color)}>
-                {config.label}
+              <Badge className={cn("text-xs flex items-center gap-1.5", config.color)}>
+                <span className={cn("text-xs shrink-0")}>
+                  {getTaskStatusIcon(statusOption, "size-3 shrink-0")}
+                </span>
+                <span className={cn("text-xs line-clamp-1 overflow-hidden text-ellipsis whitespace-nowrap")}>
+                  {config.label}
+                </span>
               </Badge>
             </DropdownMenuItem>
           );

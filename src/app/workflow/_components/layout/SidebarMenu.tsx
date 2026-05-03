@@ -1,4 +1,5 @@
 import {
+  Sidebar as SidebarRoot,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
@@ -8,6 +9,8 @@ import {
   SidebarMenuItem,
   SidebarHeader,
   SidebarFooter,
+  SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
@@ -19,7 +22,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronsUpDown, LogOut, Plus, Loader2, LandPlot } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useSidebarWidth } from "@/hooks/useSidebarWidth";
 import { WorkflowWithDetails } from "@/types";
 import { CreateWorkflowModal } from "@/app/(dashboard)/workflows/_components/CreateWorkflowModal";
 import { SettingsDialog } from "../ui/SettingsDialog";
@@ -34,6 +36,7 @@ import {
   SignUpButton,
 } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { ModeToggle } from "@/components/ThemeModeToggle";
 import { useUser } from "@clerk/nextjs";
 import { Separator } from "@/components/ui/separator";
@@ -70,29 +73,30 @@ const Sidebar = memo(function Sidebar({
   }[];
   allWorkflows?: WorkflowWithTasks[];
   currentWorkflow?: WorkflowWithTasks;
-  currentMode?: 'previewPanel' | 'assistant';
-  onModeChange?: (mode: 'previewPanel' | 'assistant') => void;
+  currentMode?: "previewPanel" | "assistant";
+  onModeChange?: (mode: "previewPanel" | "assistant") => void;
 }) {
   // Check if sections should be disabled (no description)
   const sectionsDisabled =
     !currentWorkflow?.description || currentWorkflow.description.trim() === "";
   const isMobile = useIsMobile();
-  const { isCollapsed, sidebarRef } = useSidebarWidth();
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
   const router = useRouter();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const { user, isLoaded: isUserLoaded } = useUser();
-  
+
   // Memoize user data to prevent unnecessary re-renders and reloads
   const userDisplayName = useMemo(() => {
     if (!user) return "User";
     return user.fullName || user.firstName || "User";
   }, [user]);
-  
+
   const userEmail = useMemo(() => {
-    if (!user?.emailAddresses?.[0]) return 'No email';
+    if (!user?.emailAddresses?.[0]) return "No email";
     return user.emailAddresses[0].emailAddress;
   }, [user]);
-  
+
   const userInitial = useMemo(() => {
     if (!user) return "U";
     return user.fullName?.[0] || user.firstName?.[0] || "U";
@@ -113,7 +117,8 @@ const Sidebar = memo(function Sidebar({
   }, []);
 
   const handleModeToggle = useCallback(() => {
-    const newMode = switchMode === "previewPanel" ? "assistant" : "previewPanel";
+    const newMode =
+      switchMode === "previewPanel" ? "assistant" : "previewPanel";
     onModeChange?.(newMode);
   }, [switchMode, onModeChange]);
 
@@ -121,17 +126,21 @@ const Sidebar = memo(function Sidebar({
     return switchMode === "previewPanel" ? "Ask assistant" : "Dashboard  ";
   }, [switchMode]);
   return (
-    <div ref={sidebarRef} className="h-full justify-between flex flex-col w-full">
+    <SidebarRoot
+      collapsible="icon"
+      variant="sidebar"
+      className="shrink-0 border-sidebar-border md:border-r"
+    >
       {/* Project Selection Header */}
       {allWorkflows && currentWorkflow && (
         <SidebarHeader className="w-full px-1">
           <SidebarMenu>
-            <SidebarMenuItem className="w-full">
+            <SidebarMenuItem className="w-full group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+                <DropdownMenuTrigger asChild className="w-full outline-none">
                   <SidebarMenuButton
                     size="lg"
-                    className="cursor-pointer w-full data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                    className="cursor-pointer w-full justify-start group-data-[collapsible=icon]:justify-center data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                     tooltip={isCollapsed ? currentWorkflow.name : undefined}
                   >
                     <Avatar className="size-8">
@@ -200,29 +209,31 @@ const Sidebar = memo(function Sidebar({
         onOpenChange={setShowCreateModal}
       />
 
-      <SidebarContent className="w-full">
+      <SidebarContent className="w-full scrollbar-thin">
         <SidebarGroup>
           <SidebarGroupContent className="flex flex-col gap-2">
             <SidebarMenu>
-              <SidebarMenuItem className="flex items-center gap-2">
+              <SidebarMenuItem className="flex w-full items-center gap-2 group-data-[collapsible=icon]:justify-center">
                 <SidebarMenuButton
                   variant="outline"
                   onClick={handleModeToggle}
                   tooltip={isCollapsed ? buttonText : undefined}
                   disabled={sectionsDisabled}
-                  className="text-center items-center !bg-primary/30 hover:!bg-primary/50 rounded-sm"
+                  className="w-full items-center justify-start gap-2 !bg-primary/30 hover:!bg-primary/50 rounded-sm group-data-[collapsible=icon]:justify-center"
                 >
                   {switchMode === "previewPanel" ? (
                     <SetIcon
-                      className="!size-6 shrink-0 block brightness-250"
+                      className="!size-6 shrink-0 block brightness-250 text-primary"
                       fill="var(--primary)"
                       animated={true}
                     />
                   ) : (
-                    <LandPlot className="size-5! stroke-[1.5px] text-accent-foreground m-0.5"/>
+                    <LandPlot className="size-5! stroke-[1.5px] text-accent-foreground m-0.5" />
                   )}
                   {!isCollapsed && (
-                    <span className="text-[15px] text-primary-foreground">{buttonText}</span>
+                    <span className="text-[15px] text-primary-foreground">
+                      {buttonText}
+                    </span>
                   )}
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -230,29 +241,40 @@ const Sidebar = memo(function Sidebar({
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup className="px-1">
-          {!isCollapsed && <SidebarGroupLabel className="mb-2">Sections</SidebarGroupLabel>}
+          {!isCollapsed && (
+            <SidebarGroupLabel className="mb-2">Sections</SidebarGroupLabel>
+          )}
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
-                <SidebarMenuItem key={item.title} className="w-full">
+                <SidebarMenuItem
+                  key={item.title}
+                  className="w-full group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center"
+                >
                   <SidebarMenuButton
                     asChild
                     isActive={item.value === active}
                     onClick={() => !sectionsDisabled && onTabChange(item.value)}
-                    className={`w-full ${
-                      sectionsDisabled ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
+                    className={cn(
+                      "w-full justify-start group-data-[collapsible=icon]:justify-center",
+                      sectionsDisabled && "opacity-50 cursor-not-allowed"
+                    )}
                     disabled={sectionsDisabled}
                     tooltip={isCollapsed ? item.title : undefined}
                   >
                     <a
                       href={`#${item.value}`}
-                      className={`text-sm ${
-                        sectionsDisabled ? "pointer-events-none" : ""
-                      }`}
+                      className={cn(
+                        "flex w-full items-center gap-2 text-sm group-data-[collapsible=icon]:justify-center",
+                        sectionsDisabled && "pointer-events-none"
+                      )}
                     >
-                      {item.icon && <item.icon className="size-4! text-xs" />}
-                      {!isCollapsed && <span>{item.title}</span>}
+                      {item.icon && (
+                        <item.icon className="size-4 shrink-0 text-sidebar-foreground" />
+                      )}
+                      {!isCollapsed && (
+                        <span className="truncate">{item.title}</span>
+                      )}
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -262,21 +284,20 @@ const Sidebar = memo(function Sidebar({
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="flex flex-col gap-2 p-1">
-        <SidebarMenu className="flex flex-col gap-2">
+        <SidebarMenu className="flex flex-col gap-2 items-center justify-center">
           {/* Settings button */}
           {currentWorkflow && (
             <>
-              <SidebarMenuItem>
-                <SettingsDialog currentWorkflow={currentWorkflow} isCollapsed={isCollapsed} />
-              </SidebarMenuItem>
+                <SettingsDialog
+                  currentWorkflow={currentWorkflow}
+                  isCollapsed={isCollapsed}
+                />
               {!isCollapsed && <Separator />}
             </>
           )}
 
           {/* Mode toggle */}
-          <SidebarMenuItem>
             <ModeToggle isCollapsed={isCollapsed} />
-          </SidebarMenuItem>
 
           {/* Authenticated user - only show when Clerk is loaded */}
           {isUserLoaded && (
@@ -288,7 +309,7 @@ const Sidebar = memo(function Sidebar({
                     <DropdownMenuTrigger asChild>
                       <SidebarMenuButton
                         size="lg"
-                        className="cursor-pointer data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                        className="cursor-pointer justify-start group-data-[collapsible=icon]:justify-center data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                         tooltip={isCollapsed ? userDisplayName : undefined}
                         data-slot="dropdown-menu-trigger"
                       >
@@ -311,7 +332,9 @@ const Sidebar = memo(function Sidebar({
                             </span>
                           </div>
                         )}
-                        {!isCollapsed && <ChevronsUpDown className="ml-auto size-4 shrink-0" />}
+                        {!isCollapsed && (
+                          <ChevronsUpDown className="ml-auto size-4 shrink-0" />
+                        )}
                       </SidebarMenuButton>
                     </DropdownMenuTrigger>
 
@@ -388,7 +411,7 @@ const Sidebar = memo(function Sidebar({
               <SidebarMenuButton
                 size="lg"
                 disabled
-                className="cursor-default opacity-50 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                className="cursor-default justify-start opacity-50 group-data-[collapsible=icon]:justify-center data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 tooltip={isCollapsed ? "Loading..." : undefined}
               >
                 <Avatar className="h-8 w-8 rounded-md shrink-0">
@@ -397,22 +420,25 @@ const Sidebar = memo(function Sidebar({
                   </AvatarFallback>
                 </Avatar>
                 {!isCollapsed && (
-                  <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
+                  <div className="flex flex-row items-center flex-1 text-left text-sm leading-tight min-w-0">
                     <span className="truncate font-medium text-muted-foreground">
                       Loading...
                     </span>
-                    <span className="truncate text-xs text-muted-foreground/50">
+                    {/* <span className="truncate text-xs text-muted-foreground/50">
                       &nbsp;
-                    </span>
+                    </span> */}
                   </div>
                 )}
-                {!isCollapsed && <ChevronsUpDown className="ml-auto size-4 shrink-0 opacity-30" />}
+                {!isCollapsed && (
+                  <ChevronsUpDown className="ml-auto size-4 shrink-0 opacity-30" />
+                )}
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
         </SidebarMenu>
       </SidebarFooter>
-    </div>
+      <SidebarRail />
+    </SidebarRoot>
   );
 });
 

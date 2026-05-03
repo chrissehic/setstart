@@ -37,7 +37,7 @@ export async function addCompetitorTableColumn(input: AddCompetitorTableColumnIn
         required: input.required,
         options: input.options ? JSON.stringify(input.options) : null,
         order: input.order,
-        isActive: input.isActive,
+        isActive: input.isActive ?? true,
       },
     });
 

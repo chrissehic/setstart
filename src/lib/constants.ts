@@ -61,7 +61,7 @@ export const WORKSPACE_ITEMS = [
     icon: UsersRound,
   },
   {
-    title: "Growth stage",
+    title: "Growth",
     url: "#growth-stage",
     value: "growth-stage",
     icon: Eclipse,

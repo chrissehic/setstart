@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 // import { Send, Bot, User, Sparkles, Lightbulb, Target, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { WorkflowData } from "@/types/workflow";
@@ -9,7 +8,10 @@ import type { WorkflowData } from "@/types/workflow";
 import SetIcon from "@/components/SetIcon";
 import MultiPurposeInput from "@/components/AIInput";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getAssistantSuggestions, type SectionValue } from "@/lib/assistantSuggestions";
+import {
+  getAssistantSuggestions,
+  type SectionValue,
+} from "@/lib/assistantSuggestions";
 
 interface Message {
   id: string;
@@ -131,9 +133,7 @@ export const AssistantPane = ({ data, currentSection }: AssistantPaneProps) => {
                   onClick={() => setInputValue(suggestion.prompt)}
                 >
                   <CardHeader>
-                    <CardTitle>
-                      {suggestion.title}
-                    </CardTitle>
+                    <CardTitle>{suggestion.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-xs text-muted-foreground">
@@ -143,10 +143,34 @@ export const AssistantPane = ({ data, currentSection }: AssistantPaneProps) => {
                 </Card>
               ))}
             </div>
+            {/* Input Area */}
+            <div className="flex-shrink-0 relative w-full">
+              <MultiPurposeInput
+                value={inputValue}
+                onChange={setInputValue}
+                onSubmit={() => handleSendMessage(inputValue)}
+                placeholder="Ask me anything about your project..."
+                disabled={isLoading}
+                isLoading={isLoading}
+                showButton={true}
+                maxLength={500}
+                useAbsolutePosition={true}
+                containerClassName="w-full"
+              />
+
+              {/* Info Section */}
+              <div className="flex justify-center items-center pointer-events-none">
+                <div className="bg-background/95 backdrop-blur-sm max-w-4xl mx-auto">
+                  <p className="text-xs text-muted-foreground text-center">
+                    AI powered by your project context • Press Enter to send
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
           /* Messages */
-          <ScrollArea className="flex-1 p-4">
+          <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin p-4">
             <div className="space-y-4">
               {messages.map((message) => (
                 <div
@@ -186,33 +210,8 @@ export const AssistantPane = ({ data, currentSection }: AssistantPaneProps) => {
 
               <div ref={messagesEndRef} />
             </div>
-          </ScrollArea>
-        )}
-      </div>
-
-      {/* Input Area */}
-      <div className="flex-shrink-0 p-2 relative">
-        <MultiPurposeInput
-          value={inputValue}
-          onChange={setInputValue}
-          onSubmit={() => handleSendMessage(inputValue)}
-          placeholder="Ask me anything about your project..."
-          disabled={isLoading}
-          isLoading={isLoading}
-          showButton={true}
-          maxLength={500}
-          useAbsolutePosition={true}
-          containerClassName="w-full"
-        />
-
-        {/* Info Section */}
-        <div className="flex justify-center items-center pointer-events-none">
-          <div className="bg-background/95 backdrop-blur-sm border border-border/50 rounded-md max-w-4xl mx-auto">
-            <p className="text-xs text-muted-foreground text-center">
-              AI powered by your project context • Press Enter to send
-            </p>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

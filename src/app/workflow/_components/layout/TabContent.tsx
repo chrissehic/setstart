@@ -27,7 +27,7 @@ interface WorkspaceTabContentProps {
 }
 
 export const TabContent = ({ data, stageObj }: WorkspaceTabContentProps) => (
-  <div className="flex flex-col h-full z-20 w-full overflow-y-auto">
+  <div className="flex flex-col h-full z-20 w-full min-h-0 overflow-y-auto scrollbar-thin">
     <div className="p-4 space-y-5 max-w-7xl mx-auto w-full">
       <TabsContent value="overview" className="min-h-0">
         <AboutSection workflowId={data.id} />

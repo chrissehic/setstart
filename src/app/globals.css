@@ -4,6 +4,71 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+Source - https://stackoverflow.com/a/69410151
+Posted by juliomalves, modified by community. See post 'Timeline' for change history
+Retrieved 2026-05-03, License - CC BY-SA 4.0
+*/
+
+@layer utilities {
+  .scrollbar::-webkit-scrollbar {
+    width: 20px;
+    height: 20px;
+  }
+
+  .scrollbar::-webkit-scrollbar-track {
+    border-radius: 100vh;
+    background: #f7f4ed;
+  }
+
+  .scrollbar::-webkit-scrollbar-thumb {
+    background: #e0cbcb;
+    border-radius: 100vh;
+    border: 3px solid #f6f7ed;
+  }
+
+  .scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #c0a0b9;
+  }
+
+  /**
+   * Thin themed scrollbars for main workspace panes.
+   * Track / lane stay fully transparent; thumb sits inset so it reads as floating over content.
+   */
+  .scrollbar-thin {
+    scrollbar-gutter: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: var(--scrollbar-width);
+    height: var(--scrollbar-width);
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: 9999px;
+    /* Transparent border shrinks painted thumb; lane stays see-through */
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+
 /* 3D Animation Keyframes */
 @keyframes fadeIn3D {
   0% {
@@ -148,6 +213,8 @@ html {
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  /* Pane scrollbar thickness — use in CSS as var(--scrollbar-width) or Tailwind spacing */
+  --spacing-scrollbar-pane: 6px;
 }
 :root {
   --radius: 0.65rem;
@@ -215,6 +282,12 @@ html {
   --aurora-low-alpha: 0.22;
   --aurora-high-alpha: 0.75; /* new high alpha for intense areas */
   --aurora-shimmer-alpha: 0.35; /* for shimmer effects */
+
+  /* Pane scrollbars — .scrollbar-thin on sidebar, preview, detail, assistant */
+  --scrollbar-width: var(--spacing-scrollbar-pane);
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: color-mix(in oklch, var(--muted-foreground) 38%, transparent);
+  --scrollbar-thumb-hover: color-mix(in oklch, var(--muted-foreground) 55%, transparent);
 }
 
 /*  */
@@ -278,6 +351,9 @@ html {
 --aurora-low-alpha: 0.28;
 --aurora-high-alpha: 0.85;
 --aurora-shimmer-alpha: 0.42;
+
+  --scrollbar-thumb: color-mix(in oklch, var(--muted-foreground) 45%, transparent);
+  --scrollbar-thumb-hover: color-mix(in oklch, var(--muted-foreground) 62%, transparent);
 }
 
 @layer base {

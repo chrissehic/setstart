@@ -65,7 +65,7 @@ export default function TasksPreviewSection({
           <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
             <span>Tasks ({tasks.length})</span>
           </div>
-          <TasksPreview tasks={tasks} max={Math.min(3, Math.ceil(max / 2))} />
+          <TasksPreview tasks={tasks} />
         </div>
       </div>
     );
@@ -89,7 +89,7 @@ export default function TasksPreviewSection({
   return (
     <div className="flex flex-col items-center justify-center text-center ">
       <h2 className="text-base font-medium tracking-tight">Manage your objectives and tasks</h2>
-      <p className="text-sm text-muted-foreground">
+      <p className="text-xs text-muted-foreground max-w-lg text-wrap">
         Start setting up your objectives and tasks to keep track of your next
         steps
       </p>

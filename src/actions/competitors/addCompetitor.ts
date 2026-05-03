@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { CompetitorFormData } from "@/types/workflow";
+import { normalizeWebsiteUrl } from "@/lib/utils/normalizeWebsiteUrl";
 
 interface AddCompetitorInput extends CompetitorFormData {
   workflowId: string;
@@ -34,7 +35,7 @@ export async function addCompetitor(input: AddCompetitorInput) {
         workflowId: input.workflowId,
         name: input.name,
         description: input.description,
-        website: input.website,
+        website: normalizeWebsiteUrl(input.website ?? "") || null,
         logoImage: input.logoImage,
         attributes: JSON.stringify(input.attributes || {}),
       },

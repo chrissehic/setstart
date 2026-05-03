@@ -8,7 +8,7 @@ interface AddDocumentInput {
   workflowId: string;
   name: string;
   fileUrl?: string;
-  fileType?: "pdf" | "image";
+  fileType?: "pdf" | "image" | "document";
   sizeBytes?: number;
   metadata?: string;
   content?: string; // JSON string for block-based editor content

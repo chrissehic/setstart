@@ -26,30 +26,39 @@ export function ModeToggle({ isCollapsed = false }: ModeToggleProps) {
   }, []);
 
   // Get theme text safely (only after mount to prevent hydration issues)
-  const themeText = mounted 
-    ? (theme === "dark" ? "Dark" : theme === "light" ? "Light" : "System")
+  const themeText = mounted
+    ? theme === "dark"
+      ? "Dark"
+      : theme === "light"
+      ? "Light"
+      : "System"
     : "System"; // Default fallback for SSR
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <SidebarMenuButton 
-          className={`w-full ${isCollapsed ? "justify-center" : ""}`}
-          tooltip={isCollapsed ? `${themeText} theme` : undefined}
+        <SidebarMenuButton
+          className={`w-full ${
+            isCollapsed ? "flex items-center justify-center" : ""
+          }`}
+          tooltip={isCollapsed ? `${themeText} theme` as string : undefined}
           data-slot="dropdown-menu-trigger"
         >
-          <div className={`relative ${isCollapsed ? "h-6 w-6" : "h-4 w-4"}`}>
-            <Sun className={`absolute inset-0 rotate-0 scale-100 transition-all duration-300 dark:rotate-90 dark:scale-0 ${
-              isCollapsed ? "size-6" : "size-4"
-            }`} />
-            <Moon className={`absolute inset-0 rotate-90 scale-0 transition-all duration-300 dark:rotate-0 dark:scale-100 ${
-              isCollapsed ? "size-6" : "size-4"
-            }`} />
-          </div>
+          {theme === "light" ? (
+            <Sun
+              className={`rotate-0 scale-100 transition-all duration-300 dark:rotate-90 dark:scale-0 ${
+                isCollapsed ? "size-5" : "size-4"
+              }`}
+            />
+          ) : (
+            <Moon
+              className={`rotate-90 scale-0 transition-all duration-300 dark:rotate-0 dark:scale-100 ${
+                isCollapsed ? "size-5" : "size-4"
+              }`}
+            />
+          )}
           {!isCollapsed && (
-            <span className="text-sm font-medium">
-              {themeText} theme
-            </span>
+            <span className="text-sm font-medium">{themeText} theme</span>
           )}
         </SidebarMenuButton>
       </DropdownMenuTrigger>

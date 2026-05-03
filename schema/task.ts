@@ -9,7 +9,7 @@ export const addTaskSchema = z.object({
   dueDate: z.string().optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
   responsibility: z.enum(["IN_HOUSE", "OUTSOURCED"]).optional(),
-  status: z.enum(["NOT_STARTED", "IN_PROGRESS", "COMPLETED"]).optional(),
+  status: z.enum(["NOT_STARTED", "IN_PROGRESS", "COMPLETED", "ARCHIVED"]).optional(),
 });
 
 export type AddTaskSchemaType = z.infer<typeof addTaskSchema>;

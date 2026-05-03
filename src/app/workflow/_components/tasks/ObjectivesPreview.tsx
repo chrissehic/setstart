@@ -5,6 +5,7 @@ interface Objective {
   title: string
   description?: string | null
   tasks?: Array<{ id: string }>
+  createdAt?: Date | string
 }
 
 interface ObjectiveRowProps {
@@ -42,7 +43,14 @@ export default function ObjectivesPreview({ objectives = [], max = 4 }: Objectiv
     )
   }
 
-  const visibleObjectives = objectives.slice(0, max)
+  // Sort objectives by createdAt descending (latest first)
+  const sortedObjectives = [...objectives].sort((a, b) => {
+    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0
+    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0
+    return dateB - dateA
+  })
+
+  const visibleObjectives = sortedObjectives.slice(0, max)
 
   return (
     <div className="flex flex-col gap-1 relative mb-2">

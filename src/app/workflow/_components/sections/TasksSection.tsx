@@ -106,6 +106,15 @@ function TasksSection({
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
+      // Filter out archived tasks by default unless specifically filtering for them
+      if (
+        task.status === TaskStatus.ARCHIVED &&
+        statusFilter !== TaskStatus.ARCHIVED &&
+        statusFilter !== "all"
+      ) {
+        return false;
+      }
+
       const matchesSearch = task.title
         .toLowerCase()
         .includes(search.toLowerCase());
@@ -216,6 +225,7 @@ function TasksSection({
                   <SelectItem value={TaskStatus.IN_PROGRESS}>
                     In Progress
                   </SelectItem>
+                  <SelectItem value={TaskStatus.ARCHIVED}>Archived</SelectItem>
                 </SelectContent>
               </Select>
             </div>

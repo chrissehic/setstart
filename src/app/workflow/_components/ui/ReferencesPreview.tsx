@@ -292,7 +292,7 @@ export const ReferencesPreview = ({ workflowId }: ReferencesPreviewProps) => {
       <div className="text-center">
         <div>
           <h3 className="text-base font-medium">No references yet</h3>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-xs max-w-lg text-wrap">
             Start adding references to build your knowledge base
           </p>
         </div>

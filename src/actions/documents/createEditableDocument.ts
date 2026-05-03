@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { auth } from "@clerk/nextjs/server";
+import type { DocumentFileType } from "@/schema/document";
 
 interface CreateEditableDocumentInput {
   workflowId: string;
@@ -17,21 +18,15 @@ export async function createEditableDocument(input: CreateEditableDocumentInput)
   }
 
   try {
-    // Default empty block structure
-    const defaultContent = JSON.stringify([
-      {
-        id: "1",
-        type: "paragraph",
-        content: { text: "" },
-      },
-    ]);
+    // Default empty HTML content for TiptapEditor
+    const defaultContent = "";
 
     const document = await prisma.document.create({
       data: {
         workflowId: input.workflowId,
         name: input.name,
         fileUrl: null, // Explicitly set to null for editable documents
-        fileType: null, // Explicitly set to null for editable documents
+        fileType: "document" as DocumentFileType,
         sizeBytes: null, // Explicitly set to null for editable documents
         content: input.content || defaultContent,
         isEditable: true,

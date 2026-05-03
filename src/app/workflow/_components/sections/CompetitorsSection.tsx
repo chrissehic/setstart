@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
-import type { Competitor } from "@/types/workflow";
+import type { Competitor, CompetitorFormData } from "@/types/workflow";
 import { cn } from "@/lib/utils";
 import {
   AlertCircleIcon,
@@ -32,7 +32,18 @@ import { useQueryClient } from "@tanstack/react-query";
 import { DataTable } from "./competitors/data-table";
 import { createCompetitorColumns } from "./competitors/columns";
 import { toast } from "sonner";
-import { CompetitorsModal } from "../modals/CompetitorsModal";
+import {
+  CompetitorsModal,
+  type CompetitorCsvImportMode,
+  type ImportedCsvFile,
+} from "../modals/CompetitorsModal";
+import {
+  addCompetitorsBulk,
+  deleteCompetitorsBulk,
+} from "@/actions/competitors";
+import { parseCompetitorImportFile } from "@/lib/competitors/parseCompetitorImport";
+import { normalizeWebsiteUrl } from "@/lib/utils/normalizeWebsiteUrl";
+import { competitorKeys } from "@/hooks/useCompetitors";
 import { TaskSearchInput } from "@/components/TaskSearchInput";
 import {
   AlertDialog,
@@ -59,6 +70,9 @@ type CompetitorsSectionProps = {
 function CompetitorsSection({ workflowId, workflowData }: CompetitorsSectionProps) {
   const [search, setSearch] = useState("");
   const [showCancelDialog, setShowCancelDialog] = useState<{ open: boolean; competitorId: string | null }>({ open: false, competitorId: null });
+  const [showDeleteColumnDialog, setShowDeleteColumnDialog] = useState<{ open: boolean; columnId: string | null; columnName: string | null }>({ open: false, columnId: null, columnName: null });
+  const [showDeleteCompetitorDialog, setShowDeleteCompetitorDialog] = useState<{ open: boolean; competitorId: string | null }>({ open: false, competitorId: null });
+  const [csvImportModalOpen, setCsvImportModalOpen] = useState(false);
   const [newRowId, setNewRowId] = useState<string | null>(null);
   const [newRowData, setNewRowData] = useState({
     name: "",
@@ -135,6 +149,105 @@ function CompetitorsSection({ workflowId, workflowData }: CompetitorsSectionProp
 
   // Use a special identifier: workflow-{workflowId} to mark our company
   const ourCompanyId = `workflow-${workflowId}`;
+
+  const isOurCompanyCompetitor = useCallback(
+    (c: Competitor) =>
+      c.id === ourCompanyId ||
+      !!(workflowData && c.workflowId === workflowId && c.name === workflowData.name),
+    [ourCompanyId, workflowData, workflowId]
+  );
+
+  const hasNonOurCompanyCompetitors = useMemo(
+    () => competitors.some((c) => !isOurCompanyCompetitor(c)),
+    [competitors, isOurCompanyCompetitor]
+  );
+
+  const openCsvImportFlow = useCallback(() => {
+    setCsvImportModalOpen(true);
+  }, []);
+
+  const handleCsvImport = useCallback(
+    async (files: ImportedCsvFile[], mode: CompetitorCsvImportMode) => {
+      if (mode === "replace") {
+        const ids = competitors
+          .filter((c) => !isOurCompanyCompetitor(c))
+          .map((c) => c.id);
+        try {
+          const result = await deleteCompetitorsBulk({
+            workflowId,
+            ids,
+          });
+          if (!result.success) {
+            throw new Error("Failed to delete competitors");
+          }
+          await queryClient.invalidateQueries({
+            queryKey: competitorKeys.byWorkflow(workflowId),
+          });
+        } catch (e) {
+          console.error(e);
+          toast.error("Could not clear competitors for replace.");
+          throw e;
+        }
+      }
+
+      let imported = 0;
+      const notes: string[] = [];
+      const rowsToCreate: CompetitorFormData[] = [];
+
+      for (const item of files) {
+        const { rows, issues } = await parseCompetitorImportFile(
+          item.file,
+          customColumns
+        );
+        for (const iss of issues) {
+          const loc =
+            iss.row > 0 ? `row ${iss.row}` : "file";
+          notes.push(`${item.name} (${loc}): ${iss.message}`);
+        }
+        rowsToCreate.push(...rows);
+      }
+
+      if (rowsToCreate.length > 0) {
+        const result = await addCompetitorsBulk({
+          workflowId,
+          competitors: rowsToCreate,
+        });
+        if (!result.success) {
+          throw new Error("Failed to add competitors");
+        }
+        imported = result.created;
+      }
+
+      await queryClient.invalidateQueries({
+        queryKey: competitorKeys.byWorkflow(workflowId),
+      });
+
+      if (imported > 0) {
+        toast.success(
+          `Imported ${imported} competitor${imported === 1 ? "" : "s"}`
+        );
+      } else if (files.length > 0) {
+        toast.error(
+          "No competitors imported. Each row needs a name or website value — see import notes for details."
+        );
+      }
+
+      const preview = notes.slice(0, 6);
+      if (preview.length > 0) {
+        toast.message("Import notes", {
+          description:
+            preview.join("\n") + (notes.length > 6 ? "\n…" : ""),
+        });
+      }
+    },
+    [
+      competitors,
+      isOurCompanyCompetitor,
+      workflowId,
+      queryClient,
+      customColumns,
+    ]
+  );
 
   // Get website URL from socialLinks (look for "Website" or first URL)
   const companyWebsite = useMemo(() => {
@@ -218,7 +331,7 @@ function CompetitorsSection({ workflowId, workflowData }: CompetitorsSectionProp
       await addCompetitorMutation.mutateAsync({
         name: newRowData.name.trim() || newRowData.website.trim() || "Untitled",
         description: newRowData.description.trim() || "",
-        website: newRowData.website.trim() || "",
+        website: normalizeWebsiteUrl(newRowData.website),
         logoImage: "",
         attributes: {},
       });
@@ -370,7 +483,12 @@ function CompetitorsSection({ workflowId, workflowData }: CompetitorsSectionProp
       const currentRowData = rowData[competitorId];
       
       // Use the website from metadata if provided (from extraction), otherwise preserve existing
-      const websiteToSave = metadata.website || currentRowData?.website || currentCompetitor?.website || "";
+      const websiteToSave = normalizeWebsiteUrl(
+        metadata.website ||
+          currentRowData?.website ||
+          currentCompetitor?.website ||
+          ""
+      );
       
       // Update the competitor with extracted metadata, preserving the website URL
       await updateCompetitorMutation.mutateAsync({
@@ -422,7 +540,6 @@ function CompetitorsSection({ workflowId, workflowData }: CompetitorsSectionProp
           attributes: competitor.attributes || {},
         },
       }));
-      setEditingRowId(null);
       setShowCancelDialog({ open: false, competitorId: null });
     }
   }, [showCancelDialog.competitorId, competitors]);
@@ -473,8 +590,10 @@ function CompetitorsSection({ workflowId, workflowData }: CompetitorsSectionProp
   // Auto-save handler that saves to backend when cell loses focus
   const handleAutoSave = useCallback(
     async (competitorId: string, field: string, value: string) => {
+      const nextValue =
+        field === "website" ? normalizeWebsiteUrl(value) : value;
       // First update local state
-      handleCellSave(competitorId, field, value);
+      handleCellSave(competitorId, field, nextValue);
 
       try {
         // Get current data for this competitor - check both rowData and competitors
@@ -495,7 +614,7 @@ function CompetitorsSection({ workflowId, workflowData }: CompetitorsSectionProp
         // Update with the new field value
         const updatedData = {
           ...currentData,
-          [field]: value,
+          [field]: nextValue,
         };
 
         if (isOurCompanyVirtual) {
@@ -602,14 +721,17 @@ function CompetitorsSection({ workflowId, workflowData }: CompetitorsSectionProp
                       Add a new row
                     </div>
                   </DropdownMenuItem>
-                  <CompetitorsModal workflowId={workflowId}>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                      <div className="flex items-center gap-2 w-full">
-                        <FileSpreadsheet className="size-5" />
-                        Import CSV Table
-                      </div>
-                    </DropdownMenuItem>
-                  </CompetitorsModal>
+                  <DropdownMenuItem
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      openCsvImportFlow();
+                    }}
+                  >
+                    <div className="flex items-center gap-2 w-full">
+                      <FileSpreadsheet className="size-5" />
+                      Import CSV Table
+                    </div>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -667,14 +789,17 @@ function CompetitorsSection({ workflowId, workflowData }: CompetitorsSectionProp
                           Create a table
                         </div>
                       </DropdownMenuItem>
-                      <CompetitorsModal workflowId={workflowId}>
-                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                          <div className="flex items-center gap-2 w-full">
-                            <FileSpreadsheet className="size-5" />
-                            Import CSV Table
-                          </div>
-                        </DropdownMenuItem>
-                      </CompetitorsModal>
+                      <DropdownMenuItem
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          openCsvImportFlow();
+                        }}
+                      >
+                        <div className="flex items-center gap-2 w-full">
+                          <FileSpreadsheet className="size-5" />
+                          Import CSV Table
+                        </div>
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -802,7 +927,7 @@ function CompetitorsSection({ workflowId, workflowData }: CompetitorsSectionProp
           <AlertDialogHeader>
             <AlertDialogTitle>Delete column?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete the column "{showDeleteColumnDialog.columnName}"? This will remove all data in this column. This action cannot be undone.
+              Are you sure you want to delete the column &quot;{showDeleteColumnDialog.columnName}&quot;? This will remove all data in this column. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -820,6 +945,14 @@ function CompetitorsSection({ workflowId, workflowData }: CompetitorsSectionProp
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <CompetitorsModal
+        workflowId={workflowId}
+        open={csvImportModalOpen}
+        onOpenChange={setCsvImportModalOpen}
+        showImportModeChoice={hasNonOurCompanyCompetitors}
+        onImport={handleCsvImport}
+      />
 
       {/* Delete Competitor Confirmation Dialog */}
       <AlertDialog 

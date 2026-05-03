@@ -181,6 +181,56 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
     }
   }, [saving, saved, lastSaved, hasUnsavedChanges, onSaveStateChange]);
 
+  // Focus editor when entering edit mode, especially when empty
+  React.useEffect(() => {
+    if (editor && isEditing) {
+      // Use setTimeout to ensure the editor is fully rendered
+      setTimeout(() => {
+        const isEmpty = !content || content.trim() === "" || content === "<p></p>";
+        if (isEmpty) {
+          // For empty content, focus and place cursor at the start
+          editor.commands.focus();
+          editor.commands.setTextSelection(0);
+        } else {
+          // For existing content, focus naturally (click position is preserved)
+          editor.commands.focus();
+        }
+      }, 0);
+    }
+  }, [editor, isEditing, content]);
+
+  // Helper to check if content is empty
+  const isEmptyContent = React.useMemo(() => {
+    if (!content || content.trim() === "") return true;
+    if (content === "<p></p>" || content === "<p><br></p>") return true;
+    
+    // Check if it's block format JSON that's effectively empty
+    try {
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) {
+        const hasText = parsed.some((block: { content?: { text?: string }; children?: unknown[] }) => {
+          if (block.content?.text && block.content.text.trim() !== "") return true;
+          if (block.children && block.children.length > 0) return true;
+          return false;
+        });
+        return !hasText;
+      }
+    } catch {
+      // Not JSON, continue with HTML check
+    }
+    
+    // Check editor content if available (more reliable)
+    if (editor) {
+      const editorHTML = editor.getHTML();
+      const editorText = editor.getText();
+      if (!editorText.trim() || editorHTML === "<p></p>" || editorHTML === "<p><br></p>") {
+        return true;
+      }
+    }
+    
+    return false;
+  }, [content, editor]);
+
   if (!editor) return null;
 
   if (isEditing) {
@@ -204,24 +254,20 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
     );
   }
 
-  if (!editor) return null;
-
   // Read-only display mode
-  const isEmpty = !content || content.trim() === "" || content === "<p></p>";
-
   return (
     <div
       className={cn(
         "prose max-w-none text-base flex-1 min-h-[100px] h-full bg-transparent border border-transparent rounded-md cursor-text",
-        isEmpty && "text-muted-foreground"
+        isEmptyContent && "text-muted-foreground"
       )}
       tabIndex={0}
       role="textbox"
       aria-label="Task description"
       onClick={onStartEdit}
     >
-      {isEmpty ? (
-        "Click to add a description..."
+      {isEmptyContent ? (
+        "Click to start writing..."
       ) : (
         <EditorContent editor={editor} className="h-full" />
       )}

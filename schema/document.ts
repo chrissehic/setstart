@@ -6,7 +6,7 @@ export const MAX_DOCUMENT_NAME_LENGTH = 255;
 export const MAX_TAGS_COUNT = 10;
 
 // Base schemas
-export const documentFileTypeSchema = z.enum(["pdf", "image"]);
+export const documentFileTypeSchema = z.enum(["pdf", "image", "document"]);
 export const documentStatusSchema = z.enum(["uploaded", "processing", "converted", "failed"]);
 
 // Input schemas

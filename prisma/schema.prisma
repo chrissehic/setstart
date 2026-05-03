@@ -266,6 +266,7 @@ model GoogleDriveToken {
 enum DocumentFileType {
   pdf
   image
+  document
 }
 
 enum DocumentStatus {

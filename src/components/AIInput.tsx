@@ -101,8 +101,8 @@ export default function MultiPurposeInput({
 
 
           // Focus: add glow & stronger mauve border
-          focus && [
-            "border-primary/80",
+          (focus || value.trim().length > 0) && [
+            "border-primary/80 bg-background",
             //   "bg-gradient-to-br from-muted/15 via-muted/10 to-background/8",
             // "dark:bg-gradient-to-br dark:from-muted/20 dark:via-muted/15 dark:to-background/10",
             "shadow-[0_2px_8px_rgba(0,0,0,0.04),0_16px_32px_rgba(0,0,0,0.08)]",
@@ -110,7 +110,7 @@ export default function MultiPurposeInput({
 
           //Hover
           !focus &&
-            "hover:border-muted/20 dark:hover:border-muted/30 hover:bg-gradient-to-br hover:from-muted/12 hover:via-muted/8 hover:to-background/5",
+            "hover:border hover:border-muted/60 dark:hover:border-primary/40 hover:bg-muted",
 
           // Disabled
           disabled && "opacity-50 cursor-not-allowed",

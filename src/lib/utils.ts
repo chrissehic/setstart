@@ -123,6 +123,12 @@ export const getStatusConfig = (status: TaskStatus) => {
         dot: "bg-emerald-400",
         label: "Completed",
       }
+    case TaskStatus.ARCHIVED:
+      return {
+        color: "bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-500/10 dark:text-gray-400 dark:border-gray-500/20",
+        dot: "bg-gray-400",
+        label: "Archived",
+      }
     default:
       return {
         color: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-500/10 dark:text-slate-400 dark:border-slate-500/20",

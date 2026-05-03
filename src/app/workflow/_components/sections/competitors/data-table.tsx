@@ -12,7 +12,7 @@ import {
   type ColumnFiltersState,
 } from "@tanstack/react-table"
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Plus } from "lucide-react"
@@ -39,14 +39,16 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
 
   return (
     <div className="w-full">
-      <div className="rounded-md border overflow-hidden">
-        {/* One scroll container for both directions */}
-        <div className="relative max-h-[420px] overflow-auto">
-          <Table className="min-w-max text-sm">
-            {/* Sticky header row (vertical) */}
-            <TableHeader className="sticky top-0 z-20 bg-background">
+      <div className="rounded-md border">
+        {/*
+          Single scroll parent (no nested overflow-x from <Table /> wrapper) so
+          sticky thead and sticky corner cells behave correctly.
+        */}
+        <div className="relative max-h-[420px] overflow-auto scrollbar-thin">
+          <table className="w-full min-w-max caption-bottom text-sm">
+            <TableHeader className="[&_tr]:border-b">
               {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
+                <TableRow key={headerGroup.id} className="border-b-0 hover:bg-transparent">
                   {headerGroup.headers.map((header, index) => {
                     const isFirst = index === 0
                     const isLast = index === headerGroup.headers.length - 1
@@ -54,9 +56,9 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
                       <TableHead
                         key={header.id}
                         className={cn(
-                          "px-2 py-1 whitespace-nowrap bg-background border-r border-border last:border-r-0",
-                          isFirst && "sticky left-0 z-30 shadow-[inset_-1px_0_0_hsl(var(--border))]",
-                          isLast && "sticky right-0 z-30 shadow-[inset_1px_0_0_hsl(var(--border))]",
+                          "sticky top-0 z-20 bg-background px-2 py-1 whitespace-nowrap border-r border-border last:border-r-0 shadow-[0_1px_0_hsl(var(--border))]",
+                          isFirst && "sticky left-0 z-40 shadow-[inset_-1px_0_0_hsl(var(--border)),0_1px_0_hsl(var(--border))]",
+                          isLast && "sticky right-0 z-40 shadow-[inset_1px_0_0_hsl(var(--border)),0_1px_0_hsl(var(--border))]",
                         )}
                         style={{
                           ...(isFirst ? { left: 0 } : {}),
@@ -71,7 +73,6 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
               ))}
             </TableHeader>
 
-            {/* Body with sticky first/last columns (horizontal) */}
             <TableBody>
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
@@ -106,8 +107,8 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
                 </TableRow>
               )}
               
-                          </TableBody>
-          </Table>
+            </TableBody>
+          </table>
         </div>
         
         {/* Add Row Button - Outside scrollable area */}

@@ -6,7 +6,7 @@ import { cn, getCategoryConfig } from "@/lib/utils";
 import { UpdateTaskInput } from "@/actions/tasks/updateTask";
 import { useUpdateTask, useDeleteTask } from "@/hooks/useTasks";
 import { useTaskEditing } from "@/hooks/useTaskEditing";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Archive } from "lucide-react";
 import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
@@ -64,6 +64,14 @@ const TaskDetailPane: React.FC<TaskDetailPaneProps> = ({
     updateTaskMutation.mutate({
       id: task.id,
       status: newStatus,
+      workflowId: task.workflowId,
+    });
+  };
+
+  const handleArchiveTask = () => {
+    updateTaskMutation.mutate({
+      id: task.id,
+      status: TaskStatus.ARCHIVED,
       workflowId: task.workflowId,
     });
   };
@@ -136,9 +144,23 @@ const TaskDetailPane: React.FC<TaskDetailPaneProps> = ({
                 Edit
               </DropdownMenuItem>
             </TaskModal>
+            {task.status === TaskStatus.COMPLETED && (
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault();
+                  handleArchiveTask();
+                }}
+              >
+                <Archive className="h-4 w-4 mr-2" />
+                Archive
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem
               className="text-destructive focus:text-destructive"
-              onClick={() => setShowDeleteDialog(true)}
+              onSelect={(e) => {
+                e.preventDefault();
+                setShowDeleteDialog(true);
+              }}
             >
               <Trash2 className="h-4 w-4 mr-2" />
               Delete

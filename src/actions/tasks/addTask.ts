@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-
+import { TaskStatus, TaskPriority, Responsibility } from "@/types";
 
 interface AddTaskInput {
   workflowId: string;
@@ -11,9 +11,9 @@ interface AddTaskInput {
   category: string;
   description?: string;
   dueDate?: string; // ISO string
-  priority?: "LOW" | "MEDIUM" | "HIGH";
-  responsibility?: "IN_HOUSE" | "OUTSOURCED";
-  status?: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
+  priority?: TaskPriority;
+  responsibility?: Responsibility;
+  status?: TaskStatus;
   assignedPeople?: string[];
   objectiveId?: string;
 }
@@ -52,8 +52,8 @@ export async function AddTask(data: AddTaskInput) {
       description: data.description,
       dueDate: parsedDueDate,
       priority: data.priority ?? undefined,
-      responsibility: data.responsibility ?? "IN_HOUSE",
-      status: data.status ?? "NOT_STARTED",
+      responsibility: data.responsibility ?? Responsibility.IN_HOUSE,
+      status: data.status ?? TaskStatus.NOT_STARTED,
       objectiveId: data.objectiveId ?? null,
       assignedPeople: data.assignedPeople
         ? {

@@ -46,6 +46,29 @@ const DocumentDetailPane: React.FC<DocumentDetailPaneProps> = ({
   document,
   onBack,
 }) => {
+  // Normalize content: convert block format to empty HTML if effectively empty
+  const normalizeContent = (content: string | null | undefined): string => {
+    if (!content || content.trim() === "") return "";
+    
+    // Check if it's block format JSON that's effectively empty
+    try {
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) {
+        const hasText = parsed.some((block: { content?: { text?: string }; children?: unknown[] }) => {
+          if (block.content?.text && block.content.text.trim() !== "") return true;
+          if (block.children && block.children.length > 0) return true;
+          return false;
+        });
+        // If block format is empty, return empty string for HTML
+        return hasText ? content : "";
+      }
+    } catch {
+      // Not JSON, return as-is (HTML format)
+    }
+    
+    return content;
+  };
+
   const {
     state,
     startEditingTitle,
@@ -53,7 +76,7 @@ const DocumentDetailPane: React.FC<DocumentDetailPaneProps> = ({
     setTitle,
     startEditingContent,
     setContent,
-  } = useDocumentEditing(document.name, document.content || "");
+  } = useDocumentEditing(document.name, normalizeContent(document.content));
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [saving, setSaving] = useState(false);

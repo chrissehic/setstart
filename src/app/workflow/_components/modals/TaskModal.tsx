@@ -23,6 +23,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { getTaskStatusIcon } from "../icons/TaskStatusIcons";
 import { useAddTask, useUpdateTask } from "@/hooks/useTasks";
 import {
   Task,
@@ -282,12 +283,23 @@ export function TaskModal({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={TaskStatus.NOT_STARTED}>
-                    Not Started
+                    <div className="flex items-center gap-2">
+                      {getTaskStatusIcon(TaskStatus.NOT_STARTED, "size-3 shrink-0")}
+                      <span>Not Started</span>
+                    </div>
                   </SelectItem>
                   <SelectItem value={TaskStatus.IN_PROGRESS}>
-                    In Progress
+                    <div className="flex items-center gap-2">
+                      {getTaskStatusIcon(TaskStatus.IN_PROGRESS, "size-3 shrink-0")}
+                      <span>In Progress</span>
+                    </div>
                   </SelectItem>
-                  <SelectItem value={TaskStatus.COMPLETED}>Completed</SelectItem>
+                  <SelectItem value={TaskStatus.COMPLETED}>
+                    <div className="flex items-center gap-2">
+                      {getTaskStatusIcon(TaskStatus.COMPLETED, "size-3 shrink-0")}
+                      <span>Completed</span>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>

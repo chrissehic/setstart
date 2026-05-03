@@ -1,44 +1,47 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { getInitials } from "@/lib/helpers/getInitials";
-import { cn, getCategoryConfig } from "@/lib/utils";
+import { cn, getStatusConfig } from "@/lib/utils";
 import { Task } from "@/types";
+import AssignedPeopleBadge from "../sections/AssignedPeopleBadge";
+import { getTaskStatusIcon } from "../icons/TaskStatusIcons";
 
 interface TaskRowProps {
   task: Task;
 }
 
 export function TaskRow({ task }: TaskRowProps) {
-  const categoryConfig = getCategoryConfig(task.category);
+
+  const statusConfig = getStatusConfig(task.status);
+
   return (
     <div
       className={cn(
-        "flex flex-row items-end justify-between gap-2 px-1 py-1 rounded-md",
-        categoryConfig.color
+        "flex flex-row items-center justify-between font-normal gap-2 py-1 pr-1 rounded-md",
+        statusConfig.color
       )}
     >
-      <div className="flex flex-col items-start overflow-hidden px-2">
-        <span className={cn("text-sm line-clamp-1")} title={task.title}>
+      <div className="flex items-center gap-1.5 overflow-hidden px-2 justify-center">
+        <span className={cn("text-xs shrink-0")}>
+          {getTaskStatusIcon(task.status, "size-3.5 shrink-0")}
+        </span>
+        <span
+          className={cn(
+            "text-xs line-clamp-1 overflow-hidden text-ellipsis whitespace-nowrap"
+          )}
+          title={task.title}
+        >
           {task.title}
         </span>
       </div>
 
-      <div className="flex -space-x-1 flex-row">
-        {task.assignedPeople?.map(({ person }) => {
-          if (!person) return null;
-          
-          return (
-            <Avatar key={person.id} className="w-6 h-6 rounded-full">
-              {person.avatarImage && (
-                <AvatarImage src={person.avatarImage} alt={person.name} />
-              )}
-              <AvatarFallback className="bg-accent text-xs text-foreground border-input border rounded-full">
-                {getInitials(person.name)}
-              </AvatarFallback>
-            </Avatar>
-          );
-        })}
-      </div>
+      {task.assignedPeople && task.assignedPeople.length > 0 ? (
+        <AssignedPeopleBadge
+          people={task.assignedPeople
+            .map((ap) => ap?.person)
+            .filter((person): person is NonNullable<typeof person> => !!person)}
+          variant="compact"
+          maxDisplay={3}
+        />
+      ) : null}
     </div>
   );
 }
@@ -62,7 +65,10 @@ export default function TasksPreview({
 
       {tasks.length > max && (
         <div className="absolute flex flex-row w-full items-center justify-center bg-transparent -bottom-4">
-          <Badge variant="inverse" className="text-xs bg-accent-foreground/20 hover:bg-accent-foreground/30">
+          <Badge
+            variant="inverse"
+            className="text-xs bg-accent-foreground/20 hover:bg-accent-foreground/30"
+          >
             <span className="text-foreground ">+{tasks.length - max} more</span>
           </Badge>
         </div>

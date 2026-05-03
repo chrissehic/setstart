@@ -23,7 +23,7 @@ function CompetitorPreview({
     return (
       <div className="flex flex-col items-center justify-center text-center">
         <h3 className="text-base font-medium">No competitors yet</h3>
-        <p className="text-muted-foreground text-sm max-w-lg text-wrap">
+        <p className="text-muted-foreground text-xs max-w-lg text-wrap">
           Start tracking your competitors to understand the market landscape
         </p>
         <Button variant="link" className="no-underline font-normal">

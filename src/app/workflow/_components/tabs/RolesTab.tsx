@@ -22,16 +22,13 @@ export const RolesTab = ({ data, title, value }: RolesTabProps) => (
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center text-center">
-          <h2 className="text-base font-medium tracking-tight">
-            Structure your team
-          </h2>
-          <p className="text-sm text-muted-foreground max-w-lg text-wrap">
-            You haven&apos;t added any roles yet. Define the key roles and
-            responsibilities to build a clear company overview and align your
-            team.
+          <h2 className="text-base font-medium tracking-tight">No roles yet</h2>
+          <p className="text-xs text-muted-foreground max-w-lg text-wrap">
+            Define the key roles and responsibilities to build a clear company
+            overview
           </p>
           <Button variant="link" className="no-underline font-normal">
-            Add your first role
+            Structure your team
             <ArrowRight className="size-3 -rotate-45" />
           </Button>
         </div>

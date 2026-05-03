@@ -1,17 +1,19 @@
-import { PrismaClient } from "@prisma/client";
+import { type PrismaClient } from "@prisma/client";
+import { Prisma } from "@/generated/prisma";
 import { createDocumentInputSchema } from "../../../schema/document";
+import { User } from "@/generated/prisma";
 
 // Types
-export type DocumentWithRelations = PrismaClient.DocumentGetPayload<{
+export type DocumentWithRelations = Prisma.DocumentGetPayload<{
   include: { tags: true; pages: true }
 }>;
 
 export type MutationResult<T> = 
   | { success: true; data: T }
-  | { success: false; error: { code: string; message: string; details?: any } };
+  | { success: false; error: { code: string; message: string; details?: unknown } };
 
 // Helper function to check workflow access (assume this exists)
-declare function checkWorkflowAccess(user: any, workflowId: string, permission: 'read' | 'write'): Promise<boolean>;
+declare function checkWorkflowAccess(user: User, workflowId: string, permission: 'read' | 'write'): Promise<boolean>;
 declare function enqueueDocumentProcessing(documentId: string): Promise<void>;
 
 /**
@@ -19,7 +21,7 @@ declare function enqueueDocumentProcessing(documentId: string): Promise<void>;
  */
 export async function createDocument(
   prisma: PrismaClient,
-  ctx: { user: any },
+  ctx: { user: User },
   input: unknown
 ): Promise<MutationResult<DocumentWithRelations>> {
   try {
@@ -55,7 +57,7 @@ export async function createDocument(
     }
 
     // Create document and tags in transaction
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: PrismaClient) => {
       // Create or connect tags
       const tagOperations = validatedInput.tags.map(tagName => ({
         where: { name: tagName },

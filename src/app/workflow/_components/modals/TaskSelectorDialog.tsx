@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 
 import { Search } from "lucide-react";
 import { useTasks, useUpdateTask } from "@/hooks/useTasks";
@@ -169,81 +170,72 @@ export function TaskSelectorDialog({
           <div className="flex-1 min-h-0 overflow-y-auto">
             {filteredTasks.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                {filteredTasks.length === 0 ? (
-                  <p>No unassigned tasks available</p>
-                ) : (
-                  <p>No tasks match your search</p>
-                )}
+                <p>
+                  {searchQuery.trim()
+                    ? "No tasks match your search"
+                    : "No tasks available"}
+                </p>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="grid gap-2">
                 {filteredTasks.map((task) => {
                   const statusConfig = getStatusConfig(task.status);
                   const categoryConfig = getCategoryConfig(task.category);
+                  const selected = selectedTasks.includes(task.id);
+                  const rowId = `task-selector-${task.id}`;
                   return (
-                    <div
+                    <label
                       key={task.id}
-                      onClick={() => handleTaskToggle(task.id)}
+                      htmlFor={rowId}
                       className={cn(
-                        `p-3 rounded-lg border cursor-pointer transition-colors duration-150 ease-in-out`,
-                        selectedTasks.includes(task.id)
+                        "flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors duration-150 ease-in-out",
+                        selected
                           ? "border-primary bg-primary/5 shadow-sm"
                           : "border-border hover:bg-muted/40"
                       )}
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0 space-y-1">
-                          <div className="flex items-center justify-between gap-2">
-                            <Badge
-                              variant="secondary"
-                              className={cn("text-xs", categoryConfig.color)}
-                            >
-                              {task.category}
-                            </Badge>
-                            <Badge
-                              className={cn("text-xs", statusConfig.color)}
-                            >
-                              {/* {task.status.replace("_", " ")} */}
-                              {statusConfig.label}
-                            </Badge>
-                          </div>
-                          <h4 className="text-base font-medium truncate">
-                            {task.title}
-                          </h4>
-                                                      {task.description && (
-                              <p className="text-xs text-muted-foreground line-clamp-2">
-                                <span dangerouslySetInnerHTML={{ __html: task.description }} />
-                              </p>
-                            )}
-                          {task.assignedPeople && task.assignedPeople.length > 0 ? (
+                      <Checkbox
+                        id={rowId}
+                        checked={selected}
+                        onCheckedChange={() => handleTaskToggle(task.id)}
+                        className="mt-0.5 shrink-0 "
+                      />
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <Badge
+                            variant="secondary"
+                            className={cn("text-xs", categoryConfig.color)}
+                          >
+                            {task.category}
+                          </Badge>
+                          <Badge
+                            className={cn("text-xs", statusConfig.color)}
+                          >
+                            {statusConfig.label}
+                          </Badge>
+                        </div>
+                        <h4 className="text-base font-medium truncate">
+                          {task.title}
+                        </h4>
+                        {task.description && (
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            <span
+                              dangerouslySetInnerHTML={{
+                                __html: task.description,
+                              }}
+                            />
+                          </p>
+                        )}
+                        {task.assignedPeople &&
+                          task.assignedPeople.length > 0 && (
                             <AssignedPeopleBadge
                               people={task.assignedPeople.map(
                                 (ap) => ap.person
                               )}
                             />
-                          ) : (
-                            <p className="text-sm text-muted-foreground">
-                              No one assigned yet.
-                            </p>
                           )}
-                        </div>
-
-                        <div className="flex-shrink-0">
-                          <div
-                            className={cn(
-                              `w-5 h-5 rounded-full flex items-center justify-center border border-muted transition-colors duration-150`,
-                              selectedTasks.includes(task.id)
-                                ? "bg-muted border-muted shadow-inner"
-                                : "bg-muted"
-                            )}
-                          >
-                            {selectedTasks.includes(task.id) && (
-                              <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-                            )}
-                          </div>
-                        </div>
                       </div>
-                    </div>
+                    </label>
                   );
                 })}
               </div>

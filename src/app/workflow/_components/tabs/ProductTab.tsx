@@ -36,7 +36,7 @@ export const ProductTab = ({
             <h2 className="text-base font-medium tracking-tight">
               Define your Offering
             </h2>
-            <p className="text-sm text-muted-foreground max-w-lg text-wrap">
+            <p className="text-xs text-muted-foreground max-w-lg text-wrap">
               Showcase your current offering (product, service, etc.). This
               helps your team understand what you&apos;re building and
               delivering to customers.

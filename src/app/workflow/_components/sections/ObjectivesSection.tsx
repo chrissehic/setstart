@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useQueryState, parseAsString } from "nuqs";
 import { cn } from "@/lib/utils";
 import {
-  ArrowLeft,
   Edit,
   Loader2,
   Plus,
@@ -34,6 +33,7 @@ import {
 import { SECTION_CLASS } from "@/lib/constants";
 import type { Objective, Task } from "@/types";
 import type { Person } from "@/types/workflow";
+import { TaskStatus } from "@/types";
 import { useTasks } from "@/hooks/useTasks";
 import TaskCard from "../ui/TaskCard";
 import { TaskModal } from "../modals/TaskModal";
@@ -55,7 +55,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
+import { DetailPaneHeader } from "../ui/DetailPaneHeader";
 
 type ObjectivesSectionProps = {
   workflowId: string;
@@ -84,9 +84,13 @@ function ObjectiveTasksDisplay({
   const [showTaskSelector, setShowTaskSelector] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
-  // Filter tasks by objectiveId
+  // Filter tasks by objectiveId and exclude archived tasks
   const objectiveTasks =
-    tasks?.filter((task) => task.objectiveId === objectiveId) || [];
+    tasks?.filter(
+      (task) =>
+        task.objectiveId === objectiveId &&
+        task.status !== TaskStatus.ARCHIVED
+    ) || [];
 
   if (isLoading) {
     return (
@@ -141,11 +145,10 @@ function ObjectiveTasksDisplay({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        
 
         {objectiveTasks.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center py-8 text-muted-foreground space-y-4">
-              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
               <BookmarkCheck className="h-8 w-8 stroke-muted-foreground stroke-1" />
             </div>
             <p>No tasks found for this objective.</p>
@@ -181,10 +184,10 @@ function ObjectiveTasksDisplay({
                 onClick={() => setSelectedTask(task)}
                 style={{ cursor: "pointer" }}
               >
-                <TaskCard 
-                  task={task} 
-                  workflowId={workflowId} 
-                  people={people} 
+                <TaskCard
+                  task={task}
+                  workflowId={workflowId}
+                  people={people}
                   onEditTask={setEditingTask}
                 />
               </div>
@@ -236,12 +239,12 @@ const ObjectivesSection = ({
 }: ObjectivesSectionProps) => {
   // Use useTasks hook to get tasks with proper assignedPeople structure
   // This ensures tasks always have assignedPeople, unlike tasks from workflow data
-  const { data: tasksFromHook = [], isLoading: tasksLoading } = useTasks(workflowId);
-  
+  const { data: tasksFromHook = [] } = useTasks(workflowId);
+
   // Use tasks from hook if available, otherwise fall back to prop
   // The hook ensures tasks have proper assignedPeople structure
   const tasks = tasksFromHook.length > 0 ? tasksFromHook : tasksProp;
-  
+
   const [activeTab, setActiveTab] = useQueryState(
     "tab",
     parseAsString.withDefault("objectives").withOptions({ history: "push" })
@@ -294,25 +297,23 @@ const ObjectivesSection = ({
     handleSetSelectedObjective(null);
   };
 
-  const handleDeleteObjective = async (
-    id: string,
-    title: string,
-    workflowId: string
-  ) => {
+  const handleDeleteObjective = async (id: string, title: string) => {
     setDeleteDialogState({ open: true, id, title });
   };
 
   const confirmDeleteObjective = async () => {
     if (!deleteDialogState.id || !deleteDialogState.title) return;
-    
+
     try {
       console.log("Deleting objective:", deleteDialogState.id);
-      await deleteObjectiveMutation.mutateAsync({ 
-        id: deleteDialogState.id, 
-        workflowId 
+      await deleteObjectiveMutation.mutateAsync({
+        id: deleteDialogState.id,
+        workflowId,
       });
       toast.success("Objective deleted successfully");
       setDeleteDialogState({ open: false, id: null, title: null });
+      // Navigate back to objectives list after successful deletion
+      handleSetSelectedObjective(null);
     } catch (error) {
       console.error("Error deleting objective:", error);
       toast.error("Failed to delete objective");
@@ -321,7 +322,9 @@ const ObjectivesSection = ({
 
   // Helper function to get objective stats
   const getObjectiveStats = (objective: Objective) => {
-    const tasks = objective.tasks || [];
+    const tasks = (objective.tasks || []).filter(
+      (task) => task.status !== TaskStatus.ARCHIVED
+    );
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter(
       (task) => task.status === "COMPLETED"
@@ -359,9 +362,9 @@ const ObjectivesSection = ({
   if (selectedTask) {
     return (
       <div className={cn(SECTION_CLASS, "flex flex-col h-full w-full gap-5")}>
-        <TaskDetailPane 
-          task={selectedTask} 
-          onTaskUpdate={UpdateTask} 
+        <TaskDetailPane
+          task={selectedTask}
+          onTaskUpdate={UpdateTask}
           onBack={() => handleSetSelectedTask(null)}
           people={people}
         />
@@ -378,39 +381,41 @@ const ObjectivesSection = ({
 
     return (
       <div className={cn(SECTION_CLASS, "flex flex-col h-full w-full gap-5")}>
-        {/* Header with back button */}
-        <div className="flex items-center justify-between w-full">
-          <Button variant="outline" size="sm" onClick={handleBackToObjectives}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex gap-2">
-            <ObjectiveModal
-              workflowId={workflowId}
-              objective={selectedObjective}
-            >
-              <Button variant="outline" size="sm">
-                <Edit className="h-4 w-4" /> Edit
-              </Button>
-            </ObjectiveModal>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                handleDeleteObjective(
-                  selectedObjective.id,
-                  selectedObjective.title,
-                  workflowId
-                )
-              }
-            >
-              <Trash2 className="h-4 w-4" /> Delete
-            </Button>
-          </div>
-        </div>
+        <DetailPaneHeader
+          onBack={handleBackToObjectives}
+          menuContent={
+            <>
+              <ObjectiveModal
+                workflowId={workflowId}
+                objective={selectedObjective}
+              >
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+              </ObjectiveModal>
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onSelect={(e) => {
+                  e.preventDefault();
+                  handleDeleteObjective(
+                    selectedObjective.id,
+                    selectedObjective.title
+                  );
+                }}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </>
+          }
+        />
 
         {/* Objective details */}
         <div className="w-full flex flex-col items-start gap-3">
-          <h2 className="text-2xl font-bold tracking-tight">{selectedObjective.title}</h2>
+          <h2 className="text-2xl font-bold tracking-tight">
+            {selectedObjective.title}
+          </h2>
           {selectedObjective.description && (
             <p className="text-muted-foreground">
               {selectedObjective.description}
@@ -445,6 +450,39 @@ const ObjectivesSection = ({
           objectiveId={selectedObjective.id}
           setSelectedTask={handleSetSelectedTask}
         />
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog
+          open={deleteDialogState.open}
+          onOpenChange={(open) =>
+            setDeleteDialogState({ ...deleteDialogState, open })
+          }
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete &quot;{deleteDialogState.title}
+                &quot;? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                onClick={() =>
+                  setDeleteDialogState({ open: false, id: null, title: null })
+                }
+              >
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmDeleteObjective}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     );
   }
@@ -457,7 +495,7 @@ const ObjectivesSection = ({
         onValueChange={(value) => setActiveTab(value as "objectives" | "tasks")}
         className="flex flex-col w-full"
       >
-        <TabsList className="sticky top-0 z-10 backdrop-blur-3xl bg-card border-b border-border/50 py-4 mb-4 grid w-fit grid-cols-2 gap-2">
+        <TabsList className="sticky top-0 z-10 backdrop-blur-3xl bg-card border-b border-border/50 py-4 mb-4 grid w-full grid-cols-2 gap-2">
           <TabsTrigger value="objectives" className="">
             <LibrarySquare className="h-4 w-4" />
             Objectives
@@ -473,9 +511,12 @@ const ObjectivesSection = ({
           <div className="flex flex-col gap-4 w-full">
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
               <div className="flex flex-col items-start gap-1 min-w-0 flex-1">
-                <h2 className="text-2xl font-semibold tracking-tight">Objectives</h2>
+                <h2 className="text-2xl font-semibold tracking-tight">
+                  Objectives
+                </h2>
                 <p className="text-sm text-muted-foreground">
-                  Manage your project objectives and track its tasks and their progress
+                  Manage your project objectives and track its tasks and their
+                  progress
                 </p>
               </div>
               <div className="flex-shrink-0">
@@ -487,121 +528,152 @@ const ObjectivesSection = ({
                 </ObjectiveModal>
               </div>
             </div>
-          
 
-          {/* Objectives Table */}
-          {objectives.length > 0 ? (
-            <div className="border rounded-lg">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Objective</TableHead>
-                    <TableHead>Tasks</TableHead>
-                    {/* <TableHead>Progress</TableHead> */}
-                    <TableHead>Created</TableHead>
-                    <TableHead className="w-12"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {objectives.map((objective) => {
-                    const stats = getObjectiveStats(objective);
-                    return (
-                      <TableRow
-                        key={objective.id}
-                        className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => handleSetSelectedObjective(objective)}
-                      >
-                        <TableCell>
-                          <div className="flex gap-2 flex-col items-start py-1">
-                            <p className="font-medium text-base line-clamp-1 text-ellipsis">
-                              {objective.title}
-                            </p>
-                            {objective.description && (
-                              <p className="text-sm text-muted-foreground text-wrap line-clamp-2">
-                                {objective.description}
-                              </p>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="secondary"
-                            className={cn(
-                              "flex flex-row items-center gap-1 justify-center shrink-0 border",
-                              stats.totalTasks > 0
-                                ? "border-primary bg-primary/30"
-                                : "border-input"
-                            )}
+            {/* Objectives Table */}
+            {objectives.length > 0 ? (
+              <div className="border rounded-lg">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-16"></TableHead>
+                      <TableHead>Objective</TableHead>
+                      <TableHead>Tasks</TableHead>
+                      {/* <TableHead>Progress</TableHead> */}
+                      <TableHead>Created</TableHead>
+                      <TableHead className="w-12"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {[...objectives]
+                      .sort(
+                        (a, b) =>
+                          new Date(a.createdAt).getTime() -
+                          new Date(b.createdAt).getTime()
+                      )
+                      .map((objective, index) => {
+                        const stats = getObjectiveStats(objective);
+                        const isLast = index === objectives.length - 1;
+                        const stepNumber = index + 1;
+                        return (
+                          <TableRow
+                            key={objective.id}
+                            className="cursor-pointer hover:bg-muted"
+                            onClick={() => handleSetSelectedObjective(objective)}
                           >
-                            <BookmarkCheck className="size-4" />
-                            <span className="text-sm">
-                              {stats.completedTasks === 0 &&
-                              stats.totalTasks === 0 ? (
-                                <span className="text-muted-foreground">0</span>
-                              ) : (
-                                <>
-                                  <span
-                                    className={cn(
-                                      stats.completedTasks === 0 &&
-                                        "text-muted-foreground"
-                                    )}
-                                  >
-                                    {stats.completedTasks}
-                                  </span>
-                                  <span
-                                    className={cn(
-                                      stats.completedTasks === 0 &&
-                                        "text-muted-foreground"
-                                    )}
-                                  >
-                                    /
-                                  </span>
-                                  <span
-                                    className={cn(
-                                      stats.totalTasks === 0 &&
-                                        "text-muted-foreground"
-                                    )}
-                                  >
-                                    {stats.totalTasks}
-                                  </span>
-                                </>
+                            <TableCell className="w-16 relative">
+                              <div className="flex items-center justify-center h-full py-4">
+                                <div className="flex flex-col items-center h-full">
+                                  {/* Connecting line above */}
+                                  {index > 0 && (
+                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 h-1/2 w-0.25 bg-input" />
+                                  )}
+                                  {/* Step circle */}
+                                  <div className=" z-10 ring-2 ring-input flex items-center justify-center size-6 rounded-full border-2 border-primary bg-background">
+                                    <span className="text-xs font-normal text-foreground">
+                                      {stepNumber}
+                                    </span>
+                                  </div>
+                                  {/* Connecting line below */}
+                                  {!isLast && (
+                                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 h-1/2 w-0.25 bg-input" />
+                                  )}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                            <div className="flex gap-2 flex-col items-start py-1">
+                              <p className="font-medium text-base line-clamp-1 text-ellipsis">
+                                {objective.title}
+                              </p>
+                              {objective.description && (
+                                <p className="text-sm text-muted-foreground text-wrap line-clamp-2">
+                                  {objective.description}
+                                </p>
                               )}
-                            </span>
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            {new Date(objective.createdAt).toLocaleDateString()}
-                          </div>
-                        </TableCell>
-                        <TableCell>{/* Actions here */}</TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-
-          ) : (
-            <div className="text-center flex flex-col items-center justify-center py-12 space-y-4 h-full">
-              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
-                <LibrarySquare className="size-8 stroke-muted-foreground stroke-1" />
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="secondary"
+                              className={cn(
+                                "flex flex-row items-center gap-1 justify-center shrink-0 border",
+                                stats.totalTasks > 0
+                                  ? "border-primary bg-primary/30"
+                                  : "border-input"
+                              )}
+                            >
+                              <BookmarkCheck className="size-4" />
+                              <span className="text-sm">
+                                {stats.completedTasks === 0 &&
+                                stats.totalTasks === 0 ? (
+                                  <span className="text-muted-foreground">
+                                    0
+                                  </span>
+                                ) : (
+                                  <>
+                                    <span
+                                      className={cn(
+                                        stats.completedTasks === 0 &&
+                                          "text-muted-foreground"
+                                      )}
+                                    >
+                                      {stats.completedTasks}
+                                    </span>
+                                    <span
+                                      className={cn(
+                                        stats.completedTasks === 0 &&
+                                          "text-muted-foreground"
+                                      )}
+                                    >
+                                      /
+                                    </span>
+                                    <span
+                                      className={cn(
+                                        stats.totalTasks === 0 &&
+                                          "text-muted-foreground"
+                                      )}
+                                    >
+                                      {stats.totalTasks}
+                                    </span>
+                                  </>
+                                )}
+                              </span>
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                              {new Date(
+                                objective.createdAt
+                              ).toLocaleDateString()}
+                            </div>
+                          </TableCell>
+                          <TableCell>{/* Actions here */}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
               </div>
-              <div>
-                <h3 className="text-lg font-medium">No objectives yet</h3>
-                <p className="text-muted-foreground text-sm">
-                  Create your first objective to start organizing your workflow
-                  tasks
-                </p>
+            ) : (
+              <div className="text-center flex flex-col items-center justify-center py-12 space-y-4 h-full">
+                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                  <LibrarySquare className="size-8 stroke-muted-foreground stroke-1" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium">No objectives yet</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Create your first objective to start organizing your
+                    workflow tasks
+                  </p>
+                </div>
+                <ObjectiveModal workflowId={workflowId}>
+                  <Button variant="outline" className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Create First Objective
+                  </Button>
+                </ObjectiveModal>
               </div>
-              <ObjectiveModal workflowId={workflowId}>
-                <Button variant="outline" className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Create First Objective
-                </Button>
-              </ObjectiveModal>
-            </div>
-          )}
+            )}
           </div>
         </TabsContent>
         {/* All Tasks Tab */}
@@ -616,20 +688,25 @@ const ObjectivesSection = ({
       </Tabs>
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog 
-        open={deleteDialogState.open} 
-        onOpenChange={(open) => setDeleteDialogState({ ...deleteDialogState, open })}
+      <AlertDialog
+        open={deleteDialogState.open}
+        onOpenChange={(open) =>
+          setDeleteDialogState({ ...deleteDialogState, open })
+        }
       >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deleteDialogState.title}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{deleteDialogState.title}
+              &quot;? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel 
-              onClick={() => setDeleteDialogState({ open: false, id: null, title: null })}
+            <AlertDialogCancel
+              onClick={() =>
+                setDeleteDialogState({ open: false, id: null, title: null })
+              }
             >
               Cancel
             </AlertDialogCancel>

@@ -3,10 +3,16 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Upload, FileSpreadsheet, Trash2, Loader2, Plus } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Upload, FileSpreadsheet, Trash2, Loader2 } from "lucide-react";
 import { v4 as uuid } from "uuid";
-import { useAddCompetitor } from "@/hooks/useCompetitors";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import {
+  AddTableIllustration,
+  ReplaceTableIllustration,
+} from "./CompetitorImportIllustrations";
 
 // Keep the data model simple for CSV import
 export type ImportedCsvFile = {
@@ -16,11 +22,18 @@ export type ImportedCsvFile = {
   file: File; // actual file for processing
 };
 
+export type CompetitorCsvImportMode = "append" | "replace";
+
 // Props following the same pattern as DocumentsModal
 interface CompetitorsModalProps {
   workflowId: string;
   children?: React.ReactNode;
-  onImport?: (files: ImportedCsvFile[]) => void;
+  /** Controlled open state. When set, `children` is not used as a trigger. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** When true, show append vs replace radios (replace clears other competitors; company row is kept). */
+  showImportModeChoice?: boolean;
+  onImport?: (files: ImportedCsvFile[], mode: CompetitorCsvImportMode) => void;
   /** optional max size per file, default 10MB */
   maxFileSizeBytes?: number;
 }
@@ -56,20 +69,31 @@ const DEFAULT_MAX = 10 * 1024 * 1024; // 10MB
 
 // Main component
 export const CompetitorsModal: React.FC<CompetitorsModalProps> = ({ 
-  workflowId, 
+  workflowId,
   children, 
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+  showImportModeChoice = false,
   onImport, 
   maxFileSizeBytes = DEFAULT_MAX 
 }) => {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const handleOpenChange = useCallback(
+    (next: boolean) => {
+      if (!isControlled) setInternalOpen(next);
+      controlledOnOpenChange?.(next);
+    },
+    [isControlled, controlledOnOpenChange]
+  );
+  const [importMode, setImportMode] = useState<CompetitorCsvImportMode>("append");
   const [items, setItems] = useState<ImportedCsvFile[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const dropRef = useRef<HTMLDivElement | null>(null);
-
-  const addCompetitorMutation = useAddCompetitor(workflowId);
 
   // Clean up blob URLs
   useEffect(() => {
@@ -78,12 +102,14 @@ export const CompetitorsModal: React.FC<CompetitorsModalProps> = ({
     };
   }, [items]);
 
-  // Reset state when closed
+  // Reset state when closed; default import mode when opened
   useEffect(() => {
     if (!open) {
       setItems([]);
       setErrors([]);
       setIsUploading(false);
+    } else {
+      setImportMode("append");
     }
   }, [open]);
 
@@ -210,38 +236,107 @@ export const CompetitorsModal: React.FC<CompetitorsModalProps> = ({
     setIsUploading(true);
     
     try {
-      // For now, just show a placeholder message
-      // TODO: Implement actual CSV parsing and competitor creation
-      toast.info("CSV import functionality will be implemented soon");
-      
-      // Simulate processing time
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Call onImport callback if provided
-      if (onImport && items.length > 0) {
-        onImport(items);
+      if (onImport) {
+        await Promise.resolve(onImport(items, importMode));
+      } else {
+        toast.info("CSV import functionality will be implemented soon");
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
-      // Close modal
-      setOpen(false);
+      handleOpenChange(false);
     } catch (error) {
       console.error('Error during import:', error);
       toast.error('Failed to import competitors');
     } finally {
       setIsUploading(false);
     }
-  }, [items, onImport]);
+  }, [items, onImport, importMode, handleOpenChange]);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-xl rounded-2xl p-0 overflow-hidden">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      {children ? <DialogTrigger asChild>{children}</DialogTrigger> : null}
+      <DialogContent
+        className="sm:max-w-xl rounded-2xl p-0 overflow-hidden"
+        id={`competitors-import-dialog-${workflowId}`}
+      >
         <DialogHeader className="px-6 pt-6">
           <DialogTitle className="text-xl">Import competitors</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
-        <div className="px-6 pb-6">
+        <div className="px-6 pb-6 space-y-5">
+          {showImportModeChoice ? (
+            <div className="space-y-2">
+              <Label>
+                Table update
+              </Label>
+              <RadioGroup
+                value={importMode}
+                onValueChange={(v) =>
+                  setImportMode(v as CompetitorCsvImportMode)
+                }
+                className="grid grid-cols-2 gap-2"
+                aria-label="How to import"
+              >
+                <label
+                  className={cn(
+                    "flex cursor-pointer flex-col gap-3 rounded-2xl border p-3 transition-colors focus-within:ring-2 focus-within:ring-ring sm:p-4",
+                    importMode === "append"
+                      ? "border-primary bg-primary/30"
+                      : "border-border hover:bg-muted/40"
+                  )}
+                >
+                  <div className="flex w-full items-center justify-start">
+                    <AddTableIllustration />
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <RadioGroupItem
+                      value="append"
+                      id="csv-import-append"
+                      className="mt-0.5 shrink-0 hidden"
+                    />
+                    <span className="min-w-0 space-y-0.5">
+                      <span className="block font-medium">
+                        Keep existing competitors
+                      </span>
+                      <span className="block text-sm text-muted-foreground leading-snug">
+                        Add after current table and append rows from your file.
+                      </span>
+                    </span>
+                  </div>
+                </label>
+                <label
+                  className={cn(
+                    "flex cursor-pointer flex-col gap-3 rounded-2xl border p-3 transition-colors focus-within:ring-2 focus-within:ring-ring sm:p-4",
+                    importMode === "replace"
+                      ? "border-primary bg-primary/30"
+                      : "border-border hover:bg-muted/40"
+                  )}
+                >
+                  <div className="flex w-full items-center justify-start">
+                    <ReplaceTableIllustration />
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <RadioGroupItem
+                      value="replace"
+                      id="csv-import-replace"
+                      className="mt-0.5 shrink-0 hidden"
+                    />
+                    <span className="min-w-0 space-y-0.5">
+                      <span className="block font-medium">
+                        Replace table completely
+                      </span>
+                      <span className="block text-sm text-muted-foreground leading-snug">
+                        Remove other competitors first (your company row stays).
+                        Then apply the import.
+                      </span>
+                    </span>
+                  </div>
+                </label>
+              </RadioGroup>
+            </div>
+          ) : null}
+
           {/* Dropzone */}
           <div
             ref={dropRef}
@@ -271,7 +366,10 @@ export const CompetitorsModal: React.FC<CompetitorsModalProps> = ({
               type="button"
               variant="secondary"
               className="rounded-2xl"
-              onClick={() => inputRef.current?.click()}
+              onClick={(e) => {
+                e.stopPropagation();
+                inputRef.current?.click();
+              }}
               disabled={isUploading}
             >
               Browse files
@@ -328,7 +426,7 @@ export const CompetitorsModal: React.FC<CompetitorsModalProps> = ({
 
           {/* Footer actions */}
           <div className="mt-6 flex items-center justify-end gap-2">
-            <Button variant="ghost" className="rounded-2xl" onClick={() => setOpen(false)} disabled={isUploading}>
+            <Button variant="ghost" className="rounded-2xl" onClick={() => handleOpenChange(false)} disabled={isUploading}>
               Cancel
             </Button>
             <Button

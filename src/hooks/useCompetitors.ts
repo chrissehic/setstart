@@ -31,9 +31,6 @@ export function useCompetitors(workflowId: string) {
     queryKey: competitorKeys.byWorkflow(workflowId),
     queryFn: async () => {
       const result = await getCompetitors(workflowId);
-      if (!result.success) {
-        throw new Error(result.error || "Failed to fetch competitors");
-      }
       return result.competitors;
     },
     enabled: !!workflowId,
@@ -46,9 +43,6 @@ export function useCompetitorTableColumns(workflowId: string) {
     queryKey: competitorKeys.tableColumns(workflowId),
     queryFn: async () => {
       const result = await getCompetitorTableColumns(workflowId);
-      if (!result.success) {
-        throw new Error(result.error || "Failed to fetch competitor table columns");
-      }
       return result.columns;
     },
     enabled: !!workflowId,

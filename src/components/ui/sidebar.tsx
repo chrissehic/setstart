@@ -520,9 +520,7 @@ function SidebarMenuButton({
   const Comp = asChild ? Slot : "button";
   const { isMobile, state } = useSidebar();
 
-  // Allow data-slot to be overridden by props (e.g., when used inside DropdownMenuTrigger)
-  // Extract it from props to avoid setting it twice
-  const { "data-slot": dataSlotProp, ...restProps } = props;
+  const { ["data-slot"]: dataSlotProp, ...restProps } = props as unknown as React.ComponentProps<"button"> & { ["data-slot"]?: string };
   const dataSlot = dataSlotProp ?? "sidebar-menu-button";
 
   const button = (
@@ -533,10 +531,17 @@ function SidebarMenuButton({
       data-active={isActive}
       className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
       {...restProps}
-    />
+    >
+      {props.children}
+    </Comp>
   );
 
-  if (!tooltip) {
+  // If asChild is true, don't wrap in Tooltip as it breaks Slot composition
+  // Also check if this button is being used as a child of DropdownMenuTrigger
+  // by checking if data-slot is overridden to "dropdown-menu-trigger"
+  const isInDropdownTrigger = dataSlot === "dropdown-menu-trigger";
+  
+  if (asChild || !tooltip || isInDropdownTrigger) {
     return button;
   }
 

@@ -78,7 +78,7 @@ export function DetailPaneHeader({
   menuContent,
 }: DetailPaneHeaderProps) {
   return (
-    <div className="sticky top-0 z-10 bg-card backdrop-blur-sm py-3">
+    <div className="sticky top-0 z-10 bg-card backdrop-blur-sm py-3 w-full">
       <div className="flex items-center w-full">
         {onBack && (
           <Button variant="outline" size="sm" onClick={onBack}>
